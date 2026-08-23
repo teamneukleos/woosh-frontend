@@ -102,7 +102,7 @@ export function CreatorDiscoveryFilters({
 
       <details
         className="rounded-[var(--radius-md)] border border-[var(--woosh-border)] bg-[var(--surface-sunken)]/40"
-        defaultOpen={moreOpen}
+        open={moreOpen || undefined}
       >
         <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-[var(--woosh-blue)] [&::-webkit-details-marker]:hidden">
           More filters
