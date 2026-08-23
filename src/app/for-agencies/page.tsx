@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchemaFrom } from "@/lib/seo-schema";
 
 export const metadata = pageMetadata({
-  title: "Every client. Their own Naira.",
+  title: "Every client. Their own money.",
   description:
     "Switch brand context. Duplicate the brief. Fund that client’s wallet. Zero platform fee. Wallets never mix.",
   path: "/for-agencies",
@@ -32,7 +32,7 @@ export default function ForAgenciesPage() {
       <AudienceHero
         kicker="{For agencies}"
         title="Client money does not mix. Ever."
-        lede="Switch the brand. Duplicate the brief. Fund that wallet. Same campaign rules. Separate Naira. We take 0%."
+        lede="Switch the brand. Duplicate the brief. Fund that wallet. Same campaign rules. Separate money. We take 0%."
         primaryHref="/register?type=agency"
         primaryLabel="Sign up"
         secondaryHref="/pricing"
@@ -87,7 +87,7 @@ export default function ForAgenciesPage() {
                 <tbody className="text-mkt-muted">
                   {[
                     ["Workspaces", "One organisation", "Client roster"],
-                    ["Wallets", "One NGN ledger", "One ledger per client"],
+                    ["Wallets", "One ledger", "One ledger per client"],
                     ["Briefs", "Yours to run", "Scoped to the active brand"],
                     ["Fund before select", "Yes", "Yes — from that client wallet"],
                     ["Claimed supply", "Yes", "Yes"],

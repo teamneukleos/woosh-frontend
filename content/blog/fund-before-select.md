@@ -11,7 +11,7 @@ Most Nigerian creator work still breaks at money: a rate in chat, a transfer lat
 
 ## Draft is free. Selection is not.
 
-You can write and publish a brief without topping up to the last naira. Creators can apply. Nothing is locked until you **accept**.
+You can write and publish a brief without filling the wallet first. Creators can apply. Nothing is locked until you **accept**.
 
 Accepting a creator pulls the **agreed rate** from the brand or agency wallet. Woosh takes **0% platform fee**. The campaign cannot pretend the money will appear after the reel goes live. NGN only. Paystack is the rail. USD display is not offered until that rail is real.
 

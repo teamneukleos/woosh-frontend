@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "influencer marketing",
     "UGC",
     "Paystack",
-    "NGN",
+    "Paystack",
   ],
   alternates: { canonical: "/" },
   openGraph: {

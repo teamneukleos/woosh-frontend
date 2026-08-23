@@ -11,8 +11,8 @@ export function BrandClosing() {
             The street already moved. Your next brief should too.
           </h2>
           <p className="mt-4 max-w-md text-sm leading-6 text-mkt-muted">
-            Claimed creators. Money on the ledger. One thread. Naira on
-            Paystack. We take 0%.
+            Claimed creators. Money on the ledger. One thread. Paystack. We
+            take 0%.
           </p>
           <Link href="/register" className="mkt-cta mkt-cta-primary mt-8 w-fit">
             Sign up

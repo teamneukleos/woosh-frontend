@@ -48,7 +48,7 @@ const items = [
     mock: <ThreadMock />,
   },
   {
-    title: "Naira first. We take 0%.",
+    title: "Money first. We take 0%.",
     copy: "Fund the wallet before you pick anyone. The rate you agree is the rate that pays. Paystack. A ledger finance can actually read.",
     frame: "woosh.app / wallet",
     mock: <WalletMock />,

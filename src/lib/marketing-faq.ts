@@ -1,11 +1,11 @@
 export const marketingFaqs = [
   {
     q: "What is Woosh?",
-    a: "The Nigeria marketplace for creator campaigns that refuse to live in WhatsApp. Claimed Instagram, TikTok and YouTube. One thread. Naira on Paystack. Zero platform fee.",
+    a: "The Nigeria marketplace for creator campaigns that refuse to live in WhatsApp. Claimed Instagram, TikTok and YouTube. One thread. Money on Paystack. Zero platform fee.",
   },
   {
     q: "Who is it for?",
-    a: "Brands who run their own briefs. Agencies with client wallets that must not mix. Creators who want claimed profiles and Naira they can see. First campaigns from unverified orgs can wait on review.",
+    a: "Brands who run their own briefs. Agencies with client wallets that must not mix. Creators who want claimed profiles and money they can see. First campaigns from unverified orgs can wait on review.",
   },
   {
     q: "Which social channels count?",
@@ -13,7 +13,7 @@ export const marketingFaqs = [
   },
   {
     q: "What currency do you settle in?",
-    a: "NGN. Wallet, quote, payout. No USD theatre until that rail is real.",
+    a: "Naira, through Paystack. Wallet, quote, payout. No USD theatre until that rail is real.",
   },
   {
     q: "Do you charge a platform fee?",

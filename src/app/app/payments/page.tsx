@@ -86,7 +86,7 @@ export default async function PaymentsPage({
     <AppPage
         eyebrow={ctx.kind === "agency" ? "Finance" : "Payments"}
         title={ctx.kind === "agency" ? "Finance" : "Payments"}
-        description="Put Naira on the wallet before you pick anyone. We take 0%. Paystack processing is theirs."
+        description="Put money on the wallet before you pick anyone. We take 0%. Paystack processing is theirs."
     >
       {params.funded === "1" ? (
         <Panel className="border-[var(--woosh-teal)]/40 bg-[var(--woosh-teal)]/10">

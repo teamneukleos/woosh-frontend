@@ -8,7 +8,7 @@ import { PRICING_FAQS } from "@/lib/pricing";
 export const metadata = pageMetadata({
   title: "Pricing for brands and agencies",
   description:
-    "Creators stay free. Brands and agencies pay for brief volume. 0% of the creator rate. NGN. Paystack.",
+    "Creators stay free. Brands and agencies pay for brief volume. 0% of the creator rate. Paystack.",
   path: "/pricing",
 });
 

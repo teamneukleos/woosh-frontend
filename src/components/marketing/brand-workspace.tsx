@@ -12,7 +12,7 @@ const claims = [
     copy: "Messages, drafts and approvals stay on the campaign — not a side chat that expires.",
   },
   {
-    title: "Every naira has a state",
+    title: "Every payment has a state",
     copy: "Committed, releasing, paid and disputed — on one ledger. Creators see net before they accept.",
   },
   {

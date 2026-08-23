@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Create a Woosh account",
   description:
-    "Brand, agency or creator. Claimed socials. Funded briefs. Naira on Paystack. Zero platform fee.",
+    "Brand, agency or creator. Claimed socials. Funded briefs. Paystack. Zero platform fee.",
   path: "/register",
 });
 

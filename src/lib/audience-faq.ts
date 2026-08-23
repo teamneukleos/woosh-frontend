@@ -3,7 +3,7 @@ export type AudienceFaqItem = { q: string; a: string };
 export const brandAudienceFaqs: AudienceFaqItem[] = [
   {
     q: "When do I put money on it?",
-    a: "Draft whenever. Accept is when Naira moves. The rate leaves the wallet. We take 0%. There is no “pay after they post”.",
+    a: "Draft whenever. Accept is when money moves. The rate leaves the wallet. We take 0%. There is no “pay after they post”.",
   },
   {
     q: "Can I invite someone who is not on Woosh?",
@@ -15,7 +15,7 @@ export const brandAudienceFaqs: AudienceFaqItem[] = [
   },
   {
     q: "What currency?",
-    a: "NGN. Quote, fund, settle. USD when that rail is real — not before.",
+    a: "Naira. Quote, fund, settle. USD when that rail is real — not before.",
   },
 ];
 
@@ -25,7 +25,7 @@ export const creatorAudienceFaqs: AudienceFaqItem[] = [
     a: "Claim the invite. Connect Instagram, TikTok or YouTube. Until you connect, the numbers stay unverified. You cannot type them.",
   },
   {
-    q: "When does the Naira land?",
+    q: "When do I get paid?",
     a: "After they approve the work: 72 hours, then Paystack to your verified NUBAN. We take 0%. Paystack processing is on them, not us.",
   },
   {

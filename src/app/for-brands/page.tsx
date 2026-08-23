@@ -18,7 +18,7 @@ import { breadcrumbSchema, faqSchemaFrom } from "@/lib/seo-schema";
 export const metadata = pageMetadata({
   title: "Run campaigns without the group chat",
   description:
-    "Claimed Instagram, TikTok and YouTube. Put Naira on the brief before you select. One thread. Zero platform fee.",
+    "Claimed Instagram, TikTok and YouTube. Fund the brief before you select. One thread. Zero platform fee.",
   path: "/for-brands",
 });
 
@@ -57,7 +57,7 @@ export default function ForBrandsPage() {
       <AudienceHero
         kicker="{For brands}"
         title="Stop running campaigns in WhatsApp."
-        lede="Claimed Instagram, TikTok, YouTube. Put Naira on the brief, then pick who runs it. One thread. We take 0%."
+        lede="Claimed Instagram, TikTok, YouTube. Fund the brief, then pick who runs it. One thread. We take 0%."
         primaryHref="/register?type=brand"
         primaryLabel="Sign up"
         secondaryHref="/pricing"
@@ -77,12 +77,12 @@ export default function ForBrandsPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07080c] via-transparent to-transparent" />
             <p className="absolute bottom-4 left-4 text-xs text-white/80">
-              Operator board · one organisation, one NGN wallet
+              Operator board · one organisation, one wallet
             </p>
           </div>
           <div className="absolute bottom-6 right-3 w-[min(100%,18rem)] sm:-right-2 sm:w-72">
             <ProductFrame title="woosh.app / shortlist">
-              <DiscoveryMock heading="Claimed supply" sub="Open brief · NGN" />
+              <DiscoveryMock heading="Claimed supply" sub="Open brief · funded" />
             </ProductFrame>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function ForBrandsPage() {
             {"{Fund before you select}"}
           </p>
           <h2 className="font-display mt-3 max-w-2xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
-            Draft empty-handed. Accept only when the Naira is there.
+            Draft empty-handed. Accept only when the money is there.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-white/80">
             No “we will pay after they post”. Finance sees the same number
@@ -128,7 +128,7 @@ export default function ForBrandsPage() {
             {[
               { label: "Wallet", value: "One ledger" },
               { label: "Select", value: "After fund" },
-              { label: "Settle", value: "NGN · Paystack" },
+              { label: "Settle", value: "Paystack" },
             ].map((row) => (
               <div key={row.label} className="rounded-xl bg-black/20 px-4 py-3">
                 <dt className="text-xs text-white/55">{row.label}</dt>
@@ -166,12 +166,12 @@ export default function ForBrandsPage() {
       </section>
 
       <AudienceFaq
-        heading="Before you put Naira on a brief."
+        heading="Before you put money on a brief."
         items={brandAudienceFaqs}
       />
       <AudienceClose
         title="Open the brand seat."
-        lede="Creators claim and collect in Naira. You fund, pick, settle — one ledger. We take 0%."
+        lede="Creators claim and get paid. You fund, pick, settle — one ledger. We take 0%."
         primaryHref="/register?type=brand"
         primaryLabel="Sign up"
         secondaryHref="/for-creators"

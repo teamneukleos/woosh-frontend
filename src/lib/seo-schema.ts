@@ -35,7 +35,7 @@ export function softwareSchema() {
     operatingSystem: "Web",
     url: siteUrl(),
     description:
-      "Nigeria marketplace for creator campaigns. Claimed socials, funded briefs, one thread, Naira on Paystack. Zero platform fee.",
+      "Nigeria marketplace for creator campaigns. Claimed socials, funded briefs, one thread, Paystack. Zero platform fee.",
     offers: {
       "@type": "Offer",
       price: "0",
@@ -84,7 +84,7 @@ export function blogSchema() {
     "@type": "Blog",
     name: `${siteName} blog`,
     description:
-      "How Woosh runs Nigeria-first creator campaigns: claimed socials, funded selection, NGN payouts, and the campaign thread.",
+      "How Woosh runs Nigeria-first creator campaigns: claimed socials, funded selection, payouts, and the campaign thread.",
     url: absoluteUrl("/blog"),
     publisher: { "@type": "Organization", name: siteName, url: siteUrl() },
     inLanguage: "en",

@@ -35,7 +35,7 @@ const steps = [
   {
     n: "04",
     title: "Pay. We take 0%.",
-    copy: "Accept commits the rate from a funded wallet. After approval: 72 hours, then Paystack to a NUBAN. Every naira on the ledger.",
+    copy: "Accept commits the rate from a funded wallet. After approval: 72 hours, then Paystack to a NUBAN. Every payment on the ledger.",
     frame: "woosh.app / earnings",
     mock: <PayMock />,
   },
@@ -50,7 +50,7 @@ export function BrandSteps() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{How it works}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          Find them. Brief them. Ship. Pay in Naira.
+          Find them. Brief them. Ship. Pay them.
         </h2>
         <p className="mt-4 text-sm text-mkt-subtle">
           Four moves. One ledger. Zero platform fee.

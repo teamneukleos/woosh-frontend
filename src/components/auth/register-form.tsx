@@ -23,12 +23,12 @@ const ROLES = [
   {
     value: "agency",
     title: "Agency",
-    body: "Every client. Their own wallet. No mixing the Naira.",
+    body: "Every client. Their own wallet. The money never mixes.",
   },
   {
     value: "creator",
     title: "Creator",
-    body: "Claim the handle. Connect the apps. Collect in Naira. We take 0%.",
+    body: "Claim the handle. Connect the apps. Get paid. We take 0%.",
   },
 ] as const;
 

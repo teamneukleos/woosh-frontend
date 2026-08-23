@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Sign in to Woosh",
   description:
-    "Sign in to run briefs, claimed supply and Naira payouts — one workspace.",
+    "Sign in to run briefs, claimed supply and payouts — one workspace.",
   path: "/login",
 });
 
@@ -16,7 +16,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Sign in"
-      description="The brief, the thread, the Naira — one workspace."
+      description="The brief, the thread, the money — one workspace."
       footer={
         <p>
           No account?{" "}

@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { encryptAccountNumber } from "../src/lib/payout-account-crypto";
 import { cartoonAvatar } from "../src/lib/cartoon-avatar";
+import { DISCOVERY_CATALOG } from "../src/lib/discovery-catalog";
 
 async function main() {
   if (
@@ -416,45 +417,32 @@ async function main() {
     },
   });
 
-  const prospects = await Promise.all([
-    prisma.creatorProspect.create({
-      data: {
-        channel: "INSTAGRAM",
-        handle: "amaka.creates",
-        displayName: "Amaka Creates",
-        locationCountry: "NG",
-        locationCity: "Abuja",
-        categories: ["Lifestyle", "Food & Drink"],
-        followerEstimate: 85000,
-        contactEmail: "amaka@example.com",
-        status: "UNCLAIMED",
-      },
-    }),
-    prisma.creatorProspect.create({
-      data: {
-        channel: "TIKTOK",
-        handle: "tunde.reels",
-        displayName: "Tunde Reels",
-        locationCountry: "NG",
-        locationCity: "Lagos",
-        categories: ["Comedy", "Tech"],
-        followerEstimate: 210000,
-        status: "UNCLAIMED",
-      },
-    }),
-    prisma.creatorProspect.create({
-      data: {
-        channel: "YOUTUBE",
-        handle: "zainab.fits",
-        displayName: "Zainab Fits",
-        locationCountry: "NG",
-        locationCity: "Kano",
-        categories: ["Fashion"],
-        followerEstimate: 45000,
-        status: "UNCLAIMED",
-      },
-    }),
-  ]);
+  const prospects = [];
+  for (const row of DISCOVERY_CATALOG) {
+    prospects.push(
+      await prisma.creatorProspect.upsert({
+        where: {
+          channel_handle: { channel: row.channel, handle: row.handle },
+        },
+        create: {
+          channel: row.channel,
+          handle: row.handle,
+          displayName: row.displayName,
+          locationCountry: "NG",
+          locationCity: row.locationCity,
+          categories: row.categories,
+          followerEstimate: row.followers,
+          status: "UNCLAIMED",
+        },
+        update: {
+          displayName: row.displayName,
+          locationCity: row.locationCity,
+          categories: row.categories,
+          followerEstimate: row.followers,
+        },
+      }),
+    );
+  }
 
   const brief = await prisma.brief.create({
     data: {

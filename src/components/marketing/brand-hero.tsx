@@ -7,7 +7,7 @@ import { SocialIcon, SocialLogoRow } from "@/components/ui/social-icon";
 const floats = [
   {
     title: "Palm Cola brief",
-    meta: "Funded in NGN",
+    meta: "Funded",
     value: "₦150k",
     channel: "TIKTOK",
     place: "bottom-5 left-4 sm:bottom-8 sm:left-8",
@@ -72,8 +72,8 @@ export function BrandHero() {
           <div>
             <p className="max-w-md text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
               Nigeria runs on the feed. Woosh is the marketplace that keeps up:
-              claimed Instagram, TikTok and YouTube — not typed bios. Put Naira
-              on the brief. One thread. Paystack. Zero platform fee.
+              claimed Instagram, TikTok and YouTube — not typed bios. Fund the
+              brief. One thread. Paystack. Zero platform fee.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link href="/register" className="mkt-cta mkt-cta-primary">

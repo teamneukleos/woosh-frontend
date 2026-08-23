@@ -26,7 +26,7 @@ export function ClientWallets() {
     <ProductFrame title="woosh.app / agency · switch client">
       <div className="grid gap-3">
         <p className="text-[0.65rem] text-white/40">
-          Workspace context · NGN ledgers do not mix
+          Workspace context · ledgers do not mix
         </p>
         <div className="flex gap-1 rounded-lg bg-white/[0.04] p-1">
           {clients.map((client) => (

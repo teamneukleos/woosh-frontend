@@ -14,7 +14,7 @@ const audiences = [
   {
     title: "Agencies",
     href: "/for-agencies",
-    copy: "Every client. Their own wallet. Switch context, duplicate the brief, never mix the Naira.",
+    copy: "Every client. Their own wallet. Switch context, duplicate the brief, never mix the money.",
     image: marketingPhotos.whoAgencies,
     alt: "Agency team reviewing creator campaign work together",
     position: "object-[center_40%]",
@@ -22,7 +22,7 @@ const audiences = [
   {
     title: "Creators",
     href: "/for-creators",
-    copy: "Claim the handle. Connect the apps. Set your packages. Collect in Naira — we take 0%.",
+    copy: "Claim the handle. Connect the apps. Set your packages. Get paid — we take 0%.",
     image: marketingPhotos.whoCreators,
     alt: "Creator on a video call between campaign shoots",
     position: "object-[center_20%]",
@@ -35,7 +35,7 @@ export function BrandWho() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{Who it’s for}"}</p>
         <h2 className="font-display mt-4 max-w-lg text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          One loop. Three seats. Same Naira.
+          One loop. Three seats. Same money.
         </h2>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">

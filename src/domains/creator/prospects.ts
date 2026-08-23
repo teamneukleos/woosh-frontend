@@ -2,6 +2,13 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import { CREATOR_CATEGORIES } from "@/lib/taxonomy";
+import {
+  CATALOG_BY_KEY,
+  DISCOVERY_CATALOG,
+  catalogKey,
+} from "@/lib/discovery-catalog";
+import { estimateAverageLikes } from "@/lib/discovery-stats";
+import { cartoonAvatar } from "@/lib/cartoon-avatar";
 import type { SocialChannel } from "@/generated/prisma/client";
 
 const categoryEnum = z.enum(
@@ -86,6 +93,11 @@ export type DiscoveryItem = {
   portfolioThumbnail?: string | null;
   startingRate?: number | null;
   rateCurrency?: string;
+  followers?: number | null;
+  engagementRate?: number | null;
+  averageViews?: number | null;
+  averageLikes?: number | null;
+  metricsVerified?: boolean;
   metrics?: Array<{
     channel: SocialChannel;
     followers: number | null;
@@ -95,6 +107,38 @@ export type DiscoveryItem = {
     capturedAt: Date;
   }>;
 };
+
+export async function ensureCatalogProspects() {
+  const existing = await prisma.creatorProspect.findMany({
+    where: {
+      OR: DISCOVERY_CATALOG.map((row) => ({
+        channel: row.channel,
+        handle: row.handle,
+      })),
+    },
+    select: { channel: true, handle: true },
+  });
+  const seen = new Set(
+    existing.map((row) => catalogKey(row.channel, row.handle)),
+  );
+  const missing = DISCOVERY_CATALOG.filter(
+    (row) => !seen.has(catalogKey(row.channel, row.handle)),
+  );
+  if (!missing.length) return;
+  await prisma.creatorProspect.createMany({
+    data: missing.map((row) => ({
+      channel: row.channel,
+      handle: row.handle,
+      displayName: row.displayName,
+      locationCountry: "NG",
+      locationCity: row.locationCity,
+      categories: row.categories,
+      followerEstimate: row.followers,
+      status: "UNCLAIMED" as const,
+    })),
+    skipDuplicates: true,
+  });
+}
 
 export async function listDiscovery(filters?: {
   q?: string;
@@ -189,7 +233,7 @@ export async function listDiscovery(filters?: {
           },
         },
       },
-      take: 50,
+      take: 80,
       orderBy: { updatedAt: "desc" },
     });
 
@@ -247,11 +291,16 @@ export async function listDiscovery(filters?: {
         verified: !!p.verifiedAt,
         status: "CLAIMED",
         avatarUrl:
-          p.avatarStatus === "APPROVED" ? p.avatarUrl : null,
+          p.avatarStatus === "APPROVED" ? p.avatarUrl : cartoonAvatar(p.displayName),
         portfolioCount: p._count.portfolioItems,
         portfolioThumbnail: p.portfolioItems[0]?.url ?? null,
         startingRate,
         rateCurrency: p.ratePackages[0]?.currency ?? p.rateCurrency,
+        followers: bestFollowers || null,
+        engagementRate: bestEngagement || null,
+        averageViews: bestViews || null,
+        averageLikes: estimateAverageLikes(bestFollowers, bestEngagement),
+        metricsVerified: true,
         metrics,
       });
     }
@@ -268,6 +317,12 @@ export async function listDiscovery(filters?: {
         ...(filters?.country
           ? { locationCountry: filters.country }
           : {}),
+        ...(filters?.city
+          ? { locationCity: { contains: filters.city, mode: "insensitive" } }
+          : {}),
+        ...(filters?.minFollowers
+          ? { followerEstimate: { gte: filters.minFollowers } }
+          : {}),
         ...(q
           ? {
               OR: [
@@ -277,11 +332,23 @@ export async function listDiscovery(filters?: {
             }
           : {}),
       },
-      take: 50,
+      take: 80,
       orderBy: { updatedAt: "desc" },
     });
 
     for (const p of prospects) {
+      const catalog = CATALOG_BY_KEY.get(catalogKey(p.channel, p.handle));
+      const followers = p.followerEstimate ?? catalog?.followers ?? null;
+      const engagementRate = catalog?.engagementRate ?? null;
+      const averageViews = catalog?.averageViews ?? null;
+      const averageLikes =
+        catalog?.averageLikes ?? estimateAverageLikes(followers, engagementRate);
+      if (filters?.minEngagement && (engagementRate ?? 0) < filters.minEngagement) {
+        continue;
+      }
+      if (filters?.minAverageViews && (averageViews ?? 0) < filters.minAverageViews) {
+        continue;
+      }
       items.push({
         id: p.id,
         type: "prospect",
@@ -291,31 +358,31 @@ export async function listDiscovery(filters?: {
         locationCountry: p.locationCountry,
         locationCity: p.locationCity,
         categories: p.categories,
-        followerEstimate: p.followerEstimate,
+        followerEstimate: followers,
+        followers,
+        engagementRate,
+        averageViews,
+        averageLikes,
+        metricsVerified: false,
         verified: false,
         status: p.status,
+        avatarUrl: cartoonAvatar(p.handle),
       });
     }
   }
 
   if (filters?.sort && filters.sort !== "newest") {
     items.sort((a, b) => {
-      if (a.type !== "claimed" || b.type !== "claimed") return 0;
-      const max = (
-        item: DiscoveryItem,
-        key: "followers" | "engagementRate" | "averageViews",
-      ) => Math.max(0, ...(item.metrics ?? []).map((metric) => metric[key] ?? 0));
       if (filters.sort === "price") {
         return (a.startingRate ?? Number.MAX_SAFE_INTEGER) -
           (b.startingRate ?? Number.MAX_SAFE_INTEGER);
       }
-      const key =
-        filters.sort === "followers"
-          ? "followers"
-          : filters.sort === "engagement"
-            ? "engagementRate"
-            : "averageViews";
-      return max(b, key) - max(a, key);
+      const value = (item: DiscoveryItem) => {
+        if (filters.sort === "followers") return item.followers ?? 0;
+        if (filters.sort === "engagement") return item.engagementRate ?? 0;
+        return item.averageViews ?? 0;
+      };
+      return value(b) - value(a);
     });
   }
   return items;

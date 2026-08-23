@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Woosh — Culture doesn't wait. Nigeria · Naira";
+export const alt = "Woosh — Culture doesn't wait. Nigeria";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -45,7 +45,7 @@ export default function Image() {
             wait.
           </div>
           <div style={{ display: "flex", fontSize: 28, opacity: 0.9 }}>
-            Nigeria · claimed supply · Naira on Paystack
+            Nigeria · claimed supply · Paystack
           </div>
         </div>
       </div>

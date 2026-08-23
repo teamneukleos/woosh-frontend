@@ -104,7 +104,7 @@ export function BrandOs() {
           />
           <Scene
             kicker="{02 / Briefs}"
-            title="A yes that already has Naira"
+            title="A yes that already has money"
             copy="Open, invite-only or hybrid. Accept locks the rate from a funded wallet. If finance cannot see it, it is not a yes."
             image={marketingPhotos.whoAgencies}
             alt="Team reviewing a funded creator campaign together"

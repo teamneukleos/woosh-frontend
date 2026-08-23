@@ -10,7 +10,7 @@ import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchemaFrom } from "@/lib/seo-schema";
 
 export const metadata = pageMetadata({
-  title: "Claim the handle. Collect in Naira.",
+  title: "Claim the handle. Get paid.",
   description:
     "Connect Instagram, TikTok and YouTube. Package what you sell. Get paid to a verified NUBAN. Zero platform fee. No public ratings.",
   path: "/for-creators",
@@ -34,13 +34,13 @@ const path = [
   },
   {
     n: "04",
-    title: "See the Naira before you say yes",
+    title: "See the money before you say yes",
     body: "Woosh takes 0% platform fee. The rate you accept is what we pay out (Paystack processing is separate). No public scoreboard.",
   },
   {
     n: "05",
     title: "Collect on a real NUBAN",
-    body: "After approval, a 72-hour release window, then payout in NGN.",
+    body: "After approval, a 72-hour release window, then payout to your account.",
   },
 ];
 
@@ -63,7 +63,7 @@ export default function ForCreatorsPage() {
 
       <AudienceHero
         kicker="{For creators}"
-        title="Your name. Your Naira. No stars."
+        title="Your name. Your money. No stars."
         lede="Connect the apps brands already stalk. Package the work. Collect on Paystack. We take 0%."
         primaryHref="/register?type=creator"
         primaryLabel="Claim your name"
@@ -169,7 +169,7 @@ export default function ForCreatorsPage() {
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{Payout}"}</p>
           <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-            The rate you accept is the Naira we send.
+            The rate you accept is the money we send.
           </h2>
           <div className="mt-8 flex max-w-2xl flex-col overflow-hidden rounded-2xl border border-mkt-border sm:flex-row">
             {[
@@ -196,7 +196,7 @@ export default function ForCreatorsPage() {
       <AudienceFaq heading="Before you claim the handle." items={creatorAudienceFaqs} />
       <AudienceClose
         title="Claim your name."
-        lede="Brands put Naira down first. Agencies do not mix client wallets. We take 0% of yours."
+        lede="Brands put money down first. Agencies do not mix client wallets. We take 0% of yours."
         primaryHref="/register?type=creator"
         primaryLabel="Claim your name"
         secondaryHref="/for-agencies"

@@ -14,7 +14,6 @@ const links = [
   { label: "Agencies", href: "/for-agencies" },
   { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
-  { label: "FAQ", href: "/#faq" },
 ];
 
 export function BrandNav() {

@@ -10,7 +10,6 @@ const product = [
   { href: "/for-agencies", label: "For agencies" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
-  { href: "/#faq", label: "FAQ" },
 ];
 
 const account = [
@@ -34,7 +33,7 @@ export function BrandFooter() {
         <div>
           <Logo href="/" adaptive size="md" />
           <p className="mt-4 max-w-xs text-sm leading-6 text-mkt-subtle">
-            {brand.tagline} Claimed supply. Funded briefs. Naira on Paystack.
+            {brand.tagline} Claimed supply. Funded briefs. Paystack.
             Zero platform fee.
           </p>
           <ul className="mt-6 flex flex-wrap items-center gap-2">
@@ -80,7 +79,7 @@ export function BrandFooter() {
       </div>
       <div className="mx-auto mt-14 flex max-w-6xl flex-col gap-2 border-t border-mkt-border px-5 pt-8 text-xs text-mkt-faint sm:flex-row sm:justify-between md:px-8">
         <p>© {new Date().getFullYear()} Woosh. All rights reserved.</p>
-        <p>Lagos · Nigeria · NGN</p>
+        <p>Lagos · Nigeria</p>
       </div>
     </footer>
   );

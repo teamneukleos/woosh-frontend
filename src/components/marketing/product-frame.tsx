@@ -76,7 +76,7 @@ function Check() {
 
 export function DiscoveryMock({
   heading = "Creators",
-  sub = "Open · NGN",
+  sub = "Open · funded",
   rows = [
     { ...marketingCast.ada, meta: "Lagos", channel: "TIKTOK", followers: "248k", verified: true },
     { ...marketingCast.kelechi, meta: "Abuja", channel: "INSTAGRAM", followers: "91k", verified: true },
@@ -331,7 +331,7 @@ export function PayMock() {
   return (
     <div className="grid gap-2">
       <div className="rounded-lg mkt-inset p-3">
-        <p className="text-[0.65rem] text-white/40">Creator wallet · NGN</p>
+        <p className="text-[0.65rem] text-white/40">Creator wallet</p>
         <p className="mt-1 text-xl font-medium tracking-[-0.03em] text-white">₦387,500</p>
         <p className="mt-1 text-[0.65rem] text-white/45">Available · Paystack</p>
       </div>
@@ -362,7 +362,7 @@ export function WalletMock() {
   ];
   return (
     <div className="grid gap-2">
-      <p className="text-[0.65rem] text-white/40">Brand wallet · NGN</p>
+      <p className="text-[0.65rem] text-white/40">Brand wallet</p>
       <div className="grid grid-cols-3 gap-1.5">
         {lines.map((line) => (
           <div

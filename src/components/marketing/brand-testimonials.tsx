@@ -3,7 +3,7 @@ import { marketingCast } from "@/components/marketing/cast";
 const quotes = [
   {
     quote:
-      "I stopped chasing invoices in WhatsApp. The Naira showed up before I even said yes.",
+      "I stopped chasing invoices in WhatsApp. The money showed up before I even said yes.",
     name: marketingCast.ada.name,
     role: "Creator · Lagos",
     src: marketingCast.ada.src,
@@ -31,7 +31,7 @@ const quotes = [
   },
   {
     quote:
-      "Fund, accept, 72 hours, Paystack. I can finally tell finance what happened to the naira.",
+      "Fund, accept, 72 hours, Paystack. I can finally tell finance what happened to the money.",
     name: marketingCast.tolu.name,
     role: "Finance · Lagos brand",
     src: marketingCast.tolu.src,

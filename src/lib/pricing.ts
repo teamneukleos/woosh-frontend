@@ -54,7 +54,7 @@ export const BRAND_PLANS: PricingPlan[] = [
       "Fund before you select",
       "One campaign thread",
       "0% on the creator rate",
-      "Paystack wallet in NGN",
+      "Wallet on Paystack",
     ],
   },
   {
@@ -126,7 +126,7 @@ export const AGENCY_PLANS: PricingPlan[] = [
     seats: 2,
     cta: { label: "Start free", href: "/register?type=agency&plan=agency-desk" },
     features: [
-      "1 client brand, its own NGN wallet",
+      "1 client brand, its own wallet",
       "1 published brief per month",
       "Search claimed creators",
       "0% on the creator rate",
@@ -137,7 +137,7 @@ export const AGENCY_PLANS: PricingPlan[] = [
     id: "agency-roster",
     audience: "agency",
     name: "Roster",
-    pitch: "A small book. Separate Naira for each name.",
+    pitch: "A small book. Separate money for each name.",
     monthlyNgn: 40_000,
     briefsPerMonth: 5,
     clientBrands: 5,
@@ -208,7 +208,7 @@ export const PRICING_FEATURES = [
   },
   {
     kicker: "04 / Pay",
-    title: "Naira first. We take 0% of it.",
+    title: "Money first. We take 0% of it.",
     body: "Fund the wallet before you pick anyone. The rate you agree is the rate that pays. Subscription is for volume. Paystack processing is theirs.",
   },
 ] as const;

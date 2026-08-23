@@ -14,7 +14,7 @@ import {
 export const metadata = pageMetadata({
   title: "Blog",
   description:
-    "How Nigeria actually runs a brief: claimed socials, funded selection, Naira payouts, brand vs agency, one thread.",
+    "How Nigeria actually runs a brief: claimed socials, funded selection, payouts, brand vs agency, one thread.",
   path: "/blog",
   image: BLOG_PLACEHOLDER_IMAGE,
 });
@@ -39,7 +39,7 @@ export default function BlogIndexPage() {
               How the brief survives the street.
             </h1>
             <p className="mt-6 max-w-xl text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
-              Claimed supply. Funded selection. Naira. The thread. Notes — not
+              Claimed supply. Funded selection. Payouts. The thread. Notes — not
               invented case studies.
             </p>
 

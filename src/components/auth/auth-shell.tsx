@@ -36,7 +36,7 @@ export function AuthShell({
               wait.
             </h2>
             <p className="mt-5 text-sm leading-6 text-white/80">
-              Find who is real. Put Naira on the brief. One thread. Paystack.
+              Find who is real. Fund the brief. One thread. Paystack.
               We take 0%.
             </p>
           </div>

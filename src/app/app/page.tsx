@@ -95,7 +95,7 @@ export default async function AppHomePage() {
         ctx.activeBrand
           ? `Active brand: ${ctx.activeBrand.name}`
           : ctx.kind === "creator"
-            ? "Jobs, campaigns, Naira — your seat."
+            ? "Jobs, campaigns, earnings — your seat."
             : "Add the first brand. Then the work starts."
       }
       actions={
