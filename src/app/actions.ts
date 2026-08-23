@@ -135,7 +135,7 @@ export async function switchBrandAction(formData: FormData) {
   const brandId = String(formData.get("brandId") ?? "");
   if (!brandId) return;
   await setActiveBrandId(brandId);
-  revalidatePath("/app");
+  revalidatePath("/app", "layout");
 }
 
 export async function createProspectAction(formData: FormData) {

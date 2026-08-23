@@ -24,7 +24,8 @@ export function BrandSwitcher({
       <Select
         id="brandId"
         name="brandId"
-        defaultValue={activeBrandId ?? ""}
+        key={activeBrandId ?? "none"}
+        value={activeBrandId ?? ""}
         disabled={pending}
         onChange={(e) => {
           const form = e.currentTarget.form;

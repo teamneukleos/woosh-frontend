@@ -55,6 +55,10 @@ export function AppShell({
   const nav = navByKind[kind] ?? navByKind.brand;
   const groups = groupNav(nav);
   const mobileNav = nav.filter((item) => item.mobile);
+  const showActiveBrand =
+    Boolean(activeBrandName) &&
+    (kind === "agency" || kind === "brand" || kind === "admin");
+  const canSwitchBrand = showActiveBrand && brands.length > 1;
 
   function isActive(href: string) {
     if (href === "/app") return pathname === "/app";
@@ -66,25 +70,32 @@ export function AppShell({
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-[#07070a] px-3 py-4 text-white md:flex">
         <div className="px-2 pb-4">
           <Logo href="/app" light />
-          <p className="mt-3 text-[0.75rem] capitalize text-white/45">
+          {showActiveBrand ? (
+            <ActiveBrandName
+              name={activeBrandName!}
+              className="mt-3 truncate text-sm font-semibold tracking-[-0.01em] text-white"
+            />
+          ) : null}
+          <p
+            className={cn(
+              "text-[0.75rem] capitalize text-white/45",
+              showActiveBrand ? "mt-0.5" : "mt-3",
+            )}
+          >
             {kind}
           </p>
         </div>
 
-        {(kind === "agency" || kind === "brand" || kind === "admin") &&
-        brands.length > 0 ? (
+        {canSwitchBrand ? (
           <div className="mb-3 px-0.5">
-            {brands.length > 1 ? (
-              <BrandSwitcher
-                brands={brands}
-                activeBrandId={activeBrandId}
-                className="text-white"
-              />
-            ) : (
-              <p className="truncate px-2 py-1.5 text-sm font-medium text-white">
-                {activeBrandName}
-              </p>
-            )}
+            <p className="px-2.5 pb-0.5 text-[0.6875rem] font-medium text-white/35">
+              Switch brand
+            </p>
+            <BrandSwitcher
+              brands={brands}
+              activeBrandId={activeBrandId}
+              className="text-white"
+            />
           </div>
         ) : null}
 
@@ -135,9 +146,27 @@ export function AppShell({
               <X aria-hidden="true" className="size-5" />
             </Button>
           </div>
-          <Badge tone="blue" className="mb-4 w-fit capitalize">
+          <Badge tone="blue" className="mb-3 w-fit capitalize">
             {kind}
           </Badge>
+          {showActiveBrand ? (
+            <ActiveBrandName
+              name={activeBrandName!}
+              className="mb-3 truncate px-0.5 text-sm font-semibold text-white"
+            />
+          ) : null}
+          {canSwitchBrand ? (
+            <div className="mb-4">
+              <p className="px-0.5 pb-1 text-[0.6875rem] font-medium text-white/35">
+                Switch brand
+              </p>
+              <BrandSwitcher
+                brands={brands}
+                activeBrandId={activeBrandId}
+                className="text-white"
+              />
+            </div>
+          ) : null}
           <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
             {groups.map((group) => (
               <div key={group.label ?? group.items[0]?.href} className="flex flex-col gap-0.5">
@@ -180,6 +209,12 @@ export function AppShell({
             <Menu aria-hidden="true" className="size-5" />
           </Button>
           <Logo href="/app" size="sm" />
+          {showActiveBrand ? (
+            <ActiveBrandName
+              name={activeBrandName!}
+              className="min-w-0 truncate text-sm font-semibold text-[var(--text-strong)]"
+            />
+          ) : null}
           <div className="ml-auto">
             <Link
               href="/app/notifications"
@@ -229,6 +264,21 @@ export function AppShell({
         </nav>
       </div>
     </div>
+  );
+}
+
+function ActiveBrandName({
+  name,
+  className,
+}: {
+  name: string;
+  className?: string;
+}) {
+  return (
+    <p className={className} aria-live="polite">
+      <span className="sr-only">Active brand: </span>
+      {name}
+    </p>
   );
 }
 
