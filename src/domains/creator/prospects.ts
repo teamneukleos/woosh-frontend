@@ -81,6 +81,7 @@ export type DiscoveryItem = {
   type: "claimed" | "prospect";
   displayName: string;
   channel?: SocialChannel;
+  channels?: SocialChannel[];
   handle?: string;
   locationCountry?: string | null;
   locationCity?: string | null;
@@ -284,6 +285,9 @@ export async function listDiscovery(filters?: {
         type: "claimed",
         displayName: p.displayName,
         channel: primary?.channel,
+        channels: p.socialAccounts
+          .map((account) => account.channel)
+          .filter((channel, index, all) => all.indexOf(channel) === index),
         handle: primary?.handle,
         locationCountry: p.locationCountry,
         locationCity: p.locationCity,
@@ -354,6 +358,7 @@ export async function listDiscovery(filters?: {
         type: "prospect",
         displayName: p.displayName || `@${p.handle}`,
         channel: p.channel,
+        channels: [p.channel],
         handle: p.handle,
         locationCountry: p.locationCountry,
         locationCity: p.locationCity,

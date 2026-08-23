@@ -14,12 +14,8 @@ import { Input, Select, Label } from "@/components/ui/field";
 import { CategoryPicker } from "@/components/ui/taxonomy-pickers";
 import { ActionForm } from "@/components/ui/action-form";
 import { CreatorDiscoveryCard } from "@/components/creator/creator-discovery-card";
-import {
-  CREATOR_CATEGORIES,
-  LANGUAGES,
-  SOCIAL_CHANNELS,
-} from "@/lib/taxonomy";
-import { DISCOVERY_CITIES } from "@/lib/discovery-catalog";
+import { CreatorDiscoveryFilters } from "@/components/creator/creator-discovery-filters";
+import { CREATOR_CATEGORIES, SOCIAL_CHANNELS } from "@/lib/taxonomy";
 import { prisma } from "@/lib/db";
 
 export default async function CreatorsPage({
@@ -85,137 +81,42 @@ export default async function CreatorsPage({
   const savedIds = new Set(
     savedItems.map((item) => item.creatorProfileId).filter(Boolean),
   );
+  const interests = ctx.activeBrandId
+    ? await prisma.brandInterest.findMany({
+        where: {
+          brandId: ctx.activeBrandId,
+          status: { not: "CLOSED" },
+        },
+        select: { prospectId: true, creatorProfileId: true },
+      })
+    : [];
+  const interestedProspects = new Set(
+    interests.map((row) => row.prospectId).filter(Boolean),
+  );
+  const interestedCreators = new Set(
+    interests.map((row) => row.creatorProfileId).filter(Boolean),
+  );
 
   return (
     <AppPage
       eyebrow="Find"
       title="Creators"
-      description="Search claimed and unclaimed creators. Filters are dropdowns — platform, niche, city, reach."
+      description="Search by platform, niche, city and reach."
       width="wide"
     >
-      <DataToolbar>
-        <form className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-          <Label className="xl:col-span-2">
-            Search
-            <Input
-              name="q"
-              defaultValue={params.q}
-              placeholder="Name or handle"
-            />
-          </Label>
-          <Label>
-            Status
-            <Select name="type" defaultValue={params.type ?? ""}>
-              <option value="">All creators</option>
-              <option value="claimed">Claimed</option>
-              <option value="prospect">Unclaimed</option>
-            </Select>
-          </Label>
-          <Label>
-            Platform
-            <Select name="channel" defaultValue={params.channel ?? ""}>
-              <option value="">All platforms</option>
-              {SOCIAL_CHANNELS.map((channel) => (
-                <option key={channel.value} value={channel.value}>
-                  {channel.label}
-                </option>
-              ))}
-            </Select>
-          </Label>
-          <Label>
-            Category
-            <Select name="category" defaultValue={params.category ?? ""}>
-              <option value="">All niches</option>
-              {CREATOR_CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </Select>
-          </Label>
-          <Label>
-            City
-            <Select name="city" defaultValue={params.city ?? ""}>
-              <option value="">All cities</option>
-              {DISCOVERY_CITIES.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </Select>
-          </Label>
-          <Label>
-            Followers
-            <Select
-              name="minFollowers"
-              defaultValue={params.minFollowers ?? ""}
-            >
-              <option value="">Any reach</option>
-              <option value="10000">10k+</option>
-              <option value="50000">50k+</option>
-              <option value="100000">100k+</option>
-              <option value="250000">250k+</option>
-            </Select>
-          </Label>
-          <Label>
-            Sort
-            <Select name="sort" defaultValue={params.sort ?? "followers"}>
-              <option value="followers">Most followers</option>
-              <option value="engagement">Highest engagement</option>
-              <option value="views">Highest avg views</option>
-              <option value="newest">Newest</option>
-              <option value="price">Price low to high</option>
-            </Select>
-          </Label>
-          <details className="sm:col-span-2 lg:col-span-4 xl:col-span-6">
-            <summary className="cursor-pointer text-sm font-medium text-[var(--woosh-blue)]">
-              More filters
-            </summary>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Label>
-                Country
-                <Input
-                  name="country"
-                  defaultValue={params.country}
-                  placeholder="NG"
-                />
-              </Label>
-              <Label>
-                Language
-                <Select name="language" defaultValue={params.language ?? ""}>
-                  <option value="">All</option>
-                  {LANGUAGES.map((language) => (
-                    <option key={language}>{language}</option>
-                  ))}
-                </Select>
-              </Label>
-              <Label>
-                Min ER %
-                <Input
-                  name="minEngagement"
-                  type="number"
-                  min={0}
-                  step="0.1"
-                  defaultValue={params.minEngagement}
-                />
-              </Label>
-              <Label>
-                Min avg views
-                <Input
-                  name="minAverageViews"
-                  type="number"
-                  min={0}
-                  defaultValue={params.minAverageViews}
-                />
-              </Label>
-            </div>
-          </details>
-          <div className="flex items-end">
-            <Button type="submit" className="w-full">
-              Apply
-            </Button>
-          </div>
-        </form>
+      <DataToolbar className="p-4 md:p-5">
+        <CreatorDiscoveryFilters
+          q={params.q}
+          channel={params.channel}
+          category={params.category}
+          city={params.city}
+          minFollowers={params.minFollowers}
+          sort={params.sort}
+          country={params.country}
+          language={params.language}
+          minEngagement={params.minEngagement}
+          minAverageViews={params.minAverageViews}
+        />
       </DataToolbar>
 
       <p className="text-sm text-[var(--text-secondary)]">
@@ -229,6 +130,11 @@ export default async function CreatorsPage({
               <CreatorDiscoveryCard
                 item={item}
                 saved={savedIds.has(item.id)}
+                interested={
+                  item.type === "prospect"
+                    ? interestedProspects.has(item.id)
+                    : interestedCreators.has(item.id)
+                }
                 activeBrandId={ctx.activeBrandId}
               />
             </li>

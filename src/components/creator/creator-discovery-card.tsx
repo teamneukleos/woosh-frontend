@@ -1,13 +1,10 @@
 import Link from "next/link";
-import {
-  expressInterestAction,
-  toggleSaveCreatorAction,
-} from "@/app/actions";
+import { toggleSaveCreatorAction } from "@/app/actions";
+import { InterestButton } from "@/components/creator/interest-button";
 import { ActionForm } from "@/components/ui/action-form";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { ChannelMark, socialLabel } from "@/components/ui/social-icon";
+import { SocialIcon, socialLabel } from "@/components/ui/social-icon";
 import { VerifiedCheck } from "@/components/ui/verified-check";
 import type { DiscoveryItem } from "@/domains/creator/prospects";
 import { formatHandle } from "@/lib/handle";
@@ -19,13 +16,19 @@ import {
 export function CreatorDiscoveryCard({
   item,
   saved,
+  interested,
   activeBrandId,
 }: {
   item: DiscoveryItem;
   saved: boolean;
+  interested: boolean;
   activeBrandId?: string | null;
 }) {
-  const platform = socialLabel(item.channel) ?? "Social";
+  const platforms = item.channels?.length
+    ? item.channels
+    : item.channel
+      ? [item.channel]
+      : [];
   const stats = [
     { label: "Followers", value: formatCompact(item.followers) },
     { label: "Engagement", value: formatEngagement(item.engagementRate) },
@@ -35,16 +38,17 @@ export function CreatorDiscoveryCard({
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
-      <div className="flex items-center justify-between gap-3 bg-[var(--woosh-navy)] px-4 py-2.5 text-white">
-        <span className="inline-flex items-center gap-2 text-sm font-medium">
-          {item.channel ? (
-            <ChannelMark channel={item.channel} size="sm" />
-          ) : null}
-          {platform}
-        </span>
-        <StatusBadge
-          status={item.type === "prospect" ? "UNCLAIMED" : "CLAIMED"}
-        />
+      <div className="flex items-center gap-2.5 bg-[var(--woosh-navy)] px-4 py-2.5">
+        {platforms.map((channel) => (
+          <span
+            key={channel}
+            title={socialLabel(channel) ?? channel}
+            className="inline-flex"
+          >
+            <SocialIcon channel={channel} size="md" />
+            <span className="sr-only">{socialLabel(channel)}</span>
+          </span>
+        ))}
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -84,36 +88,32 @@ export function CreatorDiscoveryCard({
         <p className="mt-2 text-[0.6875rem] text-[var(--text-muted)]">
           {item.metricsVerified
             ? "Live from the connected app."
-            : "Estimate — unclaimed until they connect."}
+            : "Estimate until they connect."}
         </p>
 
-        <div className="mt-auto flex flex-wrap gap-2 pt-4">
+        <div className="mt-auto flex flex-col gap-2 pt-4 sm:flex-row sm:flex-wrap">
           {item.type === "claimed" ? (
             <ActionForm
               action={toggleSaveCreatorAction}
               successTitle={saved ? "Creator removed" : "Creator saved"}
+              className="w-full sm:w-auto"
             >
               <input type="hidden" name="creatorProfileId" value={item.id} />
               <input type="hidden" name="saved" value={saved ? "1" : "0"} />
-              <Button type="submit" size="sm" variant="secondary">
+              <Button type="submit" size="sm" variant="secondary" className="w-full sm:w-auto">
                 {saved ? "Saved" : "Save"}
               </Button>
             </ActionForm>
           ) : null}
-          <ActionForm action={expressInterestAction} successTitle="Interest sent">
-            <input type="hidden" name="brandId" value={activeBrandId ?? ""} />
-            {item.type === "prospect" ? (
-              <input type="hidden" name="prospectId" value={item.id} />
-            ) : (
-              <input type="hidden" name="creatorProfileId" value={item.id} />
-            )}
-            <Button type="submit" size="sm" disabled={!activeBrandId}>
-              Interested
-            </Button>
-          </ActionForm>
+          <InterestButton
+            interested={interested}
+            activeBrandId={activeBrandId}
+            prospectId={item.type === "prospect" ? item.id : undefined}
+            creatorProfileId={item.type === "claimed" ? item.id : undefined}
+          />
           <Link
             href={`/app/creators/${item.id}?type=${item.type}`}
-            className="inline-flex h-8 items-center px-2 text-sm font-medium text-[var(--woosh-blue)] hover:underline"
+            className="inline-flex h-10 w-full items-center justify-center px-2 text-sm font-medium text-[var(--woosh-blue)] hover:underline sm:h-8 sm:w-auto"
           >
             View
           </Link>

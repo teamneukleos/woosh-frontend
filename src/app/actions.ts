@@ -176,6 +176,10 @@ export async function expressInterestAction(formData: FormData) {
   });
 
   revalidatePath("/app/creators");
+  const prospectId = String(formData.get("prospectId") || "");
+  const creatorProfileId = String(formData.get("creatorProfileId") || "");
+  if (prospectId) revalidatePath(`/app/creators/${prospectId}`);
+  if (creatorProfileId) revalidatePath(`/app/creators/${creatorProfileId}`);
 }
 
 export async function toggleSaveCreatorAction(formData: FormData) {

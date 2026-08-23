@@ -5,7 +5,8 @@ import {
   getClaimedCreator,
   getProspect,
 } from "@/domains/creator/prospects";
-import { expressInterestAction, inviteToBriefAction } from "@/app/actions";
+import { inviteToBriefAction } from "@/app/actions";
+import { InterestButton } from "@/components/creator/interest-button";
 import { BackLink } from "@/components/ui/back-link";
 import { Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
@@ -37,6 +38,18 @@ export default async function CreatorDetailPage({
   if (isProspect) {
     const prospect = await getProspect(id);
     if (!prospect) notFound();
+    const alreadyInterested = ctx.activeBrandId
+      ? Boolean(
+          await prisma.brandInterest.findFirst({
+            where: {
+              brandId: ctx.activeBrandId,
+              prospectId: prospect.id,
+              status: { not: "CLOSED" },
+            },
+            select: { id: true },
+          }),
+        )
+      : false;
 
     return (
       <AppPage
@@ -63,33 +76,23 @@ export default async function CreatorDetailPage({
               <span className="ml-1 text-xs">(estimate, unverified)</span>
             </p>
           ) : null}
-          <ActionForm
-            action={expressInterestAction}
-            successTitle="Invitation sent"
-            className="mt-6 flex flex-col gap-3"
-          >
-            <input type="hidden" name="prospectId" value={prospect.id} />
-            <input
-              type="hidden"
-              name="brandId"
-              value={ctx.activeBrandId ?? ""}
-            />
-            <Label>
-              Invite message
-              <TextArea
-                name="message"
-                placeholder="Optional note to the creator"
-                rows={3}
-              />
-            </Label>
-            <Button
-              type="submit"
-              disabled={!ctx.activeBrandId}
-              className="w-fit"
+          <div className="mt-6">
+            <InterestButton
+              interested={alreadyInterested}
+              activeBrandId={ctx.activeBrandId}
+              prospectId={prospect.id}
+              className="flex flex-col gap-3"
             >
-              Invite to claim
-            </Button>
-          </ActionForm>
+              <Label>
+                Invite message
+                <TextArea
+                  name="message"
+                  placeholder="Optional note to the creator"
+                  rows={3}
+                />
+              </Label>
+            </InterestButton>
+          </div>
         </Panel>
       </AppPage>
     );
@@ -109,6 +112,19 @@ export default async function CreatorDetailPage({
     creatorProfileId: profile.id,
     dedupePerDay: true,
   });
+
+  const alreadyInterested = ctx.activeBrandId
+    ? Boolean(
+        await prisma.brandInterest.findFirst({
+          where: {
+            brandId: ctx.activeBrandId,
+            creatorProfileId: profile.id,
+            status: { not: "CLOSED" },
+          },
+          select: { id: true },
+        }),
+      )
+    : false;
 
   const briefs = ctx.activeBrandId
     ? await prisma.brief.findMany({
@@ -167,17 +183,11 @@ export default async function CreatorDetailPage({
         </Panel>
       ) : null}
       <Panel title="Work with this creator">
-        <ActionForm
-          action={expressInterestAction}
-          successTitle="Interest recorded"
-          className="flex flex-wrap gap-3"
-        >
-          <input type="hidden" name="creatorProfileId" value={profile.id} />
-          <input type="hidden" name="brandId" value={ctx.activeBrandId ?? ""} />
-          <Button type="submit" disabled={!ctx.activeBrandId}>
-            Interested
-          </Button>
-        </ActionForm>
+        <InterestButton
+          interested={alreadyInterested}
+          activeBrandId={ctx.activeBrandId}
+          creatorProfileId={profile.id}
+        />
       </Panel>
 
       {briefs.length ? (
