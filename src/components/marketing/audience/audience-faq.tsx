@@ -31,7 +31,7 @@ export function AudienceFaq({
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="flex w-full cursor-pointer items-start justify-between gap-6 text-left text-[0.9375rem] font-medium text-mkt-fg transition-colors hover:text-[var(--mkt-teal)]"
+                  className="flex w-full cursor-pointer items-start justify-between gap-3 text-left text-[0.9375rem] font-medium text-mkt-fg transition-colors hover:text-[var(--mkt-teal)] sm:gap-6"
                 >
                   <span>
                     <span className="mr-3 text-mkt-faint">
@@ -51,7 +51,7 @@ export function AudienceFaq({
                 <p
                   id={panelId}
                   hidden={!isOpen}
-                  className="mt-3 max-w-2xl pl-10 text-sm leading-6 text-mkt-subtle"
+                  className="mt-3 max-w-2xl pl-0 text-sm leading-6 text-mkt-subtle sm:pl-10"
                 >
                   {item.a}
                 </p>

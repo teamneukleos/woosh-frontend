@@ -6,6 +6,7 @@ import {
   annualSavingsNgn,
   billedMonthlyNgn,
   canPublishBrief,
+  formatNgn,
   plansFor,
 } from "@/lib/pricing";
 
@@ -17,6 +18,11 @@ describe("pricing logic", () => {
     expect(starter?.briefsPerMonth).toBe(1);
     expect(studio?.monthlyNgn).toBe(20_000);
     expect(studio?.briefsPerMonth).toBe(5);
+  });
+
+  it("formats naira without a locale-dependent currency prefix", () => {
+    expect(formatNgn(0)).toBe("₦0");
+    expect(formatNgn(20_000)).toBe("₦20,000");
   });
 
   it("bills annual as ten months", () => {

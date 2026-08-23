@@ -24,12 +24,12 @@ export function AudienceClose({
           </h2>
           <p className="mt-3 text-sm leading-6 text-mkt-muted">{lede}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Link href={primaryHref} className="mkt-cta mkt-cta-primary">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+          <Link href={primaryHref} className="mkt-cta mkt-cta-primary w-full sm:w-auto">
             {primaryLabel}
           </Link>
           {secondaryHref && secondaryLabel ? (
-            <Link href={secondaryHref} className="mkt-cta mkt-cta-ghost">
+            <Link href={secondaryHref} className="mkt-cta mkt-cta-ghost w-full sm:w-auto">
               {secondaryLabel}
             </Link>
           ) : null}

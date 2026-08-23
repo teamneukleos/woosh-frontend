@@ -27,20 +27,19 @@ export function PricingExperience() {
     <>
       <section className="relative isolate overflow-hidden bg-mkt-bg text-mkt-fg">
         <div aria-hidden className="mkt-pattern absolute inset-0 -z-10 opacity-80" />
-        <div className="mx-auto max-w-6xl px-5 pb-8 pt-8 md:px-8 md:pt-10">
+        <div className="mx-auto max-w-6xl px-5 pb-6 pt-6 md:px-8 md:pb-8 md:pt-10">
           <p className="mkt-kicker">{"{Pricing}"}</p>
-          <h1 className="font-display mt-4 max-w-3xl text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.08] tracking-[-0.03em]">
+          <h1 className="font-display mt-4 max-w-3xl text-[clamp(1.85rem,8vw,3.75rem)] leading-[1.08] tracking-[-0.03em] text-pretty">
             Run the brief.{" "}
-            <span className="text-[#0de3af]">Pay for volume.</span>
-            <br />
-            Creators stay free.
+            <span className="text-[#0de3af]">Pay for volume.</span> Creators
+            stay free.
           </h1>
-          <p className="mt-5 max-w-xl text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
+          <p className="mt-4 max-w-xl text-[0.9375rem] leading-6 text-mkt-muted md:mt-5 md:leading-7 md:text-base">
             0% of the creator rate — on every plan. Brands and agencies buy
             brief slots. Creators claim, apply, collect.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
             <Toggle
               value={audience}
               onChange={setAudience}
@@ -53,7 +52,7 @@ export function PricingExperience() {
               value={cycle}
               onChange={setCycle}
               options={[
-                { id: "annual", label: "Annual · 2 months free" },
+                { id: "annual", label: "Annual · 2 months free", shortLabel: "Annual" },
                 { id: "monthly", label: "Monthly" },
               ]}
             />
@@ -62,7 +61,7 @@ export function PricingExperience() {
       </section>
 
       <section className="bg-mkt-bg pb-16 md:pb-24">
-        <div className="mx-auto grid max-w-6xl gap-4 px-5 md:grid-cols-2 md:px-8 xl:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl gap-3 px-5 md:grid-cols-2 md:gap-4 md:px-8 xl:grid-cols-4">
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} cycle={cycle} />
           ))}
@@ -72,7 +71,7 @@ export function PricingExperience() {
       <section className="border-t border-mkt-border bg-mkt-panel py-16 md:py-20">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 md:flex-row md:items-end md:justify-between md:px-8">
           <div className="max-w-xl">
-            <h2 className="font-display text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
+            <h2 className="font-display text-[clamp(1.65rem,7vw,3rem)] leading-[1.1] text-mkt-fg text-pretty">
               Not sure which seat?
             </h2>
             <p className="mt-3 text-sm leading-6 text-mkt-muted">
@@ -80,14 +79,14 @@ export function PricingExperience() {
               or Roster is the upgrade — not a hiring fee.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
             <Link
               href={audience === "agency" ? "/register?type=agency" : "/register?type=brand"}
-              className="mkt-cta mkt-cta-primary"
+              className="mkt-cta mkt-cta-primary w-full sm:w-auto"
             >
               Sign up
             </Link>
-            <Link href="/for-creators" className="mkt-cta mkt-cta-ghost">
+            <Link href="/for-creators" className="mkt-cta mkt-cta-ghost w-full sm:w-auto">
               Creators stay free
             </Link>
           </div>
@@ -97,7 +96,7 @@ export function PricingExperience() {
       <section className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{The loop}"}</p>
-          <h2 className="font-display mt-4 max-w-2xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
+          <h2 className="font-display mt-4 max-w-2xl text-[clamp(1.65rem,7vw,3rem)] leading-[1.1] text-mkt-fg text-pretty">
             What the subscription actually unlocks.
           </h2>
           <div className="mt-12 grid gap-8 md:grid-cols-2">
@@ -134,23 +133,30 @@ function Toggle<T extends string>({
 }: {
   value: T;
   onChange: (value: T) => void;
-  options: { id: T; label: string }[];
+  options: { id: T; label: string; shortLabel?: string }[];
 }) {
   return (
-    <div className="inline-flex rounded-full bg-mkt-ghost p-1">
+    <div className="flex w-full rounded-full bg-mkt-ghost p-1 sm:w-auto sm:inline-flex">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-[0.8125rem] font-medium transition-colors",
+            "min-w-0 flex-1 rounded-full px-2.5 py-2 text-center text-[0.8125rem] font-medium transition-colors sm:flex-none sm:px-3.5 sm:py-1.5",
             value === option.id
               ? "bg-[var(--mkt-electric)] text-white"
               : "text-mkt-muted hover:text-mkt-fg",
           )}
         >
-          {option.label}
+          {option.shortLabel ? (
+            <>
+              <span className="sm:hidden">{option.shortLabel}</span>
+              <span className="hidden sm:inline">{option.label}</span>
+            </>
+          ) : (
+            option.label
+          )}
         </button>
       ))}
     </div>
@@ -164,7 +170,7 @@ function PlanCard({ plan, cycle }: { plan: PricingPlan; cycle: BillingCycle }) {
   return (
     <article
       className={cn(
-        "flex flex-col rounded-[1.25rem] border p-5",
+        "flex min-w-0 w-full flex-col rounded-[1.25rem] border p-4 sm:p-5",
         plan.popular
           ? "border-[var(--mkt-electric)] bg-mkt-raised shadow-[0_8px_24px_rgb(0_58_244_/_0.12)]"
           : "border-mkt-border bg-mkt-inset",
@@ -174,22 +180,22 @@ function PlanCard({ plan, cycle }: { plan: PricingPlan; cycle: BillingCycle }) {
         {plan.popular ? "Most popular" : "\u00a0"}
       </div>
       <h2 className="mt-2 font-display text-2xl text-mkt-fg">{plan.name}</h2>
-      <p className="mt-1 min-h-10 text-sm leading-5 text-mkt-muted">{plan.pitch}</p>
+      <p className="mt-1 text-sm leading-5 text-mkt-muted md:min-h-10">{plan.pitch}</p>
 
-      <div className="mt-6">
+      <div className="mt-5 md:mt-6">
         {plan.monthlyNgn == null ? (
-          <p className="font-display text-3xl text-mkt-fg">Custom</p>
+          <p className="font-display text-[1.75rem] text-mkt-fg sm:text-3xl">Custom</p>
         ) : plan.monthlyNgn === 0 ? (
-          <p className="font-display text-3xl text-mkt-fg">{formatNgn(0)}</p>
+          <p className="font-display text-[1.75rem] text-mkt-fg sm:text-3xl">{formatNgn(0)}</p>
         ) : (
-          <p className="font-display text-3xl text-mkt-fg">
+          <p className="font-display text-[1.75rem] leading-none text-mkt-fg sm:text-3xl">
             {formatNgn(showAnnual ? billedMonthlyNgn(plan.monthlyNgn, "annual") : plan.monthlyNgn)}
             <span className="ml-1 text-sm font-sans font-normal text-mkt-muted">/mo</span>
           </p>
         )}
-        <p className="mt-1 min-h-5 text-xs text-mkt-faint">
+        <p className="mt-1 text-xs leading-4 text-mkt-faint md:min-h-5">
           {showAnnual && plan.monthlyNgn
-            ? `Billed annually · save ${formatNgn(annualSavingsNgn(plan.monthlyNgn))}/year`
+            ? `Billed yearly · save ${formatNgn(annualSavingsNgn(plan.monthlyNgn))}`
             : paid
               ? "Billed monthly"
               : "No card to start"}

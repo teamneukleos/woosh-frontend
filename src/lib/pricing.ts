@@ -262,11 +262,10 @@ export function annualSavingsNgn(monthlyNgn: number) {
 }
 
 export function formatNgn(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: PRICING_CURRENCY,
+  const digits = new Intl.NumberFormat("en-NG", {
     maximumFractionDigits: 0,
   }).format(amount);
+  return `₦${digits}`;
 }
 
 export function formatCap(value: BriefCap) {
