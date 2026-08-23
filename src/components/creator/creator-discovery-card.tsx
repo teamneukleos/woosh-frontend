@@ -38,7 +38,7 @@ export function CreatorDiscoveryCard({
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
-      <div className="relative flex items-center gap-2 overflow-hidden bg-[linear-gradient(115deg,#091B68_0%,#003AF4_55%,#0DE3AF_130%)] px-4 py-2.5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(120%_140%_at_100%_-20%,rgb(13_227_175/0.45),transparent_52%)]">
+      <div className="relative flex items-center gap-2 overflow-hidden bg-[linear-gradient(115deg,#000000_0%,#003AF4_100%)] px-4 py-2.5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(120%_140%_at_100%_-20%,rgb(0_58_244/0.45),transparent_52%)]">
         {platforms.map((channel) => (
           <span
             key={channel}
