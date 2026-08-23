@@ -1,0 +1,3 @@
+ALTER TABLE "User"
+  ADD COLUMN "emailNotifications" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "weeklyDigest" BOOLEAN NOT NULL DEFAULT true;

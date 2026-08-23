@@ -1,0 +1,54 @@
+name: Production operations
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+    - cron: "7 * * * *"
+    - cron: "17 2 * * *"
+    - cron: "23 8 * * 1"
+
+concurrency:
+  group: woosh-production-operations-${{ github.event.schedule || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  payment-releases:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/15 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release eligible payments
+        run: |
+          curl --fail-with-body --retry 2 --request POST \
+            --header "Authorization: Bearer ${{ secrets.WOOSH_CRON_SECRET }}" \
+            "${{ secrets.WOOSH_APP_URL }}/api/internal/payment-releases"
+
+  work-reminders:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '7 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send creator work reminders
+        run: |
+          curl --fail-with-body --retry 2 --request POST \
+            --header "Authorization: Bearer ${{ secrets.WOOSH_CRON_SECRET }}" \
+            "${{ secrets.WOOSH_APP_URL }}/api/internal/work-reminders"
+
+  social-metrics:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 2 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh stale social metrics
+        run: |
+          curl --fail-with-body --retry 2 --request POST \
+            --header "Authorization: Bearer ${{ secrets.WOOSH_CRON_SECRET }}" \
+            "${{ secrets.WOOSH_APP_URL }}/api/internal/social-metrics"
+
+  weekly-digests:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '23 8 * * 1'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send weekly notification digests
+        run: |
+          curl --fail-with-body --retry 2 --request POST \
+            --header "Authorization: Bearer ${{ secrets.WOOSH_CRON_SECRET }}" \
+            "${{ secrets.WOOSH_APP_URL }}/api/internal/weekly-digests"

@@ -1,0 +1,86 @@
+name: Woosh CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+concurrency:
+  group: woosh-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: woosh
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d woosh"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/woosh?schema=public
+      AUTH_SECRET: woosh-ci-auth-secret-at-least-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3020
+      PAYOUT_ACCOUNT_ENCRYPTION_KEY: woosh-ci-payout-key-at-least-32-characters
+      OAUTH_TOKEN_ENCRYPTION_KEY: woosh-ci-oauth-key-at-least-32-characters
+      WOOSH_ALLOW_DEV_OAUTH: "false"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run db:migrate:deploy
+      - run: npm run db:seed
+      - run: npm run lint
+      - run: npm test
+      - name: Validate production configuration contract
+        run: npm run config:check:production
+        env:
+          AUTH_URL: https://ci.woosh.test
+          NEXT_PUBLIC_APP_URL: https://ci.woosh.test
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: woosh-ci-server-action-key-at-least-32
+          PAYSTACK_SECRET_KEY: sk_live_ci_value
+          PAYSTACK_PUBLIC_KEY: pk_live_ci_value
+          WOOSH_CRON_SECRET: woosh-ci-cron-secret-at-least-32-chars
+          RESEND_API_KEY: re_ci_value
+          EMAIL_FROM: Woosh CI <ci@woosh.test>
+          AWS_S3_BUCKET: woosh-ci
+          AWS_ACCESS_KEY_ID: ci-access-key
+          AWS_SECRET_ACCESS_KEY: ci-secret-key
+          AWS_REGION: eu-west-1
+          META_APP_ID: ci-meta-id
+          META_APP_SECRET: ci-meta-secret
+          TIKTOK_CLIENT_KEY: ci-tiktok-key
+          TIKTOK_CLIENT_SECRET: ci-tiktok-secret
+          GOOGLE_CLIENT_ID: ci-google-id
+          GOOGLE_CLIENT_SECRET: ci-google-secret
+      - run: npm run build
+
+      - name: Start production app
+        run: |
+          npm run start:local -- --hostname 127.0.0.1 --port 3020 > /tmp/woosh-next.log 2>&1 &
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:3020/login >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/woosh-next.log
+          exit 1
+
+      - run: npm run test:smoke
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:3020

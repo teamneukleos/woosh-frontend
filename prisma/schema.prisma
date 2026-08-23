@@ -1,0 +1,1061 @@
+// Woosh modular monolith — core data model (PRD §17)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Identity ───────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  emailVerified   DateTime?
+  phone           String?
+  phoneVerified   DateTime?
+  passwordHash    String?
+  name            String?
+  image           String?
+  status          UserStatus @default(PENDING_VERIFICATION)
+  mfaEnabled      Boolean    @default(false)
+  emailNotifications Boolean @default(true)
+  weeklyDigest      Boolean   @default(true)
+  isPlatformAdmin Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  accounts              Account[]
+  sessions              Session[]
+  memberships           Membership[]
+  brandMemberships      BrandMembership[]
+  creatorProfile        CreatorProfile?
+  auditEvents           AuditEvent[]      @relation("AuditActor")
+  brandInterestsCreated BrandInterest[]   @relation("BrandInterestCreator")
+  submissions           Submission[]      @relation("SubmissionAuthor")
+  disputesRaised        Dispute[]         @relation("DisputeRaiser")
+  disputesResolved      Dispute[]         @relation("DisputeResolver")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Organisation & Brand ───────────────────────────────────────────────────
+
+enum OrganisationType {
+  BRAND
+  AGENCY
+  PLATFORM
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MANAGER
+  FINANCE
+  VIEWER
+  ACCOUNT_MANAGER
+}
+
+model Organisation {
+  id           String           @id @default(cuid())
+  type         OrganisationType
+  legalName    String
+  publicName   String
+  country      String           @default("NG")
+  industry     String?
+  website      String?
+  logoUrl      String?
+  verifiedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  memberships Membership[]
+  brands      Brand[]
+  creatorLists CreatorList[]
+  teamInvites TeamInvite[]
+}
+
+model Membership {
+  id             String         @id @default(cuid())
+  organisationId String
+  userId         String
+  role           MembershipRole
+  canApprovePayments Boolean    @default(false)
+  canEditRates       Boolean    @default(false)
+  canManageTeam      Boolean    @default(false)
+  canExportData      Boolean    @default(false)
+  createdAt      DateTime       @default(now())
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, userId])
+}
+
+model Brand {
+  id             String   @id @default(cuid())
+  organisationId String
+  name           String
+  logoUrl        String?
+  industry       String?
+  country        String   @default("NG")
+  clientHasAccess Boolean @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organisation     Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  memberships      BrandMembership[]
+  briefs           Brief[]
+  campaigns        Campaign[]
+  creatorListLinks CreatorListBrand[]
+  interests        BrandInterest[]
+  conversations    Conversation[]
+  wallet           BrandWallet?
+  financialDocuments FinancialDocument[]
+}
+
+model BrandWallet {
+  id        String   @id @default(cuid())
+  brandId   String   @unique
+  balance   Decimal  @default(0) @db.Decimal(14, 2)
+  currency  String   @default("NGN")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+}
+
+model TeamInvite {
+  id             String         @id @default(cuid())
+  organisationId String
+  email          String
+  role           MembershipRole @default(MANAGER)
+  token          String         @unique
+  invitedById    String
+  acceptedAt     DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime       @default(now())
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([organisationId])
+}
+
+model CreatorPayoutAccount {
+  id               String   @id @default(cuid())
+  creatorProfileId String   @unique
+  bankCode         String
+  accountNumber    String?
+  encryptedAccountNumber String?
+  accountNumberLast4 String?
+  accountName      String?
+  bankName         String?
+  recipientCode    String?
+  verifiedAt       DateTime?
+  verificationReference String?
+  currency         String   @default("NGN")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  creator CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+}
+
+model BrandMembership {
+  id        String         @id @default(cuid())
+  brandId   String
+  userId    String
+  role      MembershipRole
+  createdAt DateTime       @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, userId])
+}
+
+// ─── Creator ────────────────────────────────────────────────────────────────
+
+enum SocialChannel {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+}
+
+enum SocialConnectionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  PENDING
+}
+
+enum CreatorMarketplaceStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  SUSPENDED
+}
+
+enum CreatorMediaStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum PortfolioMediaType {
+  IMAGE
+  VIDEO
+  EMBED
+}
+
+model CreatorProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  displayName           String
+  bio                   String?
+  avatarUrl             String?
+  avatarStorageKey      String?
+  avatarStatus          CreatorMediaStatus @default(PENDING)
+  coverUrl              String?
+  coverStorageKey       String?
+  coverStatus           CreatorMediaStatus @default(PENDING)
+  websiteUrl            String?
+  locationCountry       String?
+  locationState         String?
+  locationCity          String?
+  ageBand               String?
+  gender                String?
+  genderSearchable      Boolean  @default(false)
+  ageSearchable         Boolean  @default(false)
+  languages             String[] @default([])
+  categories            String[] @default([])
+  preferredIndustries   String[] @default([])
+  excludedIndustries    String[] @default([])
+  typicalRateMin        Decimal? @db.Decimal(12, 2)
+  typicalRateMax        Decimal? @db.Decimal(12, 2)
+  rateCurrency          String   @default("NGN")
+  availabilityNotes     String?
+  profileVisible        Boolean  @default(false)
+  marketplaceStatus     CreatorMarketplaceStatus @default(DRAFT)
+  moderationNotes       String?
+  submittedAt           DateTime?
+  verifiedAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  socialAccounts SocialAccount[]
+  invitations    BriefInvitation[]
+  applications   Application[]
+  participants   CampaignParticipant[]
+  listItems      CreatorListItem[]
+  claimedFrom    CreatorProspect?
+  brandInterests BrandInterest[]
+  conversations  Conversation[]
+  payoutAccount  CreatorPayoutAccount?
+  portfolioItems CreatorPortfolioItem[]
+  ratePackages   CreatorRatePackage[]
+  campaignMetrics CampaignMetric[]
+  financialDocuments FinancialDocument[]
+}
+
+model CreatorPortfolioItem {
+  id               String                  @id @default(cuid())
+  creatorProfileId String
+  mediaType        PortfolioMediaType
+  title            String
+  description      String?
+  channel          SocialChannel?
+  campaignType     String?
+  brandName        String?
+  tags             String[]                @default([])
+  url              String
+  storageKey       String?
+  thumbnailUrl     String?
+  thumbnailStorageKey String?
+  mimeType         String?
+  fileSizeBytes    Int?
+  width            Int?
+  height           Int?
+  durationSeconds  Int?
+  sortOrder        Int                     @default(0)
+  status           CreatorMediaStatus      @default(PENDING)
+  moderationNotes  String?
+  moderatedAt      DateTime?
+  moderatedById    String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  creator CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, status, sortOrder])
+}
+
+model CreatorRatePackage {
+  id               String        @id @default(cuid())
+  creatorProfileId String
+  channel          SocialChannel
+  deliverableType  String
+  title            String
+  description      String?
+  price            Decimal       @db.Decimal(12, 2)
+  currency         String        @default("NGN")
+  turnaroundDays   Int?
+  revisions        Int           @default(1)
+  usageRights      String?
+  sortOrder        Int           @default(0)
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  creator CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, active, sortOrder])
+}
+
+enum ProspectStatus {
+  UNCLAIMED
+  CLAIM_PENDING
+  CLAIMED
+}
+
+model CreatorProspect {
+  id               String         @id @default(cuid())
+  channel          SocialChannel
+  handle           String
+  displayName      String?
+  locationCountry  String?
+  locationCity     String?
+  categories       String[]       @default([])
+  followerEstimate Int?
+  contactEmail     String?
+  contactPhone     String?
+  status           ProspectStatus @default(UNCLAIMED)
+  claimedProfileId String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  claimedProfile CreatorProfile?  @relation(fields: [claimedProfileId], references: [id])
+  interests      BrandInterest[]
+  listItems      CreatorListItem[]
+
+  @@unique([channel, handle])
+  @@index([status])
+}
+
+enum BrandInterestStatus {
+  OPEN
+  INVITED
+  CLAIMED
+  CLOSED
+}
+
+model BrandInterest {
+  id                  String              @id @default(cuid())
+  brandId             String
+  prospectId          String?
+  creatorProfileId    String?
+  message             String?
+  status              BrandInterestStatus @default(OPEN)
+  claimToken          String              @unique
+  claimTokenExpiresAt DateTime
+  createdById         String
+  createdAt           DateTime            @default(now())
+
+  brand          Brand            @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  prospect       CreatorProspect? @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+  creatorProfile CreatorProfile?  @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+  createdBy      User             @relation("BrandInterestCreator", fields: [createdById], references: [id])
+
+  @@index([brandId, status])
+  @@index([prospectId])
+}
+
+model SocialAccount {
+  id                String                 @id @default(cuid())
+  creatorProfileId  String
+  channel           SocialChannel
+  externalId        String
+  handle            String
+  status            SocialConnectionStatus @default(PENDING)
+  accessTokenEnc    String?                @db.Text
+  refreshTokenEnc   String?                @db.Text
+  tokenExpiresAt    DateTime?
+  lastRefreshedAt   DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  creatorProfile CreatorProfile         @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  snapshots      SocialMetricSnapshot[]
+
+  @@unique([channel, externalId])
+  @@index([creatorProfileId, channel])
+}
+
+model SocialMetricSnapshot {
+  id              String   @id @default(cuid())
+  socialAccountId String
+  capturedAt      DateTime @default(now())
+  source          String
+  followers       Int?
+  engagementRate  Decimal? @db.Decimal(8, 4)
+  averageViews    Int?
+  postingFrequency Decimal? @db.Decimal(8, 2)
+  audienceGeo     Json?
+  audienceAge     Json?
+  audienceGender  Json?
+  topContent      Json?
+  raw             Json?
+
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@index([socialAccountId, capturedAt])
+}
+
+model CreatorList {
+  id             String   @id @default(cuid())
+  organisationId String
+  name           String
+  createdAt      DateTime @default(now())
+
+  organisation Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  items        CreatorListItem[]
+  brandLinks   CreatorListBrand[]
+}
+
+model CreatorListItem {
+  id               String  @id @default(cuid())
+  listId           String
+  creatorProfileId String?
+  prospectId       String?
+  createdAt        DateTime @default(now())
+
+  list     CreatorList      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  creator  CreatorProfile?  @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  prospect CreatorProspect? @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, creatorProfileId])
+  @@unique([listId, prospectId])
+}
+
+model CreatorListBrand {
+  listId  String
+  brandId String
+
+  list  CreatorList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  brand Brand       @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@id([listId, brandId])
+}
+
+// ─── Marketplace ────────────────────────────────────────────────────────────
+
+enum BriefStatus {
+  DRAFT
+  PENDING_MODERATION
+  OPEN
+  SELECTING
+  CLOSED
+  CANCELLED
+}
+
+enum BriefDistribution {
+  OPEN
+  INVITE_ONLY
+  HYBRID
+}
+
+enum RateMode {
+  FIXED_NON_NEGOTIABLE
+  FIXED_NEGOTIABLE
+  RANGE_NEGOTIABLE
+  DELIVERABLE_BASED
+  CREATOR_BUNDLE
+}
+
+model Brief {
+  id                String            @id @default(cuid())
+  brandId           String
+  title             String
+  internalReference String?
+  objective         String?
+  description       String
+  category          String?
+  status            BriefStatus       @default(DRAFT)
+  distribution      BriefDistribution @default(OPEN)
+  rateMode          RateMode          @default(FIXED_NON_NEGOTIABLE)
+  rateAmount        Decimal?          @db.Decimal(12, 2)
+  rateMin           Decimal?          @db.Decimal(12, 2)
+  rateMax           Decimal?          @db.Decimal(12, 2)
+  currency          String            @default("NGN")
+  channels          SocialChannel[]
+  eligibility       Json?
+  deliverables      Json?
+  rights            Json?
+  timing            Json?
+  screeningQuestions Json?
+  applicationDeadline DateTime?
+  maxCreators       Int?
+  publishedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  brand       Brand             @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  invitations BriefInvitation[]
+  applications Application[]
+  campaigns   Campaign[]
+
+  @@index([brandId, status])
+}
+
+enum InvitationStatus {
+  SENT
+  VIEWED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model BriefInvitation {
+  id               String           @id @default(cuid())
+  briefId          String
+  creatorProfileId String
+  status           InvitationStatus @default(SENT)
+  message          String?
+  viewedAt         DateTime?
+  respondedAt      DateTime?
+  responseReason   String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  brief   Brief          @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  creator CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([briefId, creatorProfileId])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  DECLINED
+  ACCEPTED
+  WITHDRAWN
+}
+
+model Application {
+  id               String            @id @default(cuid())
+  briefId          String
+  creatorProfileId String
+  status           ApplicationStatus @default(APPLIED)
+  answers          Json?
+  availabilityNote String?
+  proposedRate     Decimal?          @db.Decimal(12, 2)
+  currency         String            @default("NGN")
+  withdrawnAt      DateTime?
+  withdrawalReason String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  brief   Brief          @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  creator CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  offers  Offer[]
+  conversation Conversation?
+
+  @@unique([briefId, creatorProfileId])
+}
+
+enum OfferStatus {
+  OPEN
+  COUNTERED
+  AGREED
+  EXPIRED
+  WITHDRAWN
+  SUPERSEDED
+}
+
+model Offer {
+  id            String      @id @default(cuid())
+  applicationId String
+  amount        Decimal     @db.Decimal(12, 2)
+  currency      String      @default("NGN")
+  message       String?
+  status        OfferStatus @default(OPEN)
+  createdById   String
+  previousOfferId String?
+  createdAt     DateTime    @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}
+
+// ─── Campaign operations ────────────────────────────────────────────────────
+
+enum CampaignStatus {
+  ACTIVE
+  AWAITING_APPROVAL
+  COMPLETED
+  CANCELLED
+}
+
+model Campaign {
+  id        String         @id @default(cuid())
+  briefId   String
+  brandId   String
+  title     String
+  status    CampaignStatus @default(ACTIVE)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  brief        Brief                 @relation(fields: [briefId], references: [id])
+  brand        Brand                 @relation(fields: [brandId], references: [id])
+  participants CampaignParticipant[]
+  deliverables Deliverable[]
+  conversations Conversation[]
+  metrics      CampaignMetric[]
+  disputes     Dispute[]
+}
+
+enum ParticipantStatus {
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+model CampaignParticipant {
+  id               String            @id @default(cuid())
+  campaignId       String
+  creatorProfileId String
+  agreedRate       Decimal           @db.Decimal(12, 2)
+  currency         String            @default("NGN")
+  status           ParticipantStatus @default(ACTIVE)
+  termsAcceptedAt  DateTime?
+  createdAt        DateTime          @default(now())
+
+  campaign Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creator  CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+  obligations PaymentObligation[]
+  deliverables Deliverable[]
+
+  @@unique([campaignId, creatorProfileId])
+}
+
+enum DeliverableState {
+  NOT_STARTED
+  IN_PROGRESS
+  DRAFT_SUBMITTED
+  REVISION_REQUESTED
+  RESUBMITTED
+  APPROVED
+  SCHEDULED
+  LIVE
+  COMPLETED
+  REJECTED
+}
+
+model Deliverable {
+  id          String           @id @default(cuid())
+  campaignId  String
+  campaignParticipantId String
+  title       String
+  channel     SocialChannel?
+  requirements Json?
+  dueAt       DateTime?
+  state       DeliverableState @default(NOT_STARTED)
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  participant CampaignParticipant @relation(fields: [campaignParticipantId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+  metrics     CampaignMetric[]
+
+  @@index([campaignParticipantId, state, dueAt])
+}
+
+model Submission {
+  id            String   @id @default(cuid())
+  deliverableId String
+  version       Int
+  submittedById String?
+  draftUrl      String?
+  liveUrl       String?
+  storageKey    String?
+  fileName      String?
+  mimeType      String?
+  fileSizeBytes Int?
+  idempotencyKey String? @unique
+  notes         String?
+  reviewNotes   String?
+  submittedAt   DateTime @default(now())
+  reviewedAt    DateTime?
+
+  deliverable Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  submittedBy User? @relation("SubmissionAuthor", fields: [submittedById], references: [id], onDelete: SetNull)
+  metrics     CampaignMetric[]
+
+  @@unique([deliverableId, version])
+  @@index([submittedById, submittedAt])
+}
+
+// ─── Messaging ──────────────────────────────────────────────────────────────
+
+enum ConversationType {
+  APPLICATION
+  INVITATION
+  CAMPAIGN
+  SUPPORT
+}
+
+model Conversation {
+  id            String           @id @default(cuid())
+  type          ConversationType
+  applicationId String?          @unique
+  campaignId    String?
+  brandId       String?
+  creatorProfileId String?
+  createdAt     DateTime         @default(now())
+
+  application Application? @relation(fields: [applicationId], references: [id])
+  campaign    Campaign?    @relation(fields: [campaignId], references: [id])
+  brand       Brand?       @relation(fields: [brandId], references: [id])
+  creator     CreatorProfile? @relation(fields: [creatorProfileId], references: [id])
+  messages    Message[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderUserId   String?
+  body           String?
+  attachments    Json?
+  isSystem       Boolean  @default(false)
+  offerId        String?
+  createdAt      DateTime @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+// ─── Payments & ledger ──────────────────────────────────────────────────────
+
+enum ObligationStatus {
+  PENDING_FUNDING
+  FUNDED
+  COMMITTED
+  APPROVED
+  PROCESSING
+  PAID
+  FAILED
+  REVERSED
+  DISPUTED
+}
+
+enum TransactionType {
+  COLLECTION
+  FEE
+  PAYOUT
+  REFUND
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REVERSED
+}
+
+model PaymentObligation {
+  id                    String           @id @default(cuid())
+  campaignParticipantId String
+  grossAmount           Decimal          @db.Decimal(12, 2)
+  platformFee           Decimal          @db.Decimal(12, 2) @default(0)
+  netAmount             Decimal          @db.Decimal(12, 2)
+  currency              String           @default("NGN")
+  status                ObligationStatus @default(PENDING_FUNDING)
+  approvedAt            DateTime?
+  availableAt           DateTime?
+  processingAt          DateTime?
+  paidAt                DateTime?
+  failedAt              DateTime?
+  reversedAt            DateTime?
+  failureReason         String?
+  reversalReason        String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  participant  CampaignParticipant @relation(fields: [campaignParticipantId], references: [id])
+  transactions LedgerTransaction[]
+  disputes     Dispute[]
+  financialDocuments FinancialDocument[]
+
+  @@unique([campaignParticipantId])
+  @@index([status, availableAt])
+}
+
+model LedgerTransaction {
+  id                    String            @id @default(cuid())
+  obligationId          String?
+  type                  TransactionType
+  amount                Decimal           @db.Decimal(12, 2)
+  currency              String            @default("NGN")
+  status                TransactionStatus @default(PENDING)
+  provider              String            @default("paystack")
+  providerReference     String?
+  idempotencyKey        String            @unique
+  metadata              Json?
+  failureReason         String?
+  completedAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  obligation PaymentObligation? @relation(fields: [obligationId], references: [id])
+
+  @@index([providerReference])
+}
+
+// ─── Analytics, trust, audit ────────────────────────────────────────────────
+
+model CampaignMetric {
+  id               String   @id @default(cuid())
+  campaignId       String
+  creatorProfileId String?
+  deliverableId    String?
+  submissionId     String?
+  postUrl          String?
+  capturedAt       DateTime @default(now())
+  source           String
+  reach            Int?
+  impressions      Int?
+  views            Int?
+  engagement       Int?
+  raw              Json?
+
+  campaign   Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creator    CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+  deliverable Deliverable?   @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  submission Submission?     @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId, capturedAt])
+  @@index([creatorProfileId, capturedAt])
+  @@index([deliverableId, capturedAt])
+}
+
+enum AnalyticsEventType {
+  PROFILE_VIEW
+  CREATOR_SAVED
+  CREATOR_UNSAVED
+  INVITE_SENT
+  INVITE_VIEWED
+  INVITE_ACCEPTED
+  INVITE_DECLINED
+  APPLICATION_SUBMITTED
+  APPLICATION_SHORTLISTED
+  APPLICATION_ACCEPTED
+  APPLICATION_DECLINED
+  APPLICATION_WITHDRAWN
+  OFFER_COUNTERED
+  TERMS_ACCEPTED
+  DELIVERABLE_SUBMITTED
+  REVISION_REQUESTED
+  CAMPAIGN_STARTED
+  DELIVERABLE_APPROVED
+  CONTENT_LIVE
+  CAMPAIGN_COMPLETED
+}
+
+model AnalyticsEvent {
+  id               String             @id @default(cuid())
+  eventType        AnalyticsEventType
+  actorUserId      String?
+  organisationId   String?
+  brandId          String?
+  creatorProfileId String?
+  briefId          String?
+  campaignId       String?
+  metadata         Json?
+  createdAt        DateTime           @default(now())
+
+  @@index([creatorProfileId, eventType, createdAt])
+  @@index([brandId, eventType, createdAt])
+  @@index([campaignId, eventType, createdAt])
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeCategory {
+  CONTENT_APPROVAL
+  PAYMENT_AMOUNT
+  PAYOUT_DELAY
+  CANCELLATION
+  OTHER
+}
+
+enum DisputeResolutionType {
+  RELEASE_PAYOUT
+  REFUND_BRAND
+}
+
+model Dispute {
+  id          String        @id @default(cuid())
+  raisedById  String
+  resolvedById String?
+  obligationId String
+  campaignId  String
+  category    DisputeCategory
+  subject     String
+  description String
+  requestedResolution String?
+  status      DisputeStatus @default(OPEN)
+  evidence    Json?
+  resolution  String?
+  resolutionType DisputeResolutionType?
+  responseDueAt DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  raisedBy   User @relation("DisputeRaiser", fields: [raisedById], references: [id])
+  resolvedBy User? @relation("DisputeResolver", fields: [resolvedById], references: [id])
+  obligation PaymentObligation @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([obligationId, status])
+  @@index([status, responseDueAt])
+}
+
+enum FinancialDocumentType {
+  CREATOR_STATEMENT
+  BRAND_RECEIPT
+}
+
+model FinancialDocument {
+  id               String @id @default(cuid())
+  documentNumber   String @unique
+  type             FinancialDocumentType
+  creatorProfileId String?
+  brandId          String?
+  obligationId     String?
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  currency         String @default("NGN")
+  grossAmount      Decimal @db.Decimal(12, 2)
+  feeAmount        Decimal @default(0) @db.Decimal(12, 2)
+  netAmount        Decimal @db.Decimal(12, 2)
+  snapshot         Json
+  dedupeKey        String @unique
+  generatedAt      DateTime @default(now())
+
+  creator    CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+  brand      Brand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  obligation PaymentObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
+
+  @@index([creatorProfileId, generatedAt])
+  @@index([brandId, generatedAt])
+}
+
+model ProviderWebhookEvent {
+  id          String @id @default(cuid())
+  provider    String
+  eventKey    String @unique
+  eventType   String
+  reference   String?
+  payload     Json
+  signature   String?
+  processedAt DateTime?
+  processingStartedAt DateTime?
+  error       String?
+  createdAt   DateTime @default(now())
+
+  @@index([provider, reference])
+  @@index([processedAt])
+  @@index([processingStartedAt])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  before     Json?
+  after      Json?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  href      String?
+  dedupeKey String?  @unique
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
