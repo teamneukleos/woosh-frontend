@@ -59,7 +59,7 @@ export default function ForBrandsPage() {
         title="Stop running campaigns in WhatsApp."
         lede="Claimed Instagram, TikTok, YouTube. Put Naira on the brief, then pick who runs it. One thread. We take 0%."
         primaryHref="/register?type=brand"
-        primaryLabel="Open a brand seat"
+        primaryLabel="Sign up"
         secondaryHref="/#how"
         secondaryLabel="See the loop"
         layout="split"
@@ -173,7 +173,7 @@ export default function ForBrandsPage() {
         title="Open the brand seat."
         lede="Creators claim and collect in Naira. You fund, pick, settle — one ledger. We take 0%."
         primaryHref="/register?type=brand"
-        primaryLabel="Open a brand seat"
+        primaryLabel="Sign up"
         secondaryHref="/for-creators"
         secondaryLabel="For creators"
       />

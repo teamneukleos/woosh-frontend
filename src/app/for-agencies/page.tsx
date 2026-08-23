@@ -34,7 +34,7 @@ export default function ForAgenciesPage() {
         title="Client money does not mix. Ever."
         lede="Switch the brand. Duplicate the brief. Fund that wallet. Same campaign rules. Separate Naira. We take 0%."
         primaryHref="/register?type=agency"
-        primaryLabel="Open an agency seat"
+        primaryLabel="Sign up"
         secondaryHref="/for-brands"
         secondaryLabel="Single-brand teams"
         layout="workspace"
@@ -154,7 +154,7 @@ export default function ForAgenciesPage() {
         title="Open the agency seat."
         lede="Creators still see the rate before they say yes. One-brand teams stay on a brand seat."
         primaryHref="/register?type=agency"
-        primaryLabel="Open an agency seat"
+        primaryLabel="Sign up"
         secondaryHref="/for-creators"
         secondaryLabel="For creators"
       />
