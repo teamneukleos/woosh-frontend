@@ -38,19 +38,6 @@ export function CreatorDiscoveryCard({
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
-      <div className="relative flex items-center gap-2 overflow-hidden bg-[linear-gradient(115deg,#000000_0%,#003AF4_100%)] px-4 py-2.5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(120%_140%_at_100%_-20%,rgb(0_58_244/0.45),transparent_52%)]">
-        {platforms.map((channel) => (
-          <span
-            key={channel}
-            title={socialLabel(channel) ?? channel}
-            className="relative z-10 inline-flex rounded-md bg-white/95 p-1 shadow-[0_1px_2px_rgb(9_27_104/0.18)]"
-          >
-            <SocialIcon channel={channel} size="md" />
-            <span className="sr-only">{socialLabel(channel)}</span>
-          </span>
-        ))}
-      </div>
-
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start gap-3">
           <Avatar name={item.displayName} src={item.avatarUrl} size="lg" />
@@ -65,6 +52,20 @@ export function CreatorDiscoveryCard({
             <p className="truncate text-sm text-[var(--text-secondary)]">
               {formatHandle(item.handle) ?? "No handle"}
             </p>
+            {platforms.length ? (
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                {platforms.map((channel) => (
+                  <span
+                    key={channel}
+                    title={socialLabel(channel) ?? channel}
+                    className="inline-flex"
+                  >
+                    <SocialIcon channel={channel} size="md" />
+                    <span className="sr-only">{socialLabel(channel)}</span>
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
               {[item.locationCity, ...item.categories.slice(0, 2)]
                 .filter(Boolean)
