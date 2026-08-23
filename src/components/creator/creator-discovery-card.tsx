@@ -38,12 +38,12 @@ export function CreatorDiscoveryCard({
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
-      <div className="flex items-center gap-2.5 bg-[var(--woosh-navy)] px-4 py-2.5">
+      <div className="relative flex items-center gap-2 overflow-hidden bg-[linear-gradient(115deg,#091B68_0%,#003AF4_55%,#0DE3AF_130%)] px-4 py-2.5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(120%_140%_at_100%_-20%,rgb(13_227_175/0.45),transparent_52%)]">
         {platforms.map((channel) => (
           <span
             key={channel}
             title={socialLabel(channel) ?? channel}
-            className="inline-flex"
+            className="relative z-10 inline-flex rounded-md bg-white/95 p-1 shadow-[0_1px_2px_rgb(9_27_104/0.18)]"
           >
             <SocialIcon channel={channel} size="md" />
             <span className="sr-only">{socialLabel(channel)}</span>
