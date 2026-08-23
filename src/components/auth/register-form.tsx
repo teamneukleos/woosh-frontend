@@ -44,6 +44,7 @@ export function RegisterForm({
   const params = useSearchParams();
   const invite = params.get("invite") ?? "";
   const typeParam = params.get("type");
+  const plan = params.get("plan") ?? "";
   const [accountType, setAccountType] = useState<(typeof ROLES)[number]["value"]>(
     typeParam === "agency" || typeParam === "creator" || typeParam === "brand"
       ? typeParam
@@ -57,6 +58,7 @@ export function RegisterForm({
   return (
     <form action={action} className="flex w-full flex-col gap-4">
       {invite ? <input type="hidden" name="invite" value={invite} /> : null}
+      {plan ? <input type="hidden" name="plan" value={plan} /> : null}
       <Label>
         Full name
         <Input name="name" required autoComplete="name" />

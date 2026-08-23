@@ -41,9 +41,10 @@ export default function TermsPage() {
         Briefs, rates, usage rights, and timelines you accept on Woosh form
         the commercial terms for that campaign. Brands fund commitments before
         selection. Payouts settle in NGN through Paystack after approval and
-        any release window. Woosh charges no platform fee to brands, agencies,
-        or creators. Paystack processing fees may still apply on funding and
-        payout.
+        any release window. Woosh takes 0% of the creator rate. Creators are
+        not charged. Brands and agencies may pay a subscription for brief
+        volume as published on the pricing page. Paystack processing fees may
+        still apply on funding and payout.
       </p>
       <h2 className="text-base font-medium text-[var(--text-strong)]">
         Content and conduct

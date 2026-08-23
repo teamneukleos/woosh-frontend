@@ -35,8 +35,8 @@ export default function ForAgenciesPage() {
         lede="Switch the brand. Duplicate the brief. Fund that wallet. Same campaign rules. Separate Naira. We take 0%."
         primaryHref="/register?type=agency"
         primaryLabel="Sign up"
-        secondaryHref="/for-brands"
-        secondaryLabel="Single-brand teams"
+        secondaryHref="/pricing"
+        secondaryLabel="See pricing"
         layout="workspace"
       >
         <div className="relative min-h-[32rem]">

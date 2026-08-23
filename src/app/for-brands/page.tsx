@@ -60,8 +60,8 @@ export default function ForBrandsPage() {
         lede="Claimed Instagram, TikTok, YouTube. Put Naira on the brief, then pick who runs it. One thread. We take 0%."
         primaryHref="/register?type=brand"
         primaryLabel="Sign up"
-        secondaryHref="/#how"
-        secondaryLabel="See the loop"
+        secondaryHref="/pricing"
+        secondaryLabel="See pricing"
         layout="split"
       >
         <div className="relative pb-28 sm:pb-16">

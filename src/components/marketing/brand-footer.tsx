@@ -8,6 +8,7 @@ const product = [
   { href: "/for-brands", label: "For brands" },
   { href: "/for-creators", label: "For creators" },
   { href: "/for-agencies", label: "For agencies" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
   { href: "/#faq", label: "FAQ" },
 ];

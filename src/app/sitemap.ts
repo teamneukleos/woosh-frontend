@@ -8,6 +8,7 @@ const pages: { path: string; priority: number; changeFrequency: MetadataRoute.Si
     { path: "/for-brands", priority: 0.8, changeFrequency: "monthly" },
     { path: "/for-creators", priority: 0.8, changeFrequency: "monthly" },
     { path: "/for-agencies", priority: 0.8, changeFrequency: "monthly" },
+    { path: "/pricing", priority: 0.8, changeFrequency: "monthly" },
     { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
     { path: "/login", priority: 0.4, changeFrequency: "yearly" },
     { path: "/register", priority: 0.4, changeFrequency: "yearly" },

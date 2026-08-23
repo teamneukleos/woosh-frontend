@@ -17,7 +17,7 @@ export const marketingFaqs = [
   },
   {
     q: "Do you charge a platform fee?",
-    a: "No. 0% to brands, agencies and creators. The rate you agree is the rate that funds and pays. Paystack may still take its own processing on top-up or payout.",
+    a: "0% of the creator rate — always. Creators never pay Woosh. Brands and agencies pay a monthly seat for how many briefs they can publish. See /pricing. Paystack may still take its own processing on top-up or payout.",
   },
   {
     q: "When does a brand fund a campaign?",

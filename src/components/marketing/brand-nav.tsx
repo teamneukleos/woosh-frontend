@@ -12,6 +12,7 @@ const links = [
   { label: "Brands", href: "/for-brands" },
   { label: "Creators", href: "/for-creators" },
   { label: "Agencies", href: "/for-agencies" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
   { label: "FAQ", href: "/#faq" },
 ];
