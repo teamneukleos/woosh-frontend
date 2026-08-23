@@ -99,31 +99,31 @@ export default function ForCreatorsPage() {
         </div>
       </AudienceHero>
 
-      <section className="border-t border-white/10 py-20 md:py-28">
+      <section className="border-t border-mkt-border py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{The path}"}</p>
-          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
             Claim it. Connect it. Price it. Collect.
           </h2>
           <ol className="mt-12 grid gap-6 md:grid-cols-5">
             {path.map((step) => (
-              <li key={step.n} className="border-t border-white/15 pt-4">
+              <li key={step.n} className="border-t border-mkt-border pt-4">
                 <p className="mkt-accent text-xs">{step.n}</p>
-                <h3 className="mt-2 text-sm font-medium text-white">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/50">{step.body}</p>
+                <h3 className="mt-2 text-sm font-medium text-mkt-fg">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-mkt-subtle">{step.body}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="border-t border-white/10 bg-white/[0.03] py-14 md:py-16">
+      <section className="border-t border-mkt-border bg-mkt-inset py-14 md:py-16">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{Storefront}"}</p>
-          <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+          <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
             No scoreboard. No begging a star.
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-mkt-muted">
             Woosh does not run a public creator scoreboard. Brands judge your
             storefront, connected metrics, and work you have actually delivered
             together.
@@ -131,32 +131,32 @@ export default function ForCreatorsPage() {
         </div>
       </section>
 
-      <section className="border-t border-white/10 py-20 md:py-28">
+      <section className="border-t border-mkt-border py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{Packages}"}</p>
-          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
             Illustration — not live inventory.
           </h2>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {packages.map((pkg) => (
               <article
                 key={pkg.name}
-                className="mkt-lift rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-5"
+                className="mkt-lift rounded-[1.1rem] border border-mkt-border bg-mkt-inset p-5"
               >
                 <p className="mkt-accent text-xs">{pkg.from}</p>
-                <h3 className="mt-1 text-lg font-medium text-white">{pkg.name}</h3>
-                <dl className="mt-4 space-y-2 text-sm text-white/55">
+                <h3 className="mt-1 text-lg font-medium text-mkt-fg">{pkg.name}</h3>
+                <dl className="mt-4 space-y-2 text-sm text-mkt-muted">
                   <div className="flex justify-between gap-4">
                     <dt>Deliverable</dt>
-                    <dd className="text-white">{pkg.deliverable}</dd>
+                    <dd className="text-mkt-fg">{pkg.deliverable}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt>Usage</dt>
-                    <dd className="text-white">{pkg.usage}</dd>
+                    <dd className="text-mkt-fg">{pkg.usage}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt>Turnaround</dt>
-                    <dd className="text-white">{pkg.turnaround}</dd>
+                    <dd className="text-mkt-fg">{pkg.turnaround}</dd>
                   </div>
                 </dl>
               </article>
@@ -165,13 +165,13 @@ export default function ForCreatorsPage() {
         </div>
       </section>
 
-      <section className="border-t border-white/10 bg-[#0b0d14] py-16 md:py-20">
+      <section className="border-t border-mkt-border bg-mkt-panel py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{Payout}"}</p>
-          <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+          <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
             The rate you accept is the Naira we send.
           </h2>
-          <div className="mt-8 flex max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 sm:flex-row">
+          <div className="mt-8 flex max-w-2xl flex-col overflow-hidden rounded-2xl border border-mkt-border sm:flex-row">
             {[
               { label: "Gross", value: "₦250,000" },
               { label: "Platform fee", value: "₦0" },
@@ -179,14 +179,14 @@ export default function ForCreatorsPage() {
             ].map((row, i) => (
               <div
                 key={row.label}
-                className={`flex-1 px-5 py-4 ${i === 2 ? "bg-[var(--mkt-electric)]" : "bg-white/[0.03]"} ${i > 0 ? "border-t border-white/10 sm:border-l sm:border-t-0" : ""}`}
+                className={`flex-1 px-5 py-4 ${i === 2 ? "bg-[var(--mkt-electric)] text-white" : "bg-mkt-inset"} ${i > 0 ? "border-t border-mkt-border sm:border-l sm:border-t-0" : ""}`}
               >
-                <p className="text-xs text-white/50">{row.label}</p>
-                <p className="mt-1 text-xl font-medium text-white">{row.value}</p>
+                <p className={`text-xs ${i === 2 ? "text-white/70" : "text-mkt-subtle"}`}>{row.label}</p>
+                <p className={`mt-1 text-xl font-medium ${i === 2 ? "text-white" : "text-mkt-fg"}`}>{row.value}</p>
               </div>
             ))}
           </div>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-white/50">
+          <p className="mt-4 max-w-xl text-sm leading-6 text-mkt-subtle">
             Example figures for layout only. Settlement is Paystack after the
             72-hour release window.
           </p>

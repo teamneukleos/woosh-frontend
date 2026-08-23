@@ -28,7 +28,7 @@ export function LegalDocument({
                 href="/register"
                 className="inline-flex h-9 items-center rounded-full bg-[#003af4] px-3.5 text-sm font-semibold text-white"
               >
-                Open a workspace
+                Sign up
               </Link>
             </div>
           </div>

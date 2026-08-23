@@ -12,18 +12,18 @@ export function Logo({
   href = "/",
   className,
   light = false,
+  adaptive = false,
   size = "md",
 }: {
   href?: string;
   className?: string;
   /** White wordmark for dark / navy surfaces */
   light?: boolean;
+  /** Swap wordmark with html.light / html.dark — no hydration flash */
+  adaptive?: boolean;
   size?: keyof typeof sizes;
 }) {
   const dim = sizes[size];
-  const src = light
-    ? "/brand/woosh-wordmark-light.png"
-    : "/brand/woosh-wordmark-dark.png";
 
   return (
     <Link
@@ -31,15 +31,42 @@ export function Logo({
       className={cn("inline-flex items-center", className)}
       aria-label="Woosh home"
     >
-      <Image
-        src={src}
-        alt="Woosh"
-        width={dim.width}
-        height={dim.height}
-        className="w-auto"
-        style={{ height: dim.height }}
-        priority
-      />
+      {adaptive ? (
+        <span className="relative inline-flex items-center" style={{ height: dim.height }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/woosh-wordmark-light.png"
+            alt=""
+            width={dim.width}
+            height={dim.height}
+            className="mkt-logo-on-dark w-auto"
+            style={{ height: dim.height }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/woosh-wordmark-dark.png"
+            alt=""
+            width={dim.width}
+            height={dim.height}
+            className="mkt-logo-on-light w-auto"
+            style={{ height: dim.height }}
+          />
+        </span>
+      ) : (
+        <Image
+          src={
+            light
+              ? "/brand/woosh-wordmark-light.png"
+              : "/brand/woosh-wordmark-dark.png"
+          }
+          alt="Woosh"
+          width={dim.width}
+          height={dim.height}
+          className="w-auto"
+          style={{ height: dim.height }}
+          priority
+        />
+      )}
     </Link>
   );
 }

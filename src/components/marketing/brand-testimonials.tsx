@@ -52,8 +52,8 @@ function Card({
   src,
 }: (typeof quotes)[number]) {
   return (
-    <figure className="mkt-lift w-[min(22rem,80vw)] shrink-0 rounded-[1.25rem] bg-white/[0.06] p-5 backdrop-blur-md">
-      <p className="text-[0.9375rem] leading-6 text-white">“{quote}”</p>
+    <figure className="mkt-lift w-[min(22rem,80vw)] shrink-0 rounded-[1.25rem] bg-mkt-raised p-5 backdrop-blur-md">
+      <p className="text-[0.9375rem] leading-6 text-mkt-fg">“{quote}”</p>
       <figcaption className="mt-4 flex items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -62,8 +62,8 @@ function Card({
           className="size-10 rounded-full object-cover ring-2 ring-[#0de3af]/50"
         />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-white">{name}</p>
-          <p className="truncate text-xs text-white/45">{role}</p>
+          <p className="truncate text-sm font-medium text-mkt-fg">{name}</p>
+          <p className="truncate text-xs text-mkt-subtle">{role}</p>
         </div>
       </figcaption>
     </figure>
@@ -100,13 +100,13 @@ function Row({
 
 export function BrandTestimonials() {
   return (
-    <section id="love" className="overflow-hidden border-t border-white/10 bg-black py-20 md:py-28">
+    <section id="love" className="overflow-hidden border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The receipts}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           How it sounds when the money and the work stay in the same room.
         </h2>
-        <p className="mt-4 max-w-lg text-sm leading-6 text-white/50">
+        <p className="mt-4 max-w-lg text-sm leading-6 text-mkt-subtle">
           Illustrated voices on the same four moves — find, brief, ship, pay.
           Not a customer scoreboard.
         </p>

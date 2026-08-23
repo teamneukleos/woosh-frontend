@@ -79,13 +79,13 @@ function Scene({
 
 export function BrandOs() {
   return (
-    <section className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{Marketplace + workspace}"}</p>
-        <h2 className="font-display mt-4 max-w-2xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-2xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           A face the street already knows. A brief with money behind it.
         </h2>
-        <p className="mt-5 max-w-lg text-sm leading-6 text-white/50">
+        <p className="mt-5 max-w-lg text-sm leading-6 text-mkt-subtle">
           The storefront a brand opens at 11pm. The brief a creator can actually
           finish. Same product. Two surfaces. No theatre.
         </p>

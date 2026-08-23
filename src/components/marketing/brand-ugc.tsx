@@ -159,13 +159,13 @@ function Clip({
 export function BrandUgc() {
   const loop = [...clips, ...clips];
   return (
-    <section className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The feed}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           This is how Nigeria already talks.
         </h2>
-        <p className="mt-4 max-w-lg text-sm leading-6 text-white/50">
+        <p className="mt-4 max-w-lg text-sm leading-6 text-mkt-subtle">
           Phone-native. Lagos, the feed, the brief. Tap a card — it opens on
           TikTok Nigeria. Not a moodboard from another continent.
         </p>

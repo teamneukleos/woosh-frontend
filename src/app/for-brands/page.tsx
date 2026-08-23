@@ -16,7 +16,7 @@ import { pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchemaFrom } from "@/lib/seo-schema";
 
 export const metadata = pageMetadata({
-  title: "Run Nigeria without the group chat",
+  title: "Run campaigns without the group chat",
   description:
     "Claimed Instagram, TikTok and YouTube. Put Naira on the brief before you select. One thread. Zero platform fee.",
   path: "/for-brands",
@@ -56,7 +56,7 @@ export default function ForBrandsPage() {
 
       <AudienceHero
         kicker="{For brands}"
-        title="Stop running Nigeria in WhatsApp."
+        title="Stop running campaigns in WhatsApp."
         lede="Claimed Instagram, TikTok, YouTube. Put Naira on the brief, then pick who runs it. One thread. We take 0%."
         primaryHref="/register?type=brand"
         primaryLabel="Open a brand seat"
@@ -88,31 +88,31 @@ export default function ForBrandsPage() {
         </div>
       </AudienceHero>
 
-      <section className="border-t border-white/10 py-20 md:py-28">
+      <section className="border-t border-mkt-border py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="mkt-kicker">{"{Brief types}"}</p>
-          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+          <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
             Open the street. Or invite the room.
           </h2>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {briefModes.map((mode) => (
               <article
                 key={mode.title}
-                className="mkt-lift rounded-[1.1rem] border border-white/10 bg-white/[0.03] p-5"
+                className="mkt-lift rounded-[1.1rem] border border-mkt-border bg-mkt-inset p-5"
               >
-                <p className="text-[0.65rem] uppercase tracking-wider text-white/35">
+                <p className="text-[0.65rem] uppercase tracking-wider text-mkt-faint">
                   Lane · {mode.lane}
                 </p>
-                <h3 className="mt-2 text-lg font-medium text-white">{mode.title}</h3>
+                <h3 className="mt-2 text-lg font-medium text-mkt-fg">{mode.title}</h3>
                 <p className="mkt-accent mt-2 text-sm">{mode.use}</p>
-                <p className="mt-3 text-sm leading-6 text-white/55">{mode.body}</p>
+                <p className="mt-3 text-sm leading-6 text-mkt-muted">{mode.body}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-white/10 bg-[var(--mkt-electric)] py-14 md:py-16">
+      <section className="border-t border-mkt-border bg-[var(--mkt-electric)] py-14 md:py-16">
         <div className="mx-auto max-w-6xl px-5 md:px-8">
           <p className="text-[0.8125rem] font-medium tracking-[0.01em] text-white/75">
             {"{Fund before you select}"}
@@ -139,14 +139,14 @@ export default function ForBrandsPage() {
         </div>
       </section>
 
-      <section className="border-t border-white/10 py-20 md:py-28">
+      <section className="border-t border-mkt-border py-20 md:py-28">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 md:px-8 lg:grid-cols-2">
           <div>
             <p className="mkt-kicker">{"{One thread}"}</p>
-            <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+            <h2 className="font-display mt-4 text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
               The thread is the work. The group chat can rest.
             </h2>
-            <p className="mt-4 text-sm leading-6 text-white/55">
+            <p className="mt-4 text-sm leading-6 text-mkt-muted">
               Creators upload into the campaign. You request a change without a
               new group chat. One organisation, one wallet — unless you need a
               client roster, which is the{" "}

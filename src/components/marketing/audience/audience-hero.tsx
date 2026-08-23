@@ -25,10 +25,10 @@ export function AudienceHero({
   const copy = (
     <div className="min-w-0">
       <p className="mkt-kicker">{kicker}</p>
-      <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-white">
+      <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-mkt-fg">
         {title}
       </h1>
-      <p className="mt-5 max-w-xl text-[0.9375rem] leading-7 text-white/58 md:text-base">
+      <p className="mt-5 max-w-xl text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
         {lede}
       </p>
       <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -63,7 +63,7 @@ export function AudienceHero({
     );
 
   return (
-    <section className="relative isolate overflow-hidden bg-black text-white">
+    <section className="relative isolate overflow-hidden bg-mkt-bg text-mkt-fg">
       <div aria-hidden className="mkt-pattern absolute inset-0 -z-10 opacity-80" />
       {inner}
     </section>

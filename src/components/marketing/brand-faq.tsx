@@ -8,13 +8,13 @@ export function BrandFaq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section id="faq" className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{FAQ}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           Ask it like you would in the room.
         </h2>
-        <div className="mt-12 divide-y divide-white/10 border-t border-white/10">
+        <div className="mt-12 divide-y divide-mkt-border border-t border-mkt-border">
           {marketingFaqs.map((item, i) => {
             const isOpen = openIndex === i;
             const panelId = `faq-panel-${i}`;
@@ -25,10 +25,10 @@ export function BrandFaq() {
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="flex w-full cursor-pointer items-start justify-between gap-6 text-left text-[0.9375rem] font-medium text-white transition-colors hover:text-[#0de3af]"
+                  className="flex w-full cursor-pointer items-start justify-between gap-6 text-left text-[0.9375rem] font-medium text-mkt-fg transition-colors hover:text-[#0de3af]"
                 >
                   <span>
-                    <span className="mr-3 text-white/30">
+                    <span className="mr-3 text-mkt-faint">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     {item.q}
@@ -46,7 +46,7 @@ export function BrandFaq() {
                   id={panelId}
                   hidden={!isOpen}
                   className={cn(
-                    "mt-3 max-w-2xl origin-top pl-10 text-sm leading-6 text-white/50",
+                    "mt-3 max-w-2xl origin-top pl-10 text-sm leading-6 text-mkt-subtle",
                     isOpen && "motion-safe:animate-[mkt-rise_0.4s_ease]",
                   )}
                 >

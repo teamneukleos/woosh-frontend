@@ -8,6 +8,24 @@
   --mkt-navy: #091b68;
   --mkt-teal: #0de3af;
   --mkt-dull: #161616;
+  --mkt-bg: #000000;
+  --mkt-fg: #f5f5f7;
+  --mkt-muted: rgb(255 255 255 / 0.55);
+  --mkt-subtle: rgb(255 255 255 / 0.45);
+  --mkt-faint: rgb(255 255 255 / 0.35);
+  --mkt-border: rgb(255 255 255 / 0.1);
+  --mkt-inset: rgb(255 255 255 / 0.045);
+  --mkt-raised: rgb(255 255 255 / 0.06);
+  --mkt-ghost: rgb(255 255 255 / 0.08);
+  --mkt-ghost-hover: rgb(255 255 255 / 0.14);
+  --mkt-panel: #0b0d14;
+  --mkt-nav: rgb(0 0 0 / 0.8);
+  --mkt-pattern-bg: #000000;
+  --mkt-pattern-electric: rgb(0 58 244 / 0.38);
+  --mkt-pattern-teal: rgb(13 227 175 / 0.12);
+  --mkt-prose: rgb(255 255 255 / 0.7);
+  --mkt-prose-heading: #ffffff;
+  --mkt-prose-strong: rgb(255 255 255 / 0.88);
   --woosh-black: #000000;
   --woosh-dull: #12141a;
   --woosh-grey: #6b6d73;
@@ -64,6 +82,18 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-accent: var(--accent);
+  --color-mkt-bg: var(--mkt-bg);
+  --color-mkt-fg: var(--mkt-fg);
+  --color-mkt-muted: var(--mkt-muted);
+  --color-mkt-subtle: var(--mkt-subtle);
+  --color-mkt-faint: var(--mkt-faint);
+  --color-mkt-border: var(--mkt-border);
+  --color-mkt-inset: var(--mkt-inset);
+  --color-mkt-raised: var(--mkt-raised);
+  --color-mkt-ghost: var(--mkt-ghost);
+  --color-mkt-ghost-hover: var(--mkt-ghost-hover);
+  --color-mkt-panel: var(--mkt-panel);
+  --color-mkt-nav: var(--mkt-nav);
   --font-sans: var(--font-woosh-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-woosh-sans), ui-sans-serif, system-ui, sans-serif;
 }
@@ -111,9 +141,30 @@ body[data-surface="marketing"] {
   --mkt-navy: #091b68;
   --mkt-teal: #0de3af;
   --mkt-dull: #161616;
-  background: #000;
-  color: #f5f5f7;
+  background: var(--mkt-bg);
+  color: var(--mkt-fg);
   scroll-behavior: smooth;
+}
+
+html.light body[data-surface="marketing"] {
+  --mkt-bg: #f4f3f0;
+  --mkt-fg: #12141a;
+  --mkt-muted: rgb(18 20 26 / 0.62);
+  --mkt-subtle: rgb(18 20 26 / 0.5);
+  --mkt-faint: rgb(18 20 26 / 0.38);
+  --mkt-border: rgb(18 20 26 / 0.1);
+  --mkt-inset: rgb(18 20 26 / 0.04);
+  --mkt-raised: #ffffff;
+  --mkt-ghost: rgb(18 20 26 / 0.06);
+  --mkt-ghost-hover: rgb(18 20 26 / 0.1);
+  --mkt-panel: #ffffff;
+  --mkt-nav: rgb(244 243 240 / 0.86);
+  --mkt-pattern-bg: #f4f3f0;
+  --mkt-pattern-electric: rgb(0 58 244 / 0.16);
+  --mkt-pattern-teal: rgb(13 227 175 / 0.1);
+  --mkt-prose: rgb(18 20 26 / 0.72);
+  --mkt-prose-heading: #12141a;
+  --mkt-prose-strong: #12141a;
 }
 
 .mkt-kicker {
@@ -178,40 +229,50 @@ body[data-surface="marketing"] {
 }
 
 .mkt-cta-ghost {
-  background: rgb(255 255 255 / 0.08);
-  color: rgb(255 255 255 / 0.86);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  background: var(--mkt-ghost);
+  color: var(--mkt-fg);
+  box-shadow: 0 1px 4px rgb(18 20 26 / 0.08);
 }
 
 .mkt-cta-ghost:hover {
-  background: rgb(255 255 255 / 0.12);
-  color: #fff;
+  background: var(--mkt-ghost-hover);
+  color: var(--mkt-fg);
   transform: translateY(-1px);
 }
 
 .mkt-lift {
+  box-shadow: 0 6px 18px rgb(18 20 26 / 0.08);
+}
+
+html.dark .mkt-lift {
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.22);
 }
 
 .mkt-inset {
-  background: rgb(255 255 255 / 0.045);
-  box-shadow: 0 3px 10px rgb(0 0 0 / 0.16);
+  background: var(--mkt-inset);
+  box-shadow: 0 3px 10px rgb(18 20 26 / 0.06);
 }
 
 .mkt-pattern {
-  background-color: #000;
+  background-color: var(--mkt-pattern-bg);
   background-image:
-    radial-gradient(ellipse 70% 50% at 82% 8%, rgb(0 58 244 / 0.38), transparent 62%),
-    radial-gradient(ellipse 45% 40% at 8% 92%, rgb(13 227 175 / 0.12), transparent 58%),
+    radial-gradient(ellipse 70% 50% at 82% 8%, var(--mkt-pattern-electric), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 8% 92%, var(--mkt-pattern-teal), transparent 58%),
     url("/brand/pattern-w.svg");
   background-size: auto, auto, 220px;
   background-repeat: no-repeat, no-repeat, repeat;
 }
 
+html.light .mkt-pattern {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 82% 8%, var(--mkt-pattern-electric), transparent 62%),
+    radial-gradient(ellipse 45% 40% at 8% 92%, var(--mkt-pattern-teal), transparent 58%);
+}
+
 .mkt-prose {
   font-size: 0.975rem;
   line-height: 1.75;
-  color: rgb(255 255 255 / 0.7);
+  color: var(--mkt-prose);
 }
 
 .mkt-prose p + p,
@@ -227,7 +288,7 @@ body[data-surface="marketing"] {
   font-family: var(--font-woosh-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 1.5rem;
   letter-spacing: -0.022em;
-  color: #fff;
+  color: var(--mkt-prose-heading);
 }
 
 .mkt-prose a {
@@ -249,13 +310,38 @@ body[data-surface="marketing"] {
 }
 
 .mkt-prose strong {
-  color: rgb(255 255 255 / 0.88);
+  color: var(--mkt-prose-strong);
   font-weight: 600;
 }
 
 .mkt-prose code {
   font-size: 0.9em;
-  color: rgb(255 255 255 / 0.86);
+  color: var(--mkt-fg);
+}
+
+.mkt-logo-on-light {
+  display: none;
+}
+
+html.light .mkt-logo-on-dark {
+  display: none;
+}
+
+html.light .mkt-logo-on-light {
+  display: block;
+}
+
+.mkt-logo-mark {
+  opacity: 0.55;
+  filter: grayscale(1) brightness(0) invert(1);
+}
+
+html.light .mkt-logo-mark {
+  filter: grayscale(1) brightness(0);
+}
+
+.mkt-mock {
+  color-scheme: dark;
 }
 
 .mkt-blob {

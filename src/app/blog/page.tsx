@@ -35,10 +35,10 @@ export default function BlogIndexPage() {
         <div className="mkt-pattern">
           <section className="mx-auto max-w-5xl px-5 pb-24 pt-10 md:px-8">
             <p className="mkt-kicker">{"{Blog}"}</p>
-            <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-white">
+            <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-mkt-fg">
               How the brief survives the street.
             </h1>
-            <p className="mt-6 max-w-xl text-[0.9375rem] leading-7 text-white/58 md:text-base">
+            <p className="mt-6 max-w-xl text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
               Claimed supply. Funded selection. Naira. The thread. Notes — not
               invented case studies.
             </p>
@@ -48,7 +48,7 @@ export default function BlogIndexPage() {
                 <li key={post.slug}>
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="mkt-lift block overflow-hidden rounded-[1.1rem] transition hover:bg-white/[0.05]"
+                    className="mkt-lift block overflow-hidden rounded-[1.1rem] bg-mkt-raised transition hover:bg-mkt-inset"
                   >
                     <Image
                       src={post.image}
@@ -62,14 +62,14 @@ export default function BlogIndexPage() {
                     <div className="px-5 py-6">
                       <time
                         dateTime={post.date}
-                        className="text-[0.75rem] text-white/40"
+                        className="text-[0.75rem] text-mkt-faint"
                       >
                         {formatPostDate(post.date)}
                       </time>
-                      <h2 className="font-display mt-2 text-xl text-white">
+                      <h2 className="font-display mt-2 text-xl text-mkt-fg">
                         {post.title}
                       </h2>
-                      <p className="mt-2 text-sm leading-6 text-white/55">
+                      <p className="mt-2 text-sm leading-6 text-mkt-muted">
                         {post.description}
                       </p>
                       <span className="mkt-accent mt-4 inline-block text-[0.8125rem]">

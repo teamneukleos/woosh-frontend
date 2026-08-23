@@ -46,25 +46,25 @@ export function BrandSteps() {
   const step = steps[index]!;
 
   return (
-    <section id="how" className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section id="how" className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{How it works}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           Find them. Brief them. Ship. Pay in Naira.
         </h2>
-        <p className="mt-4 text-sm text-white/45">
+        <p className="mt-4 text-sm text-mkt-subtle">
           Four moves. One ledger. Zero platform fee.
         </p>
 
         <div className="mt-12 grid items-start gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
           <div>
             <p className="text-[0.75rem] text-[#0de3af]">
-              {step.n} <span className="text-white/30">/ 04</span>
+              {step.n} <span className="text-mkt-faint">/ 04</span>
             </p>
-            <h3 className="mt-4 text-2xl font-medium tracking-[-0.02em] text-white">
+            <h3 className="mt-4 text-2xl font-medium tracking-[-0.02em] text-mkt-fg">
               {step.title}
             </h3>
-            <p className="mt-4 text-sm leading-7 text-white/55">{step.copy}</p>
+            <p className="mt-4 text-sm leading-7 text-mkt-muted">{step.copy}</p>
 
             <div
               className="mt-10 flex flex-wrap gap-2"
@@ -95,7 +95,7 @@ export function BrandSteps() {
                     "rounded-full px-3 py-1.5 text-[0.75rem] font-medium transition",
                     i === index
                       ? "bg-[#003af4] text-white shadow-[0_2px_8px_rgb(0_58_244_/_0.2)]"
-                      : "bg-white/[0.08] text-white/55 shadow-[0_1px_4px_rgb(0_0_0_/_0.16)] hover:bg-white/[0.12] hover:text-white",
+                      : "bg-mkt-ghost text-mkt-muted shadow-[0_1px_4px_rgb(18_20_26_/_0.08)] hover:bg-mkt-ghost-hover hover:text-mkt-fg",
                   )}
                 >
                   {s.n} {s.title}

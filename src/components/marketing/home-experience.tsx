@@ -21,7 +21,7 @@ import {
 
 export function HomeExperience() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-mkt-bg text-mkt-fg">
       <JsonLd data={organizationSchema()} />
       <JsonLd data={websiteSchema()} />
       <JsonLd data={softwareSchema()} />

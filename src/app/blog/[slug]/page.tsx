@@ -59,17 +59,17 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div aria-hidden className="mkt-pattern pointer-events-none absolute inset-0 -z-10 opacity-80" />
           <div className="mx-auto max-w-3xl px-5 pb-24 pt-10 md:px-8">
           <p className="mkt-kicker">{"{Blog}"}</p>
-          <p className="mt-3 text-[0.75rem] text-white/40">
+          <p className="mt-3 text-[0.75rem] text-mkt-faint">
             <Link href="/blog" className="mkt-link">
               All notes
             </Link>
             <span className="px-2">·</span>
             <time dateTime={post.date}>{formatPostDate(post.date)}</time>
           </p>
-          <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-white">
+          <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.08] tracking-[-0.03em] text-mkt-fg">
             {post.title}
           </h1>
-          <p className="mt-6 max-w-xl text-[0.9375rem] leading-7 text-white/58 md:text-base">{post.description}</p>
+          <p className="mt-6 max-w-xl text-[0.9375rem] leading-7 text-mkt-muted md:text-base">{post.description}</p>
           <Image
             src={post.image}
             alt=""
@@ -95,7 +95,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
 
           {others.length > 0 ? (
-            <aside className="mt-16 border-t border-white/10 pt-10">
+            <aside className="mt-16 border-t border-mkt-border pt-10">
               <p className="mkt-kicker">{"{Other notes}"}</p>
               <ul className="mt-4 grid gap-3">
                 {others.map((item) => (

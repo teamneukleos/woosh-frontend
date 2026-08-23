@@ -40,7 +40,7 @@ export function ProductFrame({
   return (
     <div
       className={cn(
-        "mkt-lift overflow-hidden rounded-[1.1rem] bg-[#0b0d14] transition-transform duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:rotate-[0.4deg]",
+        "mkt-mock mkt-lift overflow-hidden rounded-[1.1rem] bg-[#0b0d14] transition-transform duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:rotate-[0.4deg]",
         className,
       )}
     >

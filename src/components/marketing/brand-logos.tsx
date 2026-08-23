@@ -28,7 +28,7 @@ function Row() {
             <img
               src={brand.src}
               alt=""
-              className="h-8 w-auto max-w-[8.5rem] object-contain opacity-55 grayscale brightness-0 invert transition duration-300 hover:opacity-100"
+              className="mkt-logo-mark h-8 w-auto max-w-[8.5rem] object-contain transition duration-300 hover:opacity-100"
             />
           </li>
         ))}
@@ -41,14 +41,14 @@ export function BrandLogos() {
   return (
     <section
       aria-label="Brand marks"
-      className="border-t border-white/10 bg-black py-14 md:py-16"
+      className="border-t border-mkt-border bg-mkt-bg py-14 md:py-16"
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The category}"}</p>
-        <h2 className="font-display mt-3 max-w-xl text-[clamp(1.5rem,3vw,2.15rem)] leading-[1.15] text-white">
+        <h2 className="font-display mt-3 max-w-xl text-[clamp(1.5rem,3vw,2.15rem)] leading-[1.15] text-mkt-fg">
           The names the feed already knows
         </h2>
-        <p className="mt-3 max-w-lg text-sm leading-6 text-white/45">
+        <p className="mt-3 max-w-lg text-sm leading-6 text-mkt-subtle">
           Category marks at the scale this product is built for — not a list of
           Woosh customers. The work is Nigerian. The ambition is not small.
         </p>

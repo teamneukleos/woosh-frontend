@@ -57,20 +57,20 @@ const items = [
 
 export function BrandAdvantage() {
   return (
-    <section id="advantage" className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section id="advantage" className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The advantage}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           Built for how Nigeria actually ships culture
         </h2>
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {items.map((item) => (
             <article key={item.title} className="flex flex-col">
               <ProductFrame title={item.frame}>{item.mock}</ProductFrame>
-              <h3 className="mt-5 text-[1.0625rem] font-medium tracking-[-0.015em] text-white">
+              <h3 className="mt-5 text-[1.0625rem] font-medium tracking-[-0.015em] text-mkt-fg">
                 {item.title}
               </h3>
-              <p className="mt-3 text-sm leading-6 text-white/50">{item.copy}</p>
+              <p className="mt-3 text-sm leading-6 text-mkt-subtle">{item.copy}</p>
             </article>
           ))}
         </div>

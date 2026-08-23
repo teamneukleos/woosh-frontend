@@ -23,10 +23,10 @@ const claims = [
 
 export function BrandWorkspace() {
   return (
-    <section className="border-t border-white/10 bg-black py-20 md:py-28">
+    <section className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The workspace}"}</p>
-        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-white">
+        <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           When the campaign is bigger than one tab.
         </h2>
 

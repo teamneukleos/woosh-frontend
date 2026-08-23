@@ -57,7 +57,7 @@ export function BrandHero() {
   return (
     <section
       id="top"
-      className="relative isolate overflow-hidden bg-black pt-[calc(5.5rem+env(safe-area-inset-top))] text-white"
+      className="relative isolate overflow-hidden bg-mkt-bg pt-[calc(5.5rem+env(safe-area-inset-top))] text-mkt-fg"
     >
       <div aria-hidden className="mkt-pattern absolute inset-0 -z-10 opacity-80" />
       <div className="mx-auto w-full max-w-6xl px-5 pb-16 pt-8 md:px-8 md:pb-20 md:pt-10">
@@ -70,14 +70,14 @@ export function BrandHero() {
             <span className="text-[#0de3af]">wait.</span>
           </h1>
           <div>
-            <p className="max-w-md text-[0.9375rem] leading-7 text-white/58 md:text-base">
+            <p className="max-w-md text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
               Nigeria runs on the feed. Woosh is the marketplace that keeps up:
               claimed Instagram, TikTok and YouTube — not typed bios. Put Naira
               on the brief. One thread. Paystack. Zero platform fee.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link href="/register" className="mkt-cta mkt-cta-primary">
-                Open a workspace
+                Sign up
               </Link>
               <Link href="/#how" className="mkt-cta mkt-cta-ghost">
                 See the loop
