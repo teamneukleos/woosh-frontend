@@ -12,11 +12,22 @@ export const metadata = pageMetadata({
   path: "/register",
 });
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invite?: string }>;
+}) {
+  const { invite } = await searchParams;
+  const joiningTeam = Boolean(invite);
+
   return (
     <AuthShell
-      title="Take a seat"
-      description="Brand, agency or creator. Same loop. Different wallet."
+      title={joiningTeam ? "Join your team" : "Take a seat"}
+      description={
+        joiningTeam
+          ? "Create an account with the invited email, then sign in. No second verification email."
+          : "Brand, agency or creator. Same loop. Different wallet."
+      }
       footer={
         <p>
           Already registered?{" "}

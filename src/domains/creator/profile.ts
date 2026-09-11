@@ -1,179 +1,188 @@
-import { z } from "zod";
-import { prisma } from "@/lib/db";
-import { writeAudit } from "@/lib/audit";
-import { CREATOR_CATEGORIES, LANGUAGES } from "@/lib/taxonomy";
-import type { SocialChannel } from "@/generated/prisma/client";
+import { api } from "@/lib/api";
+import { asDate } from "@/lib/nest";
+import type { SocialChannel } from "@/lib/enums";
 
-const categoryEnum = z.enum(
-  CREATOR_CATEGORIES as unknown as [string, ...string[]],
-);
-const languageEnum = z.enum(LANGUAGES as unknown as [string, ...string[]]);
-
-const profileSchema = z.object({
-  displayName: z.string().min(2).max(120),
-  bio: z.string().max(2000).optional(),
-  websiteUrl: z.string().url().max(2048).optional(),
-  locationCountry: z.string().max(8).optional(),
-  locationState: z.string().max(80).optional(),
-  locationCity: z.string().max(80).optional(),
-  categories: z.array(categoryEnum).optional(),
-  languages: z.array(languageEnum).optional(),
-  preferredIndustries: z.array(z.string().max(100)).max(20).optional(),
-  excludedIndustries: z.array(z.string().max(100)).max(20).optional(),
-  ageBand: z.string().max(40).optional(),
-  gender: z.string().max(40).optional(),
-  ageSearchable: z.boolean().optional(),
-  genderSearchable: z.boolean().optional(),
-  typicalRateMin: z.number().nonnegative().optional(),
-  typicalRateMax: z.number().nonnegative().optional(),
-  rateCurrency: z.string().max(8).optional(),
-  availabilityNotes: z.string().max(1000).optional(),
-});
+export type OwnCreatorProfile = {
+  id: string;
+  displayName: string;
+  bio: string | null;
+  websiteUrl: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
+  categories: string[];
+  languages: string[];
+  preferredIndustries: string[];
+  excludedIndustries: string[];
+  ageBand: string | null;
+  gender: string | null;
+  ageSearchable: boolean;
+  genderSearchable: boolean;
+  typicalRateMin: number | null;
+  typicalRateMax: number | null;
+  rateCurrency: string;
+  availabilityNotes: string | null;
+  marketplaceStatus: string;
+  profileVisible: boolean;
+  submittedAt: Date | null;
+  verifiedAt: Date | null;
+  user: { emailVerified: Date | string | null };
+  socialAccounts: Array<{
+    id: string;
+    channel: string;
+    handle: string;
+    status: string;
+    lastRefreshedAt: Date | null;
+    snapshots: Array<{
+      followers: number | null;
+      engagementRate: number | null;
+      averageViews: number | null;
+      source: string;
+      capturedAt?: Date | string;
+    }>;
+  }>;
+  portfolioItems: Array<{
+    id: string;
+    status: string;
+    mediaType?: string;
+    title?: string;
+    description?: string | null;
+    brandName?: string | null;
+    campaignType?: string | null;
+    url?: string;
+    tags?: string[];
+    channel?: string | null;
+    moderationNotes?: string | null;
+  }>;
+  ratePackages: Array<{
+    id: string;
+    channel: string;
+    deliverableType: string;
+    title: string;
+    description: string | null;
+    price: number;
+    currency: string;
+    turnaroundDays: number | null;
+    revisions: number;
+    usageRights: string | null;
+    active: boolean;
+  }>;
+  readiness?: { percentage: number; complete: boolean };
+  oauth?: {
+    allowDev: boolean;
+    configured: Record<string, boolean>;
+  };
+};
 
 export async function updateCreatorProfile(
-  creatorProfileId: string,
-  input: z.infer<typeof profileSchema>,
-  actorId?: string,
+  _creatorProfileId: string,
+  input: Record<string, unknown>,
+  _actorId?: string,
 ) {
-  const parsed = profileSchema.parse(input);
-  const profile = await prisma.creatorProfile.update({
-    where: { id: creatorProfileId },
-    data: {
-      displayName: parsed.displayName,
-      bio: parsed.bio,
-      websiteUrl: parsed.websiteUrl,
-      locationCountry: parsed.locationCountry,
-      locationState: parsed.locationState,
-      locationCity: parsed.locationCity,
-      categories: parsed.categories,
-      languages: parsed.languages,
-      preferredIndustries: parsed.preferredIndustries,
-      excludedIndustries: parsed.excludedIndustries,
-      ageBand: parsed.ageBand,
-      gender: parsed.gender,
-      ageSearchable: parsed.ageSearchable,
-      genderSearchable: parsed.genderSearchable,
-      typicalRateMin: parsed.typicalRateMin,
-      typicalRateMax: parsed.typicalRateMax,
-      rateCurrency: parsed.rateCurrency,
-      availabilityNotes: parsed.availabilityNotes,
-    },
-  });
-
-  await writeAudit({
-    actorId,
-    action: "creator.profile.update",
-    targetType: "CreatorProfile",
-    targetId: profile.id,
-  });
-
-  return profile;
+  return api("/creators/me", { method: "PATCH", body: input });
 }
 
-/**
- * Start or refresh a social connection.
- * Metrics must come from provider sync — never from creator-typed follower counts.
- * Without OAuth keys, account is stored as PENDING (connected handle reserved for OAuth).
- */
 export async function connectSocialChannel(input: {
   creatorProfileId: string;
   channel: SocialChannel;
-  /** Optional prefilled handle; OAuth will overwrite with verified identity. */
+  actorId: string;
   handleHint?: string;
-  actorId?: string;
 }) {
-  const oauthConfigured = Boolean(
-    process.env.META_APP_ID ||
-      process.env.TIKTOK_CLIENT_KEY ||
-      process.env.GOOGLE_CLIENT_ID,
-  );
-
-  const handle =
-    input.handleHint?.trim().replace(/^@/, "").toLowerCase() ||
-    `${input.channel.toLowerCase()}-pending-${input.creatorProfileId.slice(-6)}`;
-
-  const status = oauthConfigured ? "PENDING" : "PENDING";
-
-  const account = await prisma.socialAccount.upsert({
-    where: {
-      channel_externalId: {
-        channel: input.channel,
-        externalId: handle,
-      },
-    },
-    create: {
-      creatorProfileId: input.creatorProfileId,
-      channel: input.channel,
-      externalId: handle,
-      handle,
-      status,
-      lastRefreshedAt: null,
-    },
-    update: {
-      creatorProfileId: input.creatorProfileId,
-      handle,
-      status,
-    },
+  return api("/creators/me/socials", {
+    method: "POST",
+    body: { channel: input.channel, handleHint: input.handleHint },
   });
-
-  await writeAudit({
-    actorId: input.actorId,
-    action: "creator.social.connect_start",
-    targetType: "SocialAccount",
-    targetId: account.id,
-    after: {
-      channel: input.channel,
-      status,
-      oauthConfigured,
-      note: "Metrics will sync from provider; no manual follower entry",
-    },
-  });
-
-  return { account, oauthConfigured };
 }
 
-/** @deprecated Do not use for creator-facing flows — kept only for claim merge of prospect estimate into a pending account without inventing ACTIVE verified metrics. */
-export async function attachClaimedChannel(input: {
-  creatorProfileId: string;
-  channel: SocialChannel;
-  handle: string;
-  actorId?: string;
-}) {
-  const handle = input.handle.trim().replace(/^@/, "").toLowerCase();
-  const account = await prisma.socialAccount.upsert({
-    where: {
-      channel_externalId: {
-        channel: input.channel,
-        externalId: handle,
-      },
-    },
-    create: {
-      creatorProfileId: input.creatorProfileId,
-      channel: input.channel,
-      externalId: handle,
-      handle,
-      status: "PENDING",
-      lastRefreshedAt: null,
-    },
-    update: {
-      creatorProfileId: input.creatorProfileId,
-      handle,
-      status: "PENDING",
-    },
-  });
+export async function attachClaimedChannel() {
+  /* Nest claim flow attaches the handle. */
+}
 
-  await writeAudit({
-    actorId: input.actorId,
-    action: "creator.social.claim_attach",
-    targetType: "SocialAccount",
-    targetId: account.id,
-    after: {
-      channel: input.channel,
-      handle,
-      status: "PENDING",
-      note: "Claim attached handle; creator must complete OAuth to verify metrics",
-    },
-  });
+export async function getCreatorProfile(emailVerified?: Date | string | null) {
+  const raw = await api<{
+    id: string;
+    displayName: string;
+    bio: string | null;
+    websiteUrl?: string | null;
+    avatarUrl?: string | null;
+    coverUrl?: string | null;
+    locationCountry: string | null;
+    locationState?: string | null;
+    locationCity: string | null;
+    categories: string[];
+    languages: string[];
+    preferredIndustries?: string[];
+    excludedIndustries?: string[];
+    ageBand?: string | null;
+    gender?: string | null;
+    ageSearchable?: boolean;
+    genderSearchable?: boolean;
+    typicalRateMin?: number | null;
+    typicalRateMax?: number | null;
+    rateCurrency?: string;
+    availabilityNotes?: string | null;
+    marketplaceStatus: string;
+    profileVisible?: boolean;
+    submittedAt?: string | null;
+    verifiedAt?: string | null;
+    socialAccounts: Array<{
+      id: string;
+      channel: string;
+      handle: string;
+      status: string;
+      lastRefreshedAt?: string | null;
+      metrics: {
+        followers: number | null;
+        engagementRate: number | null;
+        averageViews: number | null;
+        source: string;
+        capturedAt?: string;
+      } | null;
+    }>;
+    portfolioItems?: OwnCreatorProfile["portfolioItems"];
+    ratePackages: OwnCreatorProfile["ratePackages"];
+    readiness?: { percentage: number; complete: boolean };
+    oauth?: OwnCreatorProfile["oauth"];
+  }>("/creators/me");
 
-  return account;
+  return {
+    ...raw,
+    avatarUrl: raw.avatarUrl ?? null,
+    coverUrl: raw.coverUrl ?? null,
+    websiteUrl: raw.websiteUrl ?? null,
+    locationState: raw.locationState ?? null,
+    preferredIndustries: raw.preferredIndustries ?? [],
+    excludedIndustries: raw.excludedIndustries ?? [],
+    ageBand: raw.ageBand ?? null,
+    gender: raw.gender ?? null,
+    ageSearchable: raw.ageSearchable ?? false,
+    genderSearchable: raw.genderSearchable ?? false,
+    typicalRateMin: raw.typicalRateMin ?? null,
+    typicalRateMax: raw.typicalRateMax ?? null,
+    rateCurrency: raw.rateCurrency ?? "NGN",
+    availabilityNotes: raw.availabilityNotes ?? null,
+    profileVisible: raw.profileVisible ?? false,
+    submittedAt: asDate(raw.submittedAt),
+    verifiedAt: asDate(raw.verifiedAt),
+    user: { emailVerified: emailVerified ? new Date(emailVerified) : null },
+    socialAccounts: raw.socialAccounts.map((account) => ({
+      ...account,
+      lastRefreshedAt: asDate(account.lastRefreshedAt),
+      snapshots: account.metrics
+        ? [
+            {
+              followers: account.metrics.followers,
+              engagementRate: account.metrics.engagementRate,
+              averageViews: account.metrics.averageViews,
+              source: account.metrics.source,
+              capturedAt: account.metrics.capturedAt,
+            },
+          ]
+        : [],
+    })),
+    portfolioItems: raw.portfolioItems ?? [],
+    ratePackages: raw.ratePackages ?? [],
+  } satisfies OwnCreatorProfile;
 }

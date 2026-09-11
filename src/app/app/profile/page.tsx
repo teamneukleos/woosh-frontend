@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
+import { getCreatorProfile } from "@/domains/creator/profile";
 import {
   addPortfolioItemAction,
   createRatePackageAction,
@@ -39,25 +39,34 @@ import { formatHandle } from "@/lib/handle";
 import { creatorReadiness } from "@/domains/creator/media";
 import { ProgressBar } from "@/components/ui/progress";
 
-export default async function ProfilePage() {
+function oauthErrorCopy(code?: string) {
+  if (code === "youtube_channel_required") {
+    return "This Google account does not have a YouTube channel. Create a channel at youtube.com (YouTube Studio → Create channel), then connect again. A regular Google login is not enough.";
+  }
+  if (code === "instagram_business_required") {
+    return "Instagram must be a Business or Creator account linked to a Facebook Page. Personal Instagram logins cannot share follower counts. Convert the account, link a Page, then connect again.";
+  }
+  if (code === "authorization_cancelled") {
+    return "Authorization was cancelled. Try Connect again.";
+  }
+  if (code) {
+    return `Could not connect that channel: ${code.replaceAll("_", " ")}. Try Connect again.`;
+  }
+  return "Could not connect that channel. Try Connect again.";
+}
+
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ oauth?: string; oauthMessage?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx?.creatorProfile) redirect("/app/settings");
 
-  const profile = await prisma.creatorProfile.findUniqueOrThrow({
-    where: { id: ctx.creatorProfile.id },
-    include: {
-      user: { select: { emailVerified: true } },
-      socialAccounts: {
-        include: {
-          snapshots: { orderBy: { capturedAt: "desc" }, take: 1 },
-        },
-      },
-      portfolioItems: { orderBy: { sortOrder: "asc" } },
-      ratePackages: { orderBy: { sortOrder: "asc" } },
-    },
-  });
+  const profile = await getCreatorProfile(ctx.user.emailVerified);
+  const oauthResult = await searchParams;
 
   const accounts = profile.socialAccounts.map((a) => ({
     id: a.id,
@@ -97,6 +106,16 @@ export default async function ProfilePage() {
       width="wide"
       className="max-w-5xl"
     >
+      {oauthResult.oauth === "success" ? (
+        <p className="rounded-[var(--radius-md)] border border-[var(--woosh-teal)]/30 bg-[var(--woosh-mist)] px-4 py-3 text-sm text-[var(--woosh-navy)]">
+          Channel connected. Metrics come from the provider — brands will see them after you publish.
+        </p>
+      ) : null}
+      {oauthResult.oauth === "error" ? (
+        <p className="rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {oauthErrorCopy(oauthResult.oauthMessage)}
+        </p>
+      ) : null}
       <Panel variant="flush">
         <div className="relative h-44 bg-gradient-to-br from-[var(--woosh-navy)] to-[var(--woosh-blue)]">
           {profile.coverUrl ? (
@@ -108,7 +127,7 @@ export default async function ProfilePage() {
             />
           ) : null}
         </div>
-        <div className="flex flex-wrap items-end gap-4 px-5 pb-5">
+        <div className="flex flex-wrap items-end gap-4 px-5 pb-5 mt-4">
           <Avatar
             name={profile.displayName}
             src={profile.avatarUrl}
@@ -197,6 +216,7 @@ export default async function ProfilePage() {
               required
               label="Choose profile photo"
               hint="Up to 5 MB"
+              preview="square"
             />
             <Button type="submit" className="w-fit">
               Upload photo
@@ -219,6 +239,7 @@ export default async function ProfilePage() {
               required
               label="Choose cover image"
               hint="Up to 8 MB"
+              preview="wide"
             />
             <Button type="submit" className="w-fit">
               Upload cover
@@ -343,11 +364,11 @@ export default async function ProfilePage() {
             <Label>
               Gender (optional)
               <Select name="gender" defaultValue={profile.gender ?? ""}>
-                <option value="">Prefer not to say</option>
-                <option value="Woman">Woman</option>
-                <option value="Man">Man</option>
-                <option value="Non-binary">Non-binary</option>
-                <option value="Self-described">Self-described</option>
+                {/* <option value="">Prefer not to say</option> */}
+                <option value="Woman">Male</option>
+                <option value="Man">Female</option>
+                {/* <option value="Non-binary">Non-binary</option> */}
+                {/* <option value="Self-described">Self-described</option> */}
               </Select>
             </Label>
           </div>
@@ -382,7 +403,7 @@ export default async function ProfilePage() {
         <SocialConnections accounts={accounts} />
       </Panel>
 
-      {process.env.WOOSH_ALLOW_DEV_OAUTH === "true" ? (
+      {profile.oauth?.allowDev ? (
         <Panel title="Dev social connection">
           <ActionForm
             action={devOAuthCompleteAction}
@@ -606,7 +627,7 @@ export default async function ProfilePage() {
                     />
                     <Input
                       name="tags"
-                      defaultValue={item.tags.join(", ")}
+                      defaultValue={(item.tags ?? []).join(", ")}
                       placeholder="Tags"
                     />
                     <Button type="submit" size="sm" className="w-fit">

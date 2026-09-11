@@ -34,17 +34,12 @@ yarn-error.log*
 .env*
 !.env.example
 
-# prisma generated client
-/src/generated/prisma
-
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-/src/generated/prisma
 
 # local brand guideline exports (large)
 /docs/brand-previews/

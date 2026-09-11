@@ -141,7 +141,7 @@ export default async function JobDetailPage({
                     {myApp.offers[0].currency}
                   </p>
                 ) : null}
-                {["OPEN", "COUNTERED"].includes(myApp.offers[0].status) &&
+                {["OPEN", "COUNTERED"].includes(myApp.offers[0].status ?? "") &&
                 myApp.offers[0].createdById !== session.user.id ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                   <ActionForm

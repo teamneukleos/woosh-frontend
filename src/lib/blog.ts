@@ -22,13 +22,14 @@ const CONTENT_DIR = path.join(process.cwd(), "content/blog");
 const AUDIENCES = new Set<BlogAudience>(["brands", "creators", "agencies"]);
 
 function parseFrontmatter(raw: string) {
-  if (!raw.startsWith("---\n")) {
+  const source = raw.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  if (!source.startsWith("---\n")) {
     throw new Error("Missing frontmatter");
   }
-  const end = raw.indexOf("\n---\n", 4);
+  const end = source.indexOf("\n---\n", 4);
   if (end === -1) throw new Error("Unclosed frontmatter");
-  const yaml = raw.slice(4, end);
-  const body = raw.slice(end + 5).trim();
+  const yaml = source.slice(4, end);
+  const body = source.slice(end + 5).trim();
   const data: Record<string, string> = {};
   for (const line of yaml.split("\n")) {
     const match = line.match(/^([a-zA-Z]+):\s*(.*)$/);

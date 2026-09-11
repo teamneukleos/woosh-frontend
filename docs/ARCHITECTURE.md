@@ -1,14 +1,14 @@
 # Woosh Architecture
 
-Modular monolith for the first production release (PRD §18).
+Modular monolith for the first production release (PRD §18), split across two repos.
 
 ## Layout
 
 ```text
 src/
-  app/                 # Next.js App Router (UI + route handlers)
+  app/                 # Next.js App Router (UI + BFF route handlers)
   components/          # Shared UI
-  domains/             # Bounded contexts (business logic)
+  domains/             # Bounded contexts (call Nest via src/lib/api.ts)
     identity/
     organisation/
     creator/
@@ -19,29 +19,24 @@ src/
     payments/
     analytics/
     trust/
-  lib/                 # db, auth, permissions, brand tokens
-  generated/prisma/    # Prisma Client output (generated)
-prisma/
-  schema.prisma
+  lib/                 # auth, Nest client, permissions, brand tokens
 ```
 
 ## Data access
 
-- PostgreSQL via Prisma 7 + `@prisma/adapter-pg`
-- `DATABASE_URL` in `.env` / `prisma.config.ts`
-- Generate client: `npm run db:generate`
-- Migrate: `npm run db:migrate`
+- PostgreSQL and Prisma live in `woosh-backend`
+- This app is a BFF: Auth.js cookie + `WOOSH_API_URL`
 
 ## Auth
 
 - Auth.js (next-auth v5) JWT sessions
-- Credentials provider for MVP email/password
+- Credentials provider posts to Nest `POST /auth/login`
 - `src/proxy.ts` protects `/app` and `/admin` before render
 - RBAC helpers in `src/lib/permissions.ts` (org + brand scopes)
 
 ## Payments
 
-- Provider: Paystack (abstraction in `domains/payments`)
+- Provider: Paystack (Nest owns collection, payouts, webhooks)
 - Woosh owns `PaymentObligation` + `LedgerTransaction`
 - Brand funds before creator selection; Woosh platform fee is 0% for brands, agencies and creators
 

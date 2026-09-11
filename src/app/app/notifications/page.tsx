@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
 import { EmptyState, Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { Badge } from "@/components/ui/badge";
@@ -8,16 +7,13 @@ import Link from "next/link";
 import { ActionForm } from "@/components/ui/action-form";
 import { Button } from "@/components/ui/button";
 import { markNotificationsReadAction } from "@/app/actions";
+import { listMyNotifications } from "@/domains/identity/notifications";
 
 export default async function NotificationsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const notes = await prisma.notification.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    take: 40,
-  });
+  const notes = await listMyNotifications();
 
   return (
     <AppPage

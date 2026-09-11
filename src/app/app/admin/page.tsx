@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
 import {
   listPendingBriefs,
-  listProspects,
+  countProspects,
   listUsers,
   listOrganisations,
   listCreatorModeration,
@@ -24,9 +24,9 @@ export default async function AppAdminPage() {
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx?.user.isPlatformAdmin) redirect("/app");
 
-  const [pending, prospects, users, organisations, creatorModeration, disputes, failedWebhooks] = await Promise.all([
+  const [pending, prospectCount, users, organisations, creatorModeration, disputes, failedWebhooks] = await Promise.all([
     listPendingBriefs(),
-    listProspects(),
+    countProspects(),
     listUsers(),
     listOrganisations(),
     listCreatorModeration(),
@@ -45,7 +45,7 @@ export default async function AppAdminPage() {
     >
       <AdminOps
         pending={pending}
-        prospectCount={prospects.length}
+        prospectCount={prospectCount}
         users={users}
         adminCount={adminCount}
         organisations={organisations}

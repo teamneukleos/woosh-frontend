@@ -2,7 +2,7 @@ import type {
   ApplicationStatus,
   DeliverableState,
   OfferStatus,
-} from "@/generated/prisma/client";
+} from "@/lib/enums";
 
 const DELIVERABLE_TRANSITIONS: Record<
   DeliverableState,

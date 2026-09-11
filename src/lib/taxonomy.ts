@@ -1,3 +1,5 @@
+import type { SocialChannel } from "@/lib/enums";
+
 /** Controlled taxonomies for Woosh — never free-text for these fields in product UI. */
 
 export const CREATOR_CATEGORIES = [
@@ -52,11 +54,11 @@ export const LANGUAGES = [
   "Swahili",
 ] as const;
 
-export const SOCIAL_CHANNELS = [
+export const SOCIAL_CHANNELS: { value: SocialChannel; label: string }[] = [
   { value: "INSTAGRAM", label: "Instagram" },
   { value: "TIKTOK", label: "TikTok" },
   { value: "YOUTUBE", label: "YouTube" },
-] as const;
+];
 
 export function parseSelectedCategories(formData: FormData): string[] {
   return formData

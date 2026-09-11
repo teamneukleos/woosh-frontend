@@ -30,8 +30,10 @@ export function SocialConnections({
   return (
     <div className="grid gap-4">
       <p className="text-sm text-[var(--woosh-dull)]/75">
-        Connect Instagram, TikTok, or YouTube. Follower counts and engagement
-        come from the platform after connection — creators never type metrics.
+        Connect Instagram, TikTok, or YouTube. Instagram needs a Business or
+        Creator account linked to a Facebook Page — personal profiles cannot
+        share metrics. Connect YouTube with Google. Creators never type follower
+        counts.
       </p>
 
       <ul className="grid gap-3">
@@ -87,7 +89,11 @@ export function SocialConnections({
                   </div>
                 ) : (
                   <p className="mt-1 text-sm text-[var(--woosh-dull)]/60">
-                    Not connected
+                    {ch.value === "YOUTUBE"
+                      ? "Needs a YouTube channel, not only a Google login"
+                      : ch.value === "INSTAGRAM"
+                        ? "Needs a Business or Creator account + Facebook Page"
+                        : "Not connected"}
                   </p>
                 )}
               </div>

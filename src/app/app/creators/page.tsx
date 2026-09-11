@@ -6,7 +6,7 @@ import {
   listDiscovery,
 } from "@/domains/creator/prospects";
 import { createProspectAction } from "@/app/actions";
-import type { SocialChannel } from "@/generated/prisma/client";
+import type { SocialChannel } from "@/lib/enums";
 import { AppPage, DataToolbar } from "@/components/ui/app-page";
 import { Panel, EmptyState } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import { ActionForm } from "@/components/ui/action-form";
 import { CreatorDiscoveryCard } from "@/components/creator/creator-discovery-card";
 import { CreatorDiscoveryFilters } from "@/components/creator/creator-discovery-filters";
 import { CREATOR_CATEGORIES, SOCIAL_CHANNELS } from "@/lib/taxonomy";
-import { prisma } from "@/lib/db";
 
 export default async function CreatorsPage({
   searchParams,
@@ -69,33 +68,6 @@ export default async function CreatorsPage({
     maxRate: params.maxRate ? Number(params.maxRate) : undefined,
     sort: params.sort ?? "followers",
   });
-  const savedItems = ctx.organisation
-    ? await prisma.creatorListItem.findMany({
-        where: {
-          list: { organisationId: ctx.organisation.id },
-          creatorProfileId: { not: null },
-        },
-        select: { creatorProfileId: true },
-      })
-    : [];
-  const savedIds = new Set(
-    savedItems.map((item) => item.creatorProfileId).filter(Boolean),
-  );
-  const interests = ctx.activeBrandId
-    ? await prisma.brandInterest.findMany({
-        where: {
-          brandId: ctx.activeBrandId,
-          status: { not: "CLOSED" },
-        },
-        select: { prospectId: true, creatorProfileId: true },
-      })
-    : [];
-  const interestedProspects = new Set(
-    interests.map((row) => row.prospectId).filter(Boolean),
-  );
-  const interestedCreators = new Set(
-    interests.map((row) => row.creatorProfileId).filter(Boolean),
-  );
 
   return (
     <AppPage
@@ -129,12 +101,8 @@ export default async function CreatorsPage({
             <li key={`${item.type}-${item.id}`}>
               <CreatorDiscoveryCard
                 item={item}
-                saved={savedIds.has(item.id)}
-                interested={
-                  item.type === "prospect"
-                    ? interestedProspects.has(item.id)
-                    : interestedCreators.has(item.id)
-                }
+                saved={Boolean(item.saved)}
+                interested={Boolean(item.interested)}
                 activeBrandId={ctx.activeBrandId}
               />
             </li>

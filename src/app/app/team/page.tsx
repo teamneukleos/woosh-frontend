@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
+import { api } from "@/lib/api";
 import { inviteTeammateAction } from "@/app/actions";
 import { AppPage } from "@/components/ui/app-page";
 import { Panel, EmptyState } from "@/components/ui/panel";
@@ -24,11 +24,19 @@ export default async function TeamPage() {
   const canAssignAdmin =
     ctx.membership?.role === "OWNER" || ctx.membership?.role === "ADMIN";
 
-  const members = await prisma.membership.findMany({
-    where: { organisationId: ctx.organisation.id },
-    include: { user: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const team = await api<{
+    members: Array<{
+      userId: string;
+      email: string;
+      name: string | null;
+      role: string;
+    }>;
+  }>("/team");
+  const members = team.members.map((member) => ({
+    id: member.userId,
+    role: member.role,
+    user: { name: member.name, email: member.email },
+  }));
 
   return (
     <AppPage

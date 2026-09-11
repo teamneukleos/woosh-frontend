@@ -8,6 +8,7 @@ export const conversationKindLabel: Record<string, string> = {
 export type ConversationLike = {
   id: string;
   type: string;
+  title?: string;
   application?: {
     brief: { id: string; title: string; brand: { name: string } };
     creator: { displayName: string };
@@ -24,6 +25,7 @@ export type ConversationLike = {
 
 export function conversationTitle(conversation: ConversationLike) {
   return (
+    conversation.title ||
     conversation.application?.brief.title ||
     conversation.campaign?.title ||
     (conversation.brand?.name && conversation.creator?.displayName

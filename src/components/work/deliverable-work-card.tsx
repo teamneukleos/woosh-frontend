@@ -9,6 +9,7 @@ import {
   addCampaignContentToPortfolioAction,
   approveDeliverableAction,
   completeDeliverableAction,
+  logMetricAction,
   revisionAction,
   setDeliverableLiveAction,
   startDeliverableAction,
@@ -35,6 +36,7 @@ export function DeliverableWorkCard({
   isCreator,
   termsAccepted,
   campaignParticipantId,
+  campaignId,
 }: {
   deliverable: {
     id: string;
@@ -48,6 +50,7 @@ export function DeliverableWorkCard({
   isCreator: boolean;
   termsAccepted: boolean;
   campaignParticipantId: string;
+  campaignId?: string;
 }) {
   const latest = deliverable.submissions[0];
   const requirements =
@@ -91,6 +94,7 @@ export function DeliverableWorkCard({
               action={acceptCampaignTermsAction}
               successTitle="Campaign terms accepted"
             >
+              <input type="hidden" name="campaignId" value={campaignId ?? ""} />
               <input
                 type="hidden"
                 name="campaignParticipantId"
@@ -221,17 +225,58 @@ export function DeliverableWorkCard({
             </>
           ) : null}
           {deliverable.state === "LIVE" ? (
-            <ActionForm
-              action={completeDeliverableAction}
-              successTitle="Deliverable completed"
-            >
-              <input
-                type="hidden"
-                name="deliverableId"
-                value={deliverable.id}
-              />
-              <Button type="submit">Mark complete</Button>
-            </ActionForm>
+            <>
+              <ActionForm
+                action={logMetricAction}
+                successTitle="Metric logged"
+                className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--woosh-border)] p-4"
+              >
+                <input type="hidden" name="campaignId" value={campaignId ?? ""} />
+                <input type="hidden" name="deliverableId" value={deliverable.id} />
+                {latest ? (
+                  <input type="hidden" name="submissionId" value={latest.id} />
+                ) : null}
+                <p className="text-sm font-medium text-[var(--woosh-navy)]">
+                  Log live performance
+                </p>
+                <Input
+                  name="postUrl"
+                  type="url"
+                  placeholder="https://instagram.com/..."
+                  defaultValue={latest?.liveUrl ?? ""}
+                />
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <Input name="reach" type="number" min={0} placeholder="Reach" />
+                  <Input name="views" type="number" min={0} placeholder="Views" />
+                  <Input
+                    name="impressions"
+                    type="number"
+                    min={0}
+                    placeholder="Impressions"
+                  />
+                  <Input
+                    name="engagement"
+                    type="number"
+                    min={0}
+                    placeholder="Engagement"
+                  />
+                </div>
+                <Button type="submit" variant="secondary">
+                  Save metrics
+                </Button>
+              </ActionForm>
+              <ActionForm
+                action={completeDeliverableAction}
+                successTitle="Deliverable completed"
+              >
+                <input
+                  type="hidden"
+                  name="deliverableId"
+                  value={deliverable.id}
+                />
+                <Button type="submit">Mark complete</Button>
+              </ActionForm>
+            </>
           ) : null}
         </div>
       )}

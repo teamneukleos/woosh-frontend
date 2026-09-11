@@ -93,6 +93,7 @@ export default async function CampaignDetailPage({
               isCreator={isCreator}
               termsAccepted={Boolean(participant.termsAcceptedAt)}
               campaignParticipantId={participant.id}
+              campaignId={campaign.id}
             />
           ))
         ) : (

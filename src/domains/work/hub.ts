@@ -1,5 +1,61 @@
-import { prisma } from "@/lib/db";
-import { requireCreatorActor } from "@/domains/work/access";
+import { api } from "@/lib/api";
+import { asDate } from "@/lib/nest";
+
+type NestJob = {
+  id: string;
+  title: string;
+  brand: { name: string };
+  applicationDeadline?: string | Date | null;
+  currency: string;
+  myInvitation?: {
+    id: string;
+    status: string;
+    message?: string | null;
+    responseReason?: string | null;
+  } | null;
+  myApplication?: {
+    id: string;
+    status: string;
+    proposedRate?: number | null;
+    currency?: string;
+    withdrawalReason?: string | null;
+    offers?: Array<{
+      id: string;
+      amount: number;
+      currency: string;
+      message?: string | null;
+      createdById?: string;
+      status?: string;
+    }>;
+  } | null;
+};
+
+type NestCampaignList = {
+  id: string;
+  title: string;
+  brand: { name: string };
+};
+
+type NestCampaign = {
+  id: string;
+  title: string;
+  brand: { name: string };
+  participants: Array<{
+    id: string;
+    termsAcceptedAt: string | Date | null;
+  }>;
+  deliverables: Array<{
+    id: string;
+    title: string;
+    state: string;
+    dueAt: string | Date | null;
+    submissions: Array<{
+      version: number;
+      reviewNotes?: string | null;
+      fileName?: string | null;
+    }>;
+  }>;
+};
 
 export type WorkHubFilters = {
   status?: string;
@@ -22,97 +78,80 @@ export async function getCreatorWorkHub(
   actorUserId: string,
   filters: WorkHubFilters = {},
 ) {
-  const actor = await requireCreatorActor(actorUserId);
   const now = new Date();
-  const [invitations, applications, participants] = await Promise.all([
-    prisma.briefInvitation.findMany({
-      where: { creatorProfileId: actor.creatorProfileId },
-      include: { brief: { include: { brand: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.application.findMany({
-      where: { creatorProfileId: actor.creatorProfileId },
-      include: {
-        brief: { include: { brand: true } },
-        offers: { orderBy: { createdAt: "desc" } },
-      },
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.campaignParticipant.findMany({
-      where: { creatorProfileId: actor.creatorProfileId },
-      include: {
-        campaign: { include: { brand: true } },
-        deliverables: {
-          include: {
-            submissions: { orderBy: { version: "desc" }, take: 1 },
-          },
-          orderBy: [{ dueAt: "asc" }, { createdAt: "asc" }],
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
+  const [invited, applied, campaignList] = await Promise.all([
+    api<NestJob[]>("/jobs?tab=invited"),
+    api<NestJob[]>("/jobs?tab=applied"),
+    api<NestCampaignList[]>("/campaigns"),
   ]);
 
-  const inviteItems = invitations.map((invitation) => {
-    const dueAt = invitation.brief.applicationDeadline;
+  const campaigns = await Promise.all(
+    campaignList.slice(0, 20).map((row) => api<NestCampaign>(`/campaigns/${row.id}`)),
+  );
+
+  const inviteItems = invited.map((job) => {
+    const invitation = job.myInvitation;
+    const dueAt = asDate(job.applicationDeadline);
     const expired =
-      invitation.status === "EXPIRED" ||
-      (!!dueAt && dueAt < now && !["ACCEPTED", "DECLINED"].includes(invitation.status));
+      invitation?.status === "EXPIRED" ||
+      (!!dueAt && dueAt < now && !["ACCEPTED", "DECLINED"].includes(invitation?.status ?? ""));
     return {
       kind: "invitation" as const,
-      id: invitation.id,
-      title: invitation.brief.title,
-      brandName: invitation.brief.brand.name,
-      status: expired ? "EXPIRED" : invitation.status,
+      id: invitation?.id ?? job.id,
+      briefId: job.id,
+      title: job.title,
+      brandName: job.brand.name,
+      status: expired ? "EXPIRED" : invitation?.status ?? "SENT",
       dueAt,
-      message: invitation.message,
-      responseReason: invitation.responseReason,
-      href: `/app/jobs/${invitation.briefId}`,
-      actionRequired: ["SENT", "VIEWED"].includes(invitation.status) && !expired,
+      message: invitation?.message,
+      responseReason: invitation?.responseReason,
+      href: `/app/jobs/${job.id}`,
+      actionRequired: ["SENT", "VIEWED"].includes(invitation?.status ?? "") && !expired,
       priority: expired ? 99 : dueAt ? Math.max(1, dueAt.getTime() - now.getTime()) : 50,
     };
   });
 
-  const applicationItems = applications.map((application) => {
-    const offer = application.offers.find((row) =>
-      ["OPEN", "COUNTERED"].includes(row.status),
-    );
-    const hasIncomingOffer =
-      !!offer && offer.createdById !== actorUserId && application.status !== "ACCEPTED";
-    return {
-      kind: "application" as const,
-      id: application.id,
-      title: application.brief.title,
-      brandName: application.brief.brand.name,
-      status: application.status,
-      dueAt: application.brief.applicationDeadline,
-      proposedRate:
-        application.proposedRate == null
-          ? null
-          : Number(application.proposedRate),
-      currency: application.currency,
-      offer: offer
-        ? {
-            id: offer.id,
-            amount: Number(offer.amount),
-            currency: offer.currency,
-            message: offer.message,
-            incoming: hasIncomingOffer,
-          }
-        : null,
-      href: `/app/jobs/${application.briefId}`,
-      actionRequired: hasIncomingOffer,
-      priority: hasIncomingOffer ? 2 : 60,
-      withdrawalReason: application.withdrawalReason,
-    };
-  });
+  const applicationItems = applied
+    .map((job) => {
+      const application = job.myApplication;
+      if (!application) return null;
+      const offer = application.offers?.find((row) =>
+        ["OPEN", "COUNTERED"].includes(row.status ?? ""),
+      );
+      const hasIncomingOffer =
+        !!offer && offer.createdById !== actorUserId && application.status !== "ACCEPTED";
+      return {
+        kind: "application" as const,
+        id: application.id,
+        title: job.title,
+        brandName: job.brand.name,
+        status: application.status,
+        dueAt: asDate(job.applicationDeadline),
+        proposedRate: application.proposedRate ?? null,
+        currency: application.currency ?? job.currency,
+        offer: offer
+          ? {
+              id: offer.id,
+              amount: Number(offer.amount),
+              currency: offer.currency,
+              message: offer.message,
+              incoming: hasIncomingOffer,
+            }
+          : null,
+        href: `/app/jobs/${job.id}`,
+        actionRequired: hasIncomingOffer,
+        priority: hasIncomingOffer ? 2 : 60,
+        withdrawalReason: application.withdrawalReason,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  const campaignItems = participants.flatMap((participant) =>
-    participant.deliverables.map((deliverable) => {
+  const campaignItems = campaigns.flatMap((campaign) => {
+    const participant = campaign.participants[0];
+    return campaign.deliverables.map((deliverable) => {
+      const dueAt = asDate(deliverable.dueAt);
       const overdue =
-        !!deliverable.dueAt &&
-        deliverable.dueAt < now &&
-        !["COMPLETED", "LIVE"].includes(deliverable.state);
+        !!dueAt && dueAt < now && !["COMPLETED", "LIVE"].includes(deliverable.state);
       const actionRequired = [
         "NOT_STARTED",
         "IN_PROGRESS",
@@ -124,13 +163,14 @@ export async function getCreatorWorkHub(
         kind: "deliverable" as const,
         id: deliverable.id,
         title: deliverable.title,
-        campaignTitle: participant.campaign.title,
-        brandName: participant.campaign.brand.name,
+        campaignTitle: campaign.title,
+        brandName: campaign.brand.name,
         status: deliverable.state,
-        dueAt: deliverable.dueAt,
+        dueAt,
         overdue,
-        termsAccepted: Boolean(participant.termsAcceptedAt),
-        campaignParticipantId: participant.id,
+        termsAccepted: Boolean(participant?.termsAcceptedAt),
+        campaignId: campaign.id,
+        campaignParticipantId: participant?.id ?? "",
         latestSubmission: deliverable.submissions[0]
           ? {
               version: deliverable.submissions[0].version,
@@ -138,17 +178,17 @@ export async function getCreatorWorkHub(
               fileName: deliverable.submissions[0].fileName,
             }
           : null,
-        href: `/app/campaigns/${participant.campaignId}`,
+        href: `/app/campaigns/${campaign.id}`,
         actionRequired,
         priority:
           deliverable.state === "REVISION_REQUESTED"
             ? 0
             : overdue
               ? 1
-              : deliverable.dueAt?.getTime() ?? 40,
+              : dueAt?.getTime() ?? 40,
       };
-    }),
-  );
+    });
+  });
 
   const all = [...inviteItems, ...applicationItems, ...campaignItems].filter(
     (item) =>
@@ -158,28 +198,16 @@ export async function getCreatorWorkHub(
   const active = all
     .filter(
       (item) =>
-        ![
-          "DECLINED",
-          "EXPIRED",
-          "WITHDRAWN",
-          "COMPLETED",
-          "REJECTED",
-        ].includes(item.status),
+        !["DECLINED", "EXPIRED", "WITHDRAWN", "COMPLETED", "REJECTED"].includes(item.status),
     )
     .sort(
-      (a, b) =>
-        Number(b.actionRequired) - Number(a.actionRequired) ||
-        a.priority - b.priority,
+      (a, b) => Number(b.actionRequired) - Number(a.actionRequired) || a.priority - b.priority,
     );
   const completed = all
     .filter((item) =>
-      ["DECLINED", "EXPIRED", "WITHDRAWN", "COMPLETED", "REJECTED"].includes(
-        item.status,
-      ),
+      ["DECLINED", "EXPIRED", "WITHDRAWN", "COMPLETED", "REJECTED"].includes(item.status),
     )
-    .sort(
-      (a, b) => (b.dueAt?.getTime() ?? 0) - (a.dueAt?.getTime() ?? 0),
-    );
+    .sort((a, b) => (b.dueAt?.getTime() ?? 0) - (a.dueAt?.getTime() ?? 0));
 
   return {
     active,

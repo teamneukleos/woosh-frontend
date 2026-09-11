@@ -34,8 +34,8 @@ export default async function SettingsPage() {
           ctx.organisation
             ? {
                 publicName: ctx.organisation.publicName,
-                website: ctx.organisation.website,
-                industry: ctx.organisation.industry,
+                website: ctx.organisation.website ?? null,
+                industry: ctx.organisation.industry ?? null,
               }
             : null
         }

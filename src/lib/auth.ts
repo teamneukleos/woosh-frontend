@@ -1,52 +1,21 @@
 import NextAuth from "next-auth";
-import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import { compare } from "bcryptjs";
 import { z } from "zod";
-import { persistOAuthLogin } from "@/domains/identity/oauth-account";
-import { prisma } from "@/lib/db";
 import { authConfig } from "@/lib/auth.config";
+import {
+  loginWithPassword,
+  logoutNest,
+  refreshNestTokens,
+} from "@/lib/nest";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
 
-function googleReady() {
-  return Boolean(
-    process.env.GOOGLE_CLIENT_ID?.trim() &&
-      process.env.GOOGLE_CLIENT_SECRET?.trim(),
-  );
-}
-
-function appleReady() {
-  return Boolean(
-    process.env.APPLE_ID?.trim() && process.env.APPLE_SECRET?.trim(),
-  );
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
-    ...(googleReady()
-      ? [
-          Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
-      : []),
-    ...(appleReady()
-      ? [
-          Apple({
-            clientId: process.env.APPLE_ID,
-            clientSecret: process.env.APPLE_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
-      : []),
     Credentials({
       name: "Email",
       credentials: {
@@ -56,51 +25,78 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(raw) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email.toLowerCase() },
-        });
-
-        if (!user?.passwordHash) return null;
-        if (user.status !== "ACTIVE" || !user.emailVerified) return null;
-
-        const valid = await compare(parsed.data.password, user.passwordHash);
-        if (!valid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
+        try {
+          const { tokens, me } = await loginWithPassword(
+            parsed.data.email,
+            parsed.data.password,
+          );
+          return {
+            id: me.id,
+            email: me.email,
+            name: me.name,
+            image: me.image,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            accessExpires: Date.now() + tokens.expiresIn * 1000,
+          };
+        } catch {
+          return null;
+        }
       },
     }),
   ],
   callbacks: {
     ...authConfig.callbacks,
-    async signIn({ user, account }) {
-      if (!account || account.provider === "credentials") return true;
-      const userId = await persistOAuthLogin({
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        account,
-      });
-      if (!userId) return false;
-      user.id = userId;
-      return true;
-    },
     async jwt({ token, user }) {
-      if (user?.id) {
+      if (user?.id && user.accessToken && user.refreshToken) {
         token.sub = user.id;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.accessExpires = user.accessExpires;
+        delete token.error;
+        return token;
       }
-      return token;
+      if (
+        typeof token.accessExpires === "number" &&
+        Date.now() < token.accessExpires - 30_000 &&
+        token.accessToken
+      ) {
+        return token;
+      }
+      if (!token.refreshToken) {
+        token.error = "RefreshFailed";
+        return token;
+      }
+      try {
+        const refreshToken = String(token.refreshToken ?? "");
+        const refreshed = await refreshNestTokens(refreshToken);
+        token.accessToken = refreshed.accessToken;
+        token.refreshToken = refreshed.refreshToken;
+        token.accessExpires = Date.now() + refreshed.expiresIn * 1000;
+        delete token.error;
+        return token;
+      } catch {
+        token.error = "RefreshFailed";
+        delete token.accessToken;
+        delete token.refreshToken;
+        return token;
+      }
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }
+      session.accessToken =
+        typeof token.accessToken === "string" ? token.accessToken : undefined;
+      session.error = token.error === "RefreshFailed" ? "RefreshFailed" : undefined;
       return session;
+    },
+  },
+  events: {
+    async signOut(message) {
+      const token =
+        "token" in message ? (message.token as { refreshToken?: string }) : null;
+      if (token?.refreshToken) await logoutNest(token.refreshToken);
     },
   },
 });

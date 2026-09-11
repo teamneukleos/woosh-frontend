@@ -1,110 +1,126 @@
-import { prisma } from "@/lib/db";
+import { api } from "@/lib/api";
 import { getActiveBrandId } from "@/lib/brand-cookie";
-import type {
-  Brand,
-  CreatorProfile,
-  Membership,
-  Organisation,
-  User,
-} from "@/generated/prisma/client";
+import type { MembershipRole } from "@/lib/enums";
 
 export type WorkspaceKind = "creator" | "brand" | "agency" | "admin";
 
+export type WorkspaceUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  image?: string | null;
+  isPlatformAdmin: boolean;
+  status: string;
+  emailVerified: Date | string | null;
+  emailNotifications: boolean;
+  weeklyDigest: boolean;
+};
+
+export type WorkspaceCreatorProfile = {
+  id: string;
+  displayName: string;
+  marketplaceStatus: string;
+};
+
+export type WorkspaceOrganisation = {
+  id: string;
+  type: string;
+  legalName?: string | null;
+  publicName: string;
+  industry?: string | null;
+  website?: string | null;
+  country?: string;
+  verifiedAt: Date | string | null;
+};
+
+export type WorkspaceMembership = {
+  role: MembershipRole;
+  canApprovePayments: boolean;
+  canEditRates: boolean;
+  canManageTeam: boolean;
+  canExportData: boolean;
+  permissions?: string[];
+};
+
+export type WorkspaceBrand = {
+  id: string;
+  name: string;
+  organisationId?: string;
+  industry?: string | null;
+  country?: string;
+};
+
 export type WorkspaceContext = {
   kind: WorkspaceKind;
-  user: User;
-  creatorProfile?: CreatorProfile | null;
-  organisation?: Organisation | null;
-  membership?: Membership | null;
-  brands: Brand[];
+  user: WorkspaceUser;
+  creatorProfile?: WorkspaceCreatorProfile | null;
+  organisation?: WorkspaceOrganisation | null;
+  membership?: WorkspaceMembership | null;
+  brands: WorkspaceBrand[];
   activeBrandId?: string | null;
-  activeBrand?: Brand | null;
+  activeBrand?: WorkspaceBrand | null;
+};
+
+type NestWorkspace = {
+  seat: WorkspaceKind;
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    isPlatformAdmin: boolean;
+  };
+  organisation: WorkspaceOrganisation | null;
+  membership: WorkspaceMembership | null;
+  brands: WorkspaceBrand[];
+  activeBrandId: string | null;
+  activeBrand: WorkspaceBrand | null;
+};
+
+type NestMe = {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  status: string;
+  emailVerified: string | Date | null;
+  emailNotifications?: boolean;
+  weeklyDigest?: boolean;
+  isPlatformAdmin: boolean;
+  creatorProfile: WorkspaceCreatorProfile | null;
 };
 
 export async function getWorkspaceContext(
-  userId: string,
+  _userId?: string,
 ): Promise<WorkspaceContext | null> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      creatorProfile: true,
-      memberships: {
-        include: {
-          organisation: {
-            include: { brands: { orderBy: { name: "asc" } } },
-          },
-        },
-        orderBy: { createdAt: "asc" },
-      },
-      brandMemberships: {
-        include: { brand: true },
-      },
-    },
-  });
-
-  if (!user || user.status !== "ACTIVE" || !user.emailVerified) return null;
-
-  if (user.isPlatformAdmin) {
+  try {
     const cookieBrand = await getActiveBrandId();
-    const membership = user.memberships[0] ?? null;
-    const brands =
-      membership?.organisation.brands ??
-      user.brandMemberships.map((m) => m.brand);
-    const activeBrandId =
-      brands.find((b) => b.id === cookieBrand)?.id ?? brands[0]?.id ?? null;
+    const [workspace, me] = await Promise.all([
+      api<NestWorkspace>("/workspace", { brandId: cookieBrand }),
+      api<NestMe>("/auth/me", { brandId: cookieBrand }),
+    ]);
+    if (me.status !== "ACTIVE" || !me.emailVerified) return null;
+
     return {
-      kind: "admin",
-      user,
-      creatorProfile: user.creatorProfile,
-      organisation: membership?.organisation ?? null,
-      membership,
-      brands,
-      activeBrandId,
-      activeBrand: brands.find((b) => b.id === activeBrandId) ?? null,
+      kind: workspace.seat,
+      user: {
+        id: me.id,
+        email: me.email,
+        name: me.name,
+        image: me.image,
+        isPlatformAdmin: me.isPlatformAdmin,
+        status: me.status,
+        emailVerified: me.emailVerified,
+        emailNotifications: me.emailNotifications ?? true,
+        weeklyDigest: me.weeklyDigest ?? true,
+      },
+      creatorProfile: me.creatorProfile,
+      organisation: workspace.organisation,
+      membership: workspace.membership,
+      brands: workspace.brands,
+      activeBrandId: workspace.activeBrandId,
+      activeBrand: workspace.activeBrand,
     };
+  } catch {
+    return null;
   }
-
-  if (user.creatorProfile) {
-    return {
-      kind: "creator",
-      user,
-      creatorProfile: user.creatorProfile,
-      brands: [],
-      activeBrandId: null,
-      activeBrand: null,
-    };
-  }
-
-  const membership = user.memberships[0] ?? null;
-  if (!membership) {
-    return {
-      kind: "brand",
-      user,
-      brands: [],
-      activeBrandId: null,
-      activeBrand: null,
-    };
-  }
-
-  const org = membership.organisation;
-  const brands = org.brands;
-  const cookieBrand = await getActiveBrandId();
-  const activeBrandId =
-    brands.find((b) => b.id === cookieBrand)?.id ?? brands[0]?.id ?? null;
-
-  return {
-    kind: org.type === "AGENCY" ? "agency" : "brand",
-    user,
-    organisation: org,
-    membership,
-    brands,
-    activeBrandId,
-    activeBrand: brands.find((b) => b.id === activeBrandId) ?? null,
-  };
-}
-
-export async function requireWorkspace(userId: string) {
-  const ctx = await getWorkspaceContext(userId);
-  if (!ctx) throw new Error("Workspace not found");
-  return ctx;
 }

@@ -1,7 +1,6 @@
-import { prisma } from "@/lib/db";
-import type { AnalyticsEventType } from "@/generated/prisma/client";
+import type { AnalyticsEventType } from "@/lib/enums";
 
-export async function recordAnalyticsEvent(input: {
+export async function recordAnalyticsEvent(_input: {
   eventType: AnalyticsEventType;
   actorUserId?: string;
   organisationId?: string;
@@ -12,30 +11,5 @@ export async function recordAnalyticsEvent(input: {
   metadata?: object;
   dedupePerDay?: boolean;
 }) {
-  if (input.dedupePerDay && input.actorUserId && input.creatorProfileId) {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const existing = await prisma.analyticsEvent.findFirst({
-      where: {
-        eventType: input.eventType,
-        actorUserId: input.actorUserId,
-        creatorProfileId: input.creatorProfileId,
-        createdAt: { gte: start },
-      },
-    });
-    if (existing) return existing;
-  }
-
-  return prisma.analyticsEvent.create({
-    data: {
-      eventType: input.eventType,
-      actorUserId: input.actorUserId,
-      organisationId: input.organisationId,
-      brandId: input.brandId,
-      creatorProfileId: input.creatorProfileId,
-      briefId: input.briefId,
-      campaignId: input.campaignId,
-      metadata: input.metadata,
-    },
-  });
+  /* Profile views and saves are written on Nest when those APIs run. */
 }

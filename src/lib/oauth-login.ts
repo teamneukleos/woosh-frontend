@@ -1,8 +1,8 @@
-/** Always offer Google/Apple on login and register. Auth.js still needs env; empty creds fail at OAuth. */
+/** Google/Apple stay on Next Auth.js. Nest owns credentials; hide social until Nest has OAuth. */
 export function googleLoginEnabled() {
-  return true;
+  return false;
 }
 
 export function appleLoginEnabled() {
-  return true;
+  return false;
 }

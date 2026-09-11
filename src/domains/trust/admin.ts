@@ -1,266 +1,164 @@
-import { prisma } from "@/lib/db";
-import { writeAudit } from "@/lib/audit";
-import { createNotification } from "@/lib/notify";
-import { seedProspects } from "@/domains/creator/prospects";
-import type { SocialChannel } from "@/generated/prisma/client";
+import { api } from "@/lib/api";
+import { asDate } from "@/lib/nest";
 
 export async function listPendingBriefs() {
-  return prisma.brief.findMany({
-    where: { status: "PENDING_MODERATION" },
-    include: { brand: { include: { organisation: true } } },
-    orderBy: { createdAt: "asc" },
-  });
+  return api<
+    Array<{
+      id: string;
+      title: string;
+      status: string;
+      brand: { name: string; organisation: { publicName: string } };
+    }>
+  >("/admin/briefs/moderation");
 }
 
 export async function listCreatorModeration() {
-  const [profiles, media] = await Promise.all([
-    prisma.creatorProfile.findMany({
-      where: { marketplaceStatus: "PENDING_REVIEW" },
-      include: {
-        user: { select: { email: true } },
-        socialAccounts: {
-          where: { status: "ACTIVE" },
-          include: {
-            snapshots: { orderBy: { capturedAt: "desc" }, take: 1 },
-          },
-        },
-        _count: { select: { portfolioItems: true, ratePackages: true } },
-      },
-      orderBy: { submittedAt: "asc" },
-    }),
-    prisma.creatorPortfolioItem.findMany({
-      where: { status: "PENDING" },
-      include: {
-        creator: { select: { displayName: true, userId: true } },
-      },
-      orderBy: { createdAt: "asc" },
-      take: 100,
-    }),
-  ]);
-  return { profiles, media };
+  const data = await api<{
+    profiles: Array<{
+      id: string;
+      displayName: string;
+      marketplaceStatus: string;
+      submittedAt: string | null;
+      _count: { portfolioItems: number; ratePackages: number };
+      socialAccounts: Array<{ id: string; handle: string }>;
+    }>;
+    media: Array<{
+      id: string;
+      title: string;
+      status: string;
+      mediaType: string;
+      url: string;
+      creator: { displayName: string };
+    }>;
+  }>("/admin/creators/moderation");
+  return {
+    profiles: data.profiles.map((profile) => ({
+      ...profile,
+      submittedAt: asDate(profile.submittedAt),
+    })),
+    media: data.media,
+  };
 }
 
 export async function moderateCreatorProfile(input: {
-  creatorProfileId: string;
+  profileId?: string;
+  creatorProfileId?: string;
   actorId: string;
   approve: boolean;
+  notes?: string;
   reason?: string;
 }) {
-  const profile = await prisma.creatorProfile.update({
-    where: { id: input.creatorProfileId },
-    data: input.approve
-      ? {
-          marketplaceStatus: "PUBLISHED",
-          profileVisible: true,
-          verifiedAt: new Date(),
-          moderationNotes: null,
-          avatarStatus: "APPROVED",
-          coverStatus: "APPROVED",
-        }
-      : {
-          marketplaceStatus: "REJECTED",
-          profileVisible: false,
-          verifiedAt: null,
-          moderationNotes: input.reason || "Profile needs changes",
-        },
+  const id = input.profileId ?? input.creatorProfileId;
+  if (!id) throw new Error("Creator required");
+  return api(`/admin/creators/${id}/review`, {
+    method: "POST",
+    body: { approve: input.approve, reason: input.notes ?? input.reason },
   });
-  await createNotification({
-    userId: profile.userId,
-    type: input.approve ? "creator.approved" : "creator.rejected",
-    title: input.approve ? "Your creator profile is live" : "Profile needs changes",
-    body: input.reason || (input.approve ? "Brands can now discover you." : "Review the feedback and resubmit."),
-    href: "/app/profile",
-  });
-  await writeAudit({
-    actorId: input.actorId,
-    action: input.approve ? "creator.profile.approve" : "creator.profile.reject",
-    targetType: "CreatorProfile",
-    targetId: profile.id,
-    after: { reason: input.reason },
-  });
-  return profile;
 }
 
 export async function moderateCreatorMedia(input: {
   itemId: string;
   actorId: string;
   approve: boolean;
+  notes?: string;
   reason?: string;
 }) {
-  const item = await prisma.creatorPortfolioItem.update({
-    where: { id: input.itemId },
-    data: {
-      status: input.approve ? "APPROVED" : "REJECTED",
-      moderationNotes: input.reason,
-      moderatedAt: new Date(),
-      moderatedById: input.actorId,
-    },
-    include: { creator: true },
+  return api(`/admin/creators/media/${input.itemId}/review`, {
+    method: "POST",
+    body: { approve: input.approve, reason: input.notes ?? input.reason },
   });
-  await createNotification({
-    userId: item.creator.userId,
-    type: input.approve ? "creator.media.approved" : "creator.media.rejected",
-    title: input.approve ? "Portfolio sample approved" : "Portfolio sample needs changes",
-    body: input.reason || item.title,
-    href: "/app/profile",
-  });
-  await writeAudit({
-    actorId: input.actorId,
-    action: input.approve ? "creator.media.approve" : "creator.media.reject",
-    targetType: "CreatorPortfolioItem",
-    targetId: item.id,
-    after: { reason: input.reason },
-  });
-  return item;
 }
 
-export async function approveBrief(briefId: string, actorId: string) {
-  const brief = await prisma.brief.update({
-    where: { id: briefId },
-    data: { status: "OPEN", publishedAt: new Date() },
-    include: { brand: { include: { memberships: true } } },
+export async function approveBrief(briefId: string, _actorId: string) {
+  return api(`/admin/briefs/${briefId}/review`, {
+    method: "POST",
+    body: { approve: true },
   });
-
-  for (const m of brief.brand.memberships) {
-    await createNotification({
-      userId: m.userId,
-      type: "brief.approved",
-      title: "Brief approved",
-      body: brief.title,
-      href: `/app/briefs/${brief.id}`,
-    });
-  }
-
-  await writeAudit({
-    actorId,
-    action: "brief.approve",
-    targetType: "Brief",
-    targetId: briefId,
-  });
-
-  return brief;
 }
 
-export async function rejectBrief(
-  briefId: string,
-  actorId: string,
-  reason?: string,
-) {
-  const brief = await prisma.brief.update({
-    where: { id: briefId },
-    data: { status: "DRAFT" },
-    include: { brand: { include: { memberships: true } } },
+export async function rejectBrief(briefId: string, _actorId: string, reason?: string) {
+  return api(`/admin/briefs/${briefId}/review`, {
+    method: "POST",
+    body: { approve: false, reason },
   });
-
-  for (const m of brief.brand.memberships) {
-    await createNotification({
-      userId: m.userId,
-      type: "brief.rejected",
-      title: "Brief needs changes",
-      body: reason || brief.title,
-      href: `/app/briefs/${brief.id}`,
-    });
-  }
-
-  await writeAudit({
-    actorId,
-    action: "brief.reject",
-    targetType: "Brief",
-    targetId: briefId,
-    after: { reason },
-  });
-
-  return brief;
 }
 
 export async function verifyOrganisation(
   organisationId: string,
-  actorId: string,
+  _actorId: string,
   verified: boolean,
 ) {
-  const org = await prisma.organisation.update({
-    where: { id: organisationId },
-    data: { verifiedAt: verified ? new Date() : null },
+  return api(`/admin/organisations/${organisationId}/verify`, {
+    method: "POST",
+    body: { verified },
   });
-
-  await writeAudit({
-    actorId,
-    action: verified ? "organisation.verify" : "organisation.unverify",
-    targetType: "Organisation",
-    targetId: organisationId,
-  });
-
-  return org;
 }
 
 export async function listOrganisations() {
-  return prisma.organisation.findMany({
-    include: {
-      brands: { select: { id: true, name: true } },
-      _count: { select: { memberships: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const rows = await api<
+    Array<{
+      id: string;
+      publicName: string;
+      type: string;
+      verifiedAt: string | Date | null;
+      brands: Array<{ id: string; name: string }>;
+    }>
+  >("/admin/organisations");
+  return rows.map((row) => ({
+    ...row,
+    verifiedAt: asDate(row.verifiedAt),
+  }));
 }
 
-export async function listProspects() {
-  return prisma.creatorProspect.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+export async function countProspects() {
+  const data = await api<{ count: number }>("/admin/prospects");
+  return data.count;
 }
 
 export async function listUsers() {
-  return prisma.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      status: true,
-      isPlatformAdmin: true,
-      createdAt: true,
-      creatorProfile: { select: { id: true, displayName: true } },
-      memberships: {
-        select: {
-          role: true,
-          organisation: { select: { publicName: true, type: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  return api<
+    Array<{
+      id: string;
+      name: string | null;
+      email: string;
+      isPlatformAdmin: boolean;
+      creatorProfile: { displayName: string } | null;
+      memberships: Array<{ organisation: { type: string } }>;
+    }>
+  >("/admin/users");
 }
 
-export async function setUserAdmin(userId: string, isAdmin: boolean, actorId: string) {
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: { isPlatformAdmin: isAdmin },
+export async function setUserAdmin(
+  userId: string,
+  isAdmin: boolean,
+  _actorId: string,
+) {
+  return api(`/admin/users/${userId}/admin`, {
+    method: "POST",
+    body: { isAdmin },
   });
-
-  await writeAudit({
-    actorId,
-    action: isAdmin ? "user.grant_admin" : "user.revoke_admin",
-    targetType: "User",
-    targetId: userId,
-  });
-
-  return user;
 }
 
 export async function adminSeedProspects(
-  rows: {
-    channel: SocialChannel;
+  rows: Array<{
+    channel: string;
     handle: string;
     displayName?: string;
     categories?: string[];
     followerEstimate?: number;
     locationCountry?: string;
-    locationCity?: string;
-    contactEmail?: string;
-  }[],
-  actorId: string,
+  }>,
+  _actorId: string,
 ) {
-  return seedProspects(rows, actorId);
+  return api("/admin/prospects/seed", {
+    method: "POST",
+    body: {
+      rows: rows.filter(
+        (row) =>
+          row.handle.trim() &&
+          ["INSTAGRAM", "TIKTOK", "YOUTUBE"].includes(row.channel) &&
+          (row.followerEstimate == null || Number.isFinite(row.followerEstimate)),
+      ),
+    },
+  });
 }

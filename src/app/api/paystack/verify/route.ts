@@ -1,32 +1,35 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { verifyTransaction } from "@/lib/paystack";
-import { creditWalletFromPaystack } from "@/domains/payments/wallet";
-import { requireBrandFinanceAccess } from "@/domains/payments/access";
+import { nestRequest } from "@/lib/nest";
+
+export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
   const url = new URL(request.url);
-  const reference = url.searchParams.get("reference");
+  const origin = url.origin;
+  const reference =
+    url.searchParams.get("reference") || url.searchParams.get("trxref");
+
   if (!reference) {
-    return NextResponse.redirect(new URL("/app/payments?funded=error", request.url));
+    return NextResponse.redirect(new URL("/app/payments", origin));
   }
+
+  const session = await auth();
+  if (!session?.accessToken || session.error === "RefreshFailed") {
+    const next = `/api/paystack/verify?reference=${encodeURIComponent(reference)}`;
+    return NextResponse.redirect(
+      new URL(`/login?callbackUrl=${encodeURIComponent(next)}`, origin),
+    );
+  }
+
   try {
-    const verified = await verifyTransaction(reference);
-    if (verified.status !== "success") throw new Error("Payment not successful");
-    const brandId = String(verified.metadata?.brandId ?? "");
-    if (!brandId) throw new Error("Missing brand");
-    await requireBrandFinanceAccess(brandId, session.user.id);
-    await creditWalletFromPaystack({
-      reference,
-      amountKobo: verified.amount,
-      brandId,
+    await nestRequest("/wallet/verify-top-up", {
+      method: "POST",
+      body: { reference },
+      accessToken: session.accessToken,
     });
-    return NextResponse.redirect(new URL("/app/payments?funded=1", request.url));
+    return NextResponse.redirect(new URL("/app/payments?funded=1", origin));
   } catch {
-    return NextResponse.redirect(new URL("/app/payments?funded=error", request.url));
+    return NextResponse.redirect(new URL("/app/payments?funded=error", origin));
   }
 }

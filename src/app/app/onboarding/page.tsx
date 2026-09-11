@@ -5,7 +5,7 @@ import { AppPage } from "@/components/ui/app-page";
 import { AgencyOnboarding } from "@/components/onboarding/agency-onboarding";
 import { AgencyInviteStep } from "@/components/onboarding/agency-invite-step";
 import { CreatorOnboarding } from "@/components/onboarding/creator-onboarding";
-import { prisma } from "@/lib/db";
+import { getCreatorProfile } from "@/domains/creator/profile";
 import { creatorReadiness } from "@/domains/creator/media";
 
 export default async function OnboardingPage({
@@ -19,19 +19,7 @@ export default async function OnboardingPage({
   if (!ctx) redirect("/login");
 
   if (ctx.kind === "creator" && ctx.creatorProfile) {
-    const profile = await prisma.creatorProfile.findUniqueOrThrow({
-      where: { id: ctx.creatorProfile.id },
-      include: {
-        user: { select: { emailVerified: true } },
-        socialAccounts: {
-          include: {
-            snapshots: { orderBy: { capturedAt: "desc" }, take: 1 },
-          },
-        },
-        portfolioItems: true,
-        ratePackages: true,
-      },
-    });
+    const profile = await getCreatorProfile(ctx.user.emailVerified);
     const readiness = creatorReadiness(profile);
     return (
       <AppPage

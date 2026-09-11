@@ -6,6 +6,7 @@ import {
   getProspect,
 } from "@/domains/creator/prospects";
 import { inviteToBriefAction } from "@/app/actions";
+import { listBriefsForBrand } from "@/domains/marketplace/briefs";
 import { InterestButton } from "@/components/creator/interest-button";
 import { BackLink } from "@/components/ui/back-link";
 import { Panel } from "@/components/ui/panel";
@@ -14,10 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextArea, Label, Select } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
-import { prisma } from "@/lib/db";
 import { CreatorIntel } from "@/components/creator/creator-intel";
 import { ChannelMark } from "@/components/ui/social-icon";
-import { recordAnalyticsEvent } from "@/domains/analytics/events";
+import { ApiError } from "@/lib/api";
 
 export default async function CreatorDetailPage({
   params,
@@ -36,20 +36,14 @@ export default async function CreatorDetailPage({
   const isProspect = type === "prospect";
 
   if (isProspect) {
-    const prospect = await getProspect(id);
-    if (!prospect) notFound();
-    const alreadyInterested = ctx.activeBrandId
-      ? Boolean(
-          await prisma.brandInterest.findFirst({
-            where: {
-              brandId: ctx.activeBrandId,
-              prospectId: prospect.id,
-              status: { not: "CLOSED" },
-            },
-            select: { id: true },
-          }),
-        )
-      : false;
+    let prospect;
+    try {
+      prospect = await getProspect(id);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) notFound();
+      throw error;
+    }
+    const alreadyInterested = Boolean(prospect.interested);
 
     return (
       <AppPage
@@ -98,54 +92,80 @@ export default async function CreatorDetailPage({
     );
   }
 
-  const profile = await getClaimedCreator(id, {
-    userId: session.user.id,
-    brandId: ctx.activeBrandId,
-    isAdmin: ctx.user.isPlatformAdmin,
-  });
-  if (!profile) notFound();
-  await recordAnalyticsEvent({
-    eventType: "PROFILE_VIEW",
-    actorUserId: session.user.id,
-    organisationId: ctx.organisation?.id,
-    brandId: ctx.activeBrandId ?? undefined,
-    creatorProfileId: profile.id,
-    dedupePerDay: true,
-  });
+  let raw;
+  try {
+    raw = await getClaimedCreator(id, {
+      userId: session.user.id,
+      brandId: ctx.activeBrandId,
+      isAdmin: ctx.user.isPlatformAdmin,
+    });
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+      notFound();
+    }
+    throw error;
+  }
 
-  const alreadyInterested = ctx.activeBrandId
-    ? Boolean(
-        await prisma.brandInterest.findFirst({
-          where: {
-            brandId: ctx.activeBrandId,
-            creatorProfileId: profile.id,
-            status: { not: "CLOSED" },
-          },
-          select: { id: true },
-        }),
-      )
-    : false;
-
+  const alreadyInterested = Boolean(raw.interested);
   const briefs = ctx.activeBrandId
-    ? await prisma.brief.findMany({
-        where: {
-          brandId: ctx.activeBrandId,
-          status: { in: ["OPEN", "SELECTING"] },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 20,
-      })
+    ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
+        ["OPEN", "SELECTING"].includes(brief.status),
+      )
     : [];
-  const collaboration = ctx.activeBrandId
-    ? await prisma.campaignParticipant.aggregate({
-        where: {
-          creatorProfileId: profile.id,
-          campaign: { brandId: ctx.activeBrandId },
-        },
-        _count: { _all: true },
-        _sum: { agreedRate: true },
-      })
-    : null;
+  const profile = {
+    displayName: raw.displayName,
+    bio: raw.bio,
+    avatarUrl: null,
+    avatarStatus: "PENDING",
+    coverUrl: null,
+    coverStatus: "PENDING",
+    verifiedAt: raw.verified ? new Date() : null,
+    websiteUrl: null,
+    locationCountry: raw.locationCountry,
+    locationState: null,
+    locationCity: raw.locationCity,
+    categories: raw.categories,
+    languages: raw.languages,
+    availabilityNotes: null,
+    socialAccounts: raw.socialAccounts.map((account, index) => ({
+      id: `${raw.id}-${account.channel}-${index}`,
+      channel: account.channel,
+      handle: account.handle,
+      lastRefreshedAt: account.metrics?.capturedAt
+        ? new Date(account.metrics.capturedAt)
+        : null,
+      snapshots: account.metrics
+        ? [
+            {
+              followers: account.metrics.followers,
+              engagementRate: account.metrics.engagementRate,
+              averageViews: account.metrics.averageViews,
+              audienceGeo: null,
+              audienceAge: null,
+              audienceGender: null,
+              source: account.metrics.source,
+              capturedAt: new Date(account.metrics.capturedAt),
+            },
+          ]
+        : [],
+    })),
+    portfolioItems: (raw.portfolio ?? []).map((item) => ({
+      id: item.id,
+      mediaType: item.mediaType,
+      title: item.title,
+      description: item.description ?? null,
+      brandName: item.brandName ?? null,
+      campaignType: item.campaignType ?? null,
+      url: item.url,
+    })),
+    ratePackages: raw.ratePackages.map((rate) => ({
+      ...rate,
+      description: rate.description ?? null,
+      turnaroundDays: rate.turnaroundDays ?? null,
+      revisions: rate.revisions ?? 1,
+      usageRights: rate.usageRights ?? null,
+    })),
+  };
 
   return (
     <AppPage
@@ -157,36 +177,11 @@ export default async function CreatorDetailPage({
     >
       <BackLink href="/app/creators">Creators</BackLink>
       <CreatorIntel profile={profile} />
-      {collaboration?._count._all ? (
-        <Panel title="Your collaboration history">
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="woosh-eyebrow">
-                Campaigns together
-              </dt>
-              <dd className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-[var(--woosh-navy)]">
-                {collaboration._count._all}
-              </dd>
-            </div>
-            <div>
-              <dt className="woosh-eyebrow">
-                Agreed creator spend
-              </dt>
-              <dd className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-[var(--woosh-navy)]">
-                NGN{" "}
-                {Number(
-                  collaboration._sum.agreedRate ?? 0,
-                ).toLocaleString()}
-              </dd>
-            </div>
-          </dl>
-        </Panel>
-      ) : null}
       <Panel title="Work with this creator">
         <InterestButton
           interested={alreadyInterested}
           activeBrandId={ctx.activeBrandId}
-          creatorProfileId={profile.id}
+          creatorProfileId={raw.id}
         />
       </Panel>
 
@@ -197,7 +192,7 @@ export default async function CreatorDetailPage({
             successTitle="Invitation sent"
             className="grid gap-3"
           >
-            <input type="hidden" name="creatorProfileId" value={profile.id} />
+            <input type="hidden" name="creatorProfileId" value={raw.id} />
             <Label>
               Brief
               <Select name="briefId" required defaultValue={briefs[0]?.id}>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
+import { listJobsForCreator } from "@/domains/marketplace/briefs";
 import { EmptyState, Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { WorkStatus } from "@/components/work/work-status";
@@ -18,13 +18,26 @@ export default async function InvitationsPage() {
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx?.creatorProfile) redirect("/app");
 
-  const invites = await prisma.briefInvitation.findMany({
-    where: { creatorProfileId: ctx.creatorProfile.id },
-    include: {
-      brief: { include: { brand: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const jobs = await listJobsForCreator(ctx.creatorProfile.id, "invited");
+  const invites = jobs.flatMap((job) =>
+    job.myInvitation
+      ? [
+          {
+            id: job.myInvitation.id,
+            briefId: job.id,
+            status: job.myInvitation.status,
+            message: job.myInvitation.message,
+            brief: {
+              title: job.title,
+              brand: job.brand,
+              applicationDeadline: job.applicationDeadline
+                ? new Date(job.applicationDeadline)
+                : null,
+            },
+          },
+        ]
+      : [],
+  );
 
   return (
     <AppPage

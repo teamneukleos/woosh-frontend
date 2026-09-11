@@ -38,6 +38,7 @@ export function AppShell({
   brands,
   activeBrandId,
   activeBrandName,
+  unreadNotifications = 0,
   signOutAction,
   children,
 }: {
@@ -47,6 +48,7 @@ export function AppShell({
   brands: ShellBrand[];
   activeBrandId?: string | null;
   activeBrandName?: string | null;
+  unreadNotifications?: number;
   signOutAction: () => Promise<void>;
   children: React.ReactNode;
 }) {
@@ -112,6 +114,7 @@ export function AppShell({
                   key={item.href}
                   item={item}
                   active={isActive(item.href)}
+                  unreadNotifications={unreadNotifications}
                 />
               ))}
             </div>
@@ -122,6 +125,7 @@ export function AppShell({
           <UserMenu
             name={userName}
             email={userEmail}
+            unreadNotifications={unreadNotifications}
             signOutAction={signOutAction}
           />
         </div>
@@ -180,6 +184,7 @@ export function AppShell({
                     key={item.href}
                     item={item}
                     active={isActive(item.href)}
+                    unreadNotifications={unreadNotifications}
                     onNavigate={() => setDrawerOpen(false)}
                   />
                 ))}
@@ -190,6 +195,7 @@ export function AppShell({
             <UserMenu
               name={userName}
               email={userEmail}
+              unreadNotifications={unreadNotifications}
               signOutAction={signOutAction}
             />
           </div>
@@ -218,10 +224,15 @@ export function AppShell({
           <div className="ml-auto">
             <Link
               href="/app/notifications"
-              aria-label="Notifications"
-              className="grid size-10 place-items-center rounded-full text-[var(--text-strong)] transition hover:bg-black/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--woosh-ring)]"
+              aria-label={
+                unreadNotifications
+                  ? `Notifications, ${unreadNotifications} unread`
+                  : "Notifications"
+              }
+              className="relative grid size-10 place-items-center rounded-full text-[var(--text-strong)] transition hover:bg-black/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--woosh-ring)]"
             >
               <Bell aria-hidden="true" className="size-5" />
+              <UnreadCount count={unreadNotifications} tone="on-light" />
             </Link>
           </div>
         </header>
@@ -285,17 +296,26 @@ function ActiveBrandName({
 function SidebarLink({
   item,
   active,
+  unreadNotifications = 0,
   onNavigate,
 }: {
   item: NavItem;
   active: boolean;
+  unreadNotifications?: number;
   onNavigate?: () => void;
 }) {
+  const showUnread =
+    item.href === "/app/notifications" && unreadNotifications > 0;
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
+      aria-label={
+        showUnread
+          ? `${item.label}, ${unreadNotifications} unread`
+          : undefined
+      }
       className={cn(
         "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium tracking-[-0.01em] transition focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)]",
         active
@@ -309,6 +329,9 @@ function SidebarLink({
         strokeWidth={1.75}
       />
       {item.label}
+      {showUnread ? (
+        <UnreadCount count={unreadNotifications} tone="on-dark" />
+      ) : null}
     </Link>
   );
 }
@@ -316,10 +339,12 @@ function SidebarLink({
 function UserMenu({
   name,
   email,
+  unreadNotifications = 0,
   signOutAction,
 }: {
   name?: string | null;
   email?: string | null;
+  unreadNotifications?: number;
   signOutAction: () => Promise<void>;
 }) {
   return (
@@ -353,6 +378,11 @@ function UserMenu({
           <Link href="/app/notifications">
             <Bell aria-hidden="true" className="size-4" />
             Notifications
+            {unreadNotifications > 0 ? (
+              <span className="ml-auto text-xs font-semibold text-[var(--woosh-blue)]">
+                {formatUnreadCount(unreadNotifications)}
+              </span>
+            ) : null}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -371,5 +401,32 @@ function UserMenu({
       </DropdownMenuContent>
       <form id="woosh-signout" action={signOutAction} className="hidden" />
     </DropdownMenu>
+  );
+}
+
+function formatUnreadCount(count: number) {
+  return count > 99 ? "99+" : String(count);
+}
+
+function UnreadCount({
+  count,
+  tone,
+}: {
+  count: number;
+  tone: "on-dark" | "on-light";
+}) {
+  if (count <= 0) return null;
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[0.625rem] font-semibold leading-5",
+        tone === "on-dark"
+          ? "ml-auto bg-[var(--woosh-blue)] text-white"
+          : "absolute right-1 top-1 min-w-4 px-1 leading-4 bg-[var(--woosh-blue)] text-white",
+      )}
+    >
+      {formatUnreadCount(count)}
+    </span>
   );
 }

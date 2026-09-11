@@ -1,4 +1,4 @@
-import type { SocialChannel } from "@/generated/prisma/client";
+import type { SocialChannel } from "@/lib/enums";
 
 export type CatalogCreator = {
   channel: SocialChannel;

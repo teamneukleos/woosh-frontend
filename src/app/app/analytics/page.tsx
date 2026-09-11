@@ -72,7 +72,7 @@ export default async function AnalyticsPage() {
                       {c.title}
                     </p>
                     <p className="text-xs text-[var(--woosh-dull)]/65">
-                      {m.source} · {m.capturedAt.toLocaleString()}
+                      {m.source} · {new Date(m.capturedAt).toLocaleString()}
                       {typeof m.raw === "object" &&
                       m.raw &&
                       "postUrl" in m.raw

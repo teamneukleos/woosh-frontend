@@ -150,6 +150,11 @@ function WorkCard({ item }: { item: WorkItem }) {
           >
             <input
               type="hidden"
+              name="campaignId"
+              value={item.campaignId}
+            />
+            <input
+              type="hidden"
               name="campaignParticipantId"
               value={item.campaignParticipantId}
             />

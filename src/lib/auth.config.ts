@@ -19,7 +19,14 @@ export const authConfig = {
       const isProtected =
         pathname.startsWith("/app") || pathname.startsWith("/admin");
       if (!isProtected) return true;
+      if (auth?.error === "RefreshFailed") return false;
       return !!auth?.user;
+    },
+    session({ session, token }) {
+      if (session.user && token.sub) session.user.id = token.sub;
+      session.accessToken = token.accessToken as string | undefined;
+      session.error = token.error as "RefreshFailed" | undefined;
+      return session;
     },
   },
 } satisfies NextAuthConfig;

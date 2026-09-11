@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { listCreatorEarnings } from "@/domains/payments/ledger";
+import { listCreatorDocuments } from "@/domains/payments/documents";
 import { listPayoutBanks } from "@/domains/payments/payout-account";
+import { api } from "@/lib/api";
 import {
   createCreatorStatementAction,
   createPaymentDisputeAction,
@@ -17,7 +19,6 @@ import { VerifiedCheck } from "@/components/ui/verified-check";
 import { ActionForm } from "@/components/ui/action-form";
 import { Input, Label, Select, TextArea } from "@/components/ui/field";
 import { Stat } from "@/components/ui/stat";
-import { prisma } from "@/lib/db";
 
 export default async function EarningsPage() {
   const session = await auth();
@@ -26,15 +27,16 @@ export default async function EarningsPage() {
   if (!ctx?.creatorProfile) redirect("/app");
   const [earnings, payout, banks, documents] = await Promise.all([
     listCreatorEarnings(ctx.creatorProfile.id),
-    prisma.creatorPayoutAccount.findUnique({
-      where: { creatorProfileId: ctx.creatorProfile.id },
-    }),
+    api<{
+      id: string;
+      bankCode?: string | null;
+      bankName: string | null;
+      accountName: string | null;
+      accountNumberLast4: string | null;
+      verifiedAt: string | null;
+    } | null>("/creators/me/payout-account"),
     listPayoutBanks(),
-    prisma.financialDocument.findMany({
-      where: { creatorProfileId: ctx.creatorProfile.id },
-      orderBy: { generatedAt: "desc" },
-      take: 24,
-    }),
+    listCreatorDocuments(),
   ]);
   const sum = (statuses: string[]) =>
     earnings
@@ -199,7 +201,7 @@ export default async function EarningsPage() {
           <ul className="grid gap-2">
             {documents.map((document) => (
               <li key={document.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--woosh-border)] px-4 py-3">
-                <div><p className="font-semibold">{document.documentNumber}</p><p className="text-sm text-[var(--woosh-dull)]/65">{document.type.replaceAll("_", " ")} · {document.generatedAt.toLocaleDateString("en-NG")}</p></div>
+                <div><p className="font-semibold">{document.documentNumber}</p><p className="text-sm text-[var(--woosh-dull)]/65">{document.type.replaceAll("_", " ")} · {new Date(document.generatedAt).toLocaleDateString("en-NG")}</p></div>
                 <a href={`/api/financial-documents/${document.id}`} className="font-semibold text-[var(--woosh-blue)]">Download PDF</a>
               </li>
             ))}

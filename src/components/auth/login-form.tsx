@@ -27,6 +27,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const registered = params.get("registered") === "1";
+  const joined = params.get("joined") === "1";
   const verify = params.get("verify");
   const reset = params.get("reset");
   const oauthError = params.get("error");
@@ -64,6 +65,11 @@ export function LoginForm({
 
   return (
     <form onSubmit={onSubmit} className="flex w-full flex-col gap-4">
+      {joined ? (
+        <p className="rounded-[var(--radius-control)] bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--text-strong)]">
+          You&apos;re on the team. Sign in to open the workspace.
+        </p>
+      ) : null}
       {registered ? (
         <p className="rounded-[var(--radius-control)] bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--text-strong)]">
           Account created. Check your inbox and verify your email before signing in.
@@ -91,7 +97,13 @@ export function LoginForm({
       ) : null}
       <Label>
         Email
-        <Input name="email" type="email" required autoComplete="email" />
+        <Input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={params.get("email") ?? ""}
+        />
       </Label>
       <Label>
         Password

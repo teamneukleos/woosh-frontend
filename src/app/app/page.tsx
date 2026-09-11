@@ -3,10 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
+import { getCreatorWorkHub } from "@/domains/work/hub";
+import { listBriefsForBrand, listJobsForCreator } from "@/domains/marketplace/briefs";
+import { countUnreadNotifications } from "@/domains/identity/notifications";
 import { Panel } from "@/components/ui/panel";
 import { ButtonLink } from "@/components/ui/button-link";
-import { getCreatorWorkHub } from "@/domains/work/hub";
 import { AppPage } from "@/components/ui/app-page";
 
 export default async function AppHomePage() {
@@ -29,10 +30,21 @@ export default async function AppHomePage() {
   const attention: { label: string; href: string; hint: string }[] = [];
 
   if (ctx.kind === "creator" && ctx.creatorProfile) {
-    const hub = await getCreatorWorkHub(session.user.id);
-    const openJobs = await prisma.brief.count({
-      where: { status: "OPEN", distribution: { in: ["OPEN", "HYBRID"] } },
-    });
+    const [hub, jobs, unread] = await Promise.all([
+      getCreatorWorkHub(session.user.id),
+      listJobsForCreator(ctx.creatorProfile.id),
+      countUnreadNotifications(),
+    ]);
+    if (unread > 0) {
+      attention.push({
+        label:
+          unread === 1
+            ? "1 unread notification"
+            : `${unread} unread notifications`,
+        href: "/app/notifications",
+        hint: `${unread} waiting in your inbox`,
+      });
+    }
     attention.push(
       {
         label: "Work that needs you",
@@ -42,7 +54,7 @@ export default async function AppHomePage() {
       {
         label: "Open jobs",
         href: "/app/jobs",
-        hint: `${openJobs} briefs accepting applications`,
+        hint: `${jobs.length} briefs accepting applications`,
       },
       {
         label: "Earnings",
@@ -51,15 +63,12 @@ export default async function AppHomePage() {
       },
     );
   } else if (ctx.activeBrandId) {
-    const pendingApps = await prisma.application.count({
-      where: {
-        brief: { brandId: ctx.activeBrandId },
-        status: "APPLIED",
-      },
-    });
-    const drafts = await prisma.brief.count({
-      where: { brandId: ctx.activeBrandId, status: "DRAFT" },
-    });
+    const briefs = await listBriefsForBrand(ctx.activeBrandId);
+    const pendingApps = briefs.reduce(
+      (sum, brief) => sum + (brief._count?.applications ?? 0),
+      0,
+    );
+    const drafts = briefs.filter((brief) => brief.status === "DRAFT").length;
     attention.push(
       {
         label: "New applications",

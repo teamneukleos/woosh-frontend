@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
 import { getWalletBalance } from "@/domains/payments/wallet";
-import { paystackConfigured } from "@/lib/paystack";
+import { listBrandPayments } from "@/domains/payments/ledger";
+import { listBrandDocuments } from "@/domains/payments/documents";
 import { walletTopUpAction, markPaidAction } from "@/app/actions";
 import { Panel, EmptyState } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
@@ -32,40 +32,18 @@ export default async function PaymentsPage({
   const brandId = ctx.activeBrandId;
   const wallet = brandId ? await getWalletBalance(brandId) : null;
 
-  const obligations = brandId
-    ? await prisma.paymentObligation.findMany({
-        where: { participant: { campaign: { brandId } } },
-        include: {
-          participant: {
-            include: {
-              creator: true,
-              campaign: true,
-            },
-          },
-          transactions: { orderBy: { createdAt: "desc" } },
-          disputes: { orderBy: { createdAt: "desc" } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      })
-    : [];
-  const [ledger, documents] = brandId
-    ? await Promise.all([
-        prisma.ledgerTransaction.findMany({
-          where: {
-            metadata: { path: ["brandId"], equals: brandId },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 50,
-        }),
-        prisma.financialDocument.findMany({
-          where: { brandId },
-          orderBy: { generatedAt: "desc" },
-          take: 24,
-        }),
-      ])
-    : [[], []];
-
+  const obligations = brandId ? await listBrandPayments(brandId) : [];
+  const documents = brandId ? await listBrandDocuments(brandId) : [];
+  const ledger = obligations.flatMap((item) =>
+    item.transactions.map((entry) => ({
+      id: entry.id,
+      type: entry.type,
+      provider: entry.provider,
+      amount: entry.amount,
+      currency: entry.currency,
+      status: entry.status,
+    })),
+  );
   const committed = obligations
     .filter((o) =>
       ["COMMITTED", "APPROVED", "PROCESSING", "PAID"].includes(o.status),
@@ -102,7 +80,7 @@ export default async function PaymentsPage({
         <Stat
           label="Wallet"
           value={`₦${(wallet?.balance ?? 0).toLocaleString()}`}
-          hint={paystackConfigured() ? "Paystack" : "Test mode"}
+          hint="NGN wallet"
         />
         <Stat
           label="Committed"
@@ -122,7 +100,7 @@ export default async function PaymentsPage({
       </div>
 
       <Panel title="Top up wallet">
-        <ActionForm action={walletTopUpAction} successTitle="Wallet updated">
+        <ActionForm action={walletTopUpAction} successTitle="Redirecting to Paystack">
           <div className="flex flex-wrap items-end gap-3">
             <Label className="min-w-0 w-full sm:w-auto sm:min-w-[12rem]">
               Amount (NGN)
@@ -135,13 +113,13 @@ export default async function PaymentsPage({
                 required
               />
             </Label>
-            <Button type="submit">
-              {paystackConfigured() ? "Pay with Paystack" : "Add funds (test)"}
-            </Button>
+            <Button type="submit">Add funds</Button>
           </div>
         </ActionForm>
         <p className="mt-3 text-xs text-[var(--woosh-dull)]/65">
-          Accepting a creator reserves the creator rate from this wallet. Woosh platform fee is 0%.
+          Add funds opens Paystack Checkout. After you pay, we verify the charge
+          and credit this brand&apos;s wallet. Accepting a creator reserves the
+          creator rate from this wallet. Woosh platform fee is 0%.
         </p>
       </Panel>
 

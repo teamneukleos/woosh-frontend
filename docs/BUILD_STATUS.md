@@ -93,7 +93,7 @@ See [`UX_AUDIT.md`](./UX_AUDIT.md). Categories/languages/industries are taxonomy
 ## Current provider matrix
 - YouTube: subscribers plus recent-video average views and engagement
 - TikTok: identity, followers and available account stats
-- Instagram: Business/Creator accounts linked to a Facebook Page
+- Instagram: Composio OAuth for Business/Creator accounts linked to a Facebook Page (no typed follower counts)
 - Development mode: rich `dev_oauth` snapshots, clearly labelled and never treated as production provider data
 
 Production social OAuth requires `OAUTH_TOKEN_ENCRYPTION_KEY`; legacy plaintext connections must reconnect.
@@ -132,6 +132,6 @@ The seed includes both a direct brand and multi-brand agency, funded wallets and
 
 ## Deployment verification
 - `npm run verify` is the local lint, unit-test and production-build gate.
-- `npm run config:check:production` rejects missing provider credentials, placeholder/short secrets, insecure app URLs and production dev-OAuth.
-- `npm run db:migrate:deploy` applies committed migrations without invoking the development migration workflow.
-- `.github/workflows/ci.yml` provisions PostgreSQL, migrates, seeds, builds and runs authenticated multi-role smoke checks on pushes and pull requests.
+- `npm run config:check:production` rejects missing Nest API URL, placeholder/short secrets, insecure app URLs and production dev-OAuth.
+- Database migrate/seed live in `woosh-backend` (`npm run prisma:migrate`, `npm run prisma:seed`).
+- `.github/workflows/ci.yml` lints, tests, builds, and smokes public Next routes. Authenticated smoke needs Nest login.

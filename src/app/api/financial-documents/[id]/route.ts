@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import {
-  renderFinancialDocumentPdf,
-  requireFinancialDocument,
-} from "@/domains/payments/documents";
+import { ApiError } from "@/lib/api";
+import { downloadFinancialDocumentPdf } from "@/domains/payments/documents";
 
 export async function GET(
   _request: Request,
@@ -15,16 +13,20 @@ export async function GET(
   }
   try {
     const { id } = await context.params;
-    const document = await requireFinancialDocument(id, session.user.id);
-    const pdf = await renderFinancialDocumentPdf(document);
-    return new NextResponse(Buffer.from(pdf), {
+    const pdf = await downloadFinancialDocumentPdf(id);
+    return new NextResponse(new Uint8Array(pdf.buffer), {
       headers: {
-        "content-type": "application/pdf",
-        "content-disposition": `attachment; filename="${document.documentNumber}.pdf"`,
+        "content-type": pdf.contentType,
+        "content-disposition":
+          pdf.contentDisposition || `attachment; filename="${id}.pdf"`,
         "cache-control": "private, no-store",
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  } catch (error) {
+    const status = error instanceof ApiError ? error.status : 404;
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Not found" },
+      { status: status === 401 ? 401 : 404 },
+    );
   }
 }

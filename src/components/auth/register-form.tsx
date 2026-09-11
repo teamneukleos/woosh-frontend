@@ -40,11 +40,13 @@ export function RegisterForm({
   apple?: boolean;
 }) {
   const router = useRouter();
-  const [state, action, pending] = useActionState(registerUser, initial);
   const params = useSearchParams();
+  const [state, action, pending] = useActionState(registerUser, initial);
   const invite = params.get("invite") ?? "";
+  const invitedEmail = params.get("email")?.trim() ?? "";
   const typeParam = params.get("type");
   const plan = params.get("plan") ?? "";
+  const joiningTeam = Boolean(invite);
   const [accountType, setAccountType] = useState<(typeof ROLES)[number]["value"]>(
     typeParam === "agency" || typeParam === "creator" || typeParam === "brand"
       ? typeParam
@@ -52,8 +54,17 @@ export function RegisterForm({
   );
 
   useEffect(() => {
-    if (state.ok) router.push("/login?registered=1");
-  }, [state.ok, router]);
+    if (!state.ok) return;
+    const next = new URLSearchParams();
+    if (invitedEmail) next.set("email", invitedEmail);
+    if (invite) {
+      next.set("joined", "1");
+      next.set("callbackUrl", "/app");
+    } else {
+      next.set("registered", "1");
+    }
+    router.push(`/login?${next.toString()}`);
+  }, [state.ok, router, invite, invitedEmail]);
 
   return (
     <form action={action} className="flex w-full flex-col gap-4">
@@ -65,8 +76,21 @@ export function RegisterForm({
       </Label>
       <Label>
         Email
-        <Input name="email" type="email" required autoComplete="email" />
+        <Input
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          defaultValue={invitedEmail}
+          readOnly={joiningTeam && Boolean(invitedEmail)}
+        />
       </Label>
+      {joiningTeam ? (
+        <p className="text-sm leading-6 text-[var(--text-secondary)]">
+          This invite is for a teammate seat. You will join the organisation that
+          invited you — not start a new brand, agency, or creator account.
+        </p>
+      ) : null}
       <Label>
         Password
         <Input
@@ -78,37 +102,39 @@ export function RegisterForm({
         />
       </Label>
 
-      <fieldset>
-        <legend className="mb-2 text-sm font-medium text-[var(--text-strong)]">
-          I am a
-        </legend>
-        <input type="hidden" name="accountType" value={accountType} />
-        <div className="grid gap-2">
-          {ROLES.map((role) => {
-            const active = accountType === role.value;
-            return (
-              <button
-                key={role.value}
-                type="button"
-                onClick={() => setAccountType(role.value)}
-                className={cn(
-                  "rounded-[var(--radius-md)] border px-3 py-3 text-left transition",
-                  active
-                    ? "border-[var(--woosh-blue)] bg-[var(--accent-soft)]"
-                    : "border-[var(--woosh-border)] bg-white hover:border-[var(--woosh-blue)]/35",
-                )}
-              >
-                <p className="font-semibold text-[var(--text-strong)]">
-                  {role.title}
-                </p>
-                <p className="mt-0.5 text-xs leading-5 text-[var(--woosh-dull)]/70">
-                  {role.body}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+      {joiningTeam ? null : (
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-[var(--text-strong)]">
+            I am a
+          </legend>
+          <input type="hidden" name="accountType" value={accountType} />
+          <div className="grid gap-2">
+            {ROLES.map((role) => {
+              const active = accountType === role.value;
+              return (
+                <button
+                  key={role.value}
+                  type="button"
+                  onClick={() => setAccountType(role.value)}
+                  className={cn(
+                    "rounded-[var(--radius-md)] border px-3 py-3 text-left transition",
+                    active
+                      ? "border-[var(--woosh-blue)] bg-[var(--accent-soft)]"
+                      : "border-[var(--woosh-border)] bg-white hover:border-[var(--woosh-blue)]/35",
+                  )}
+                >
+                  <p className="font-semibold text-[var(--text-strong)]">
+                    {role.title}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-5 text-[var(--woosh-dull)]/70">
+                    {role.body}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
 
       <label className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
         <input
@@ -136,15 +162,23 @@ export function RegisterForm({
         </p>
       ) : null}
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? "Opening your seat…" : "Take the seat"}
+        {pending
+          ? joiningTeam
+            ? "Joining…"
+            : "Opening your seat…"
+          : joiningTeam
+            ? "Join the team"
+            : "Take the seat"}
       </Button>
-      {google || apple ? (
+      {joiningTeam ? null : google || apple ? (
         <p className="text-center text-xs leading-5 text-[var(--text-muted)]">
           Google and Apple create an account and sign you in. Same email as an
           existing user is linked.
         </p>
       ) : null}
-      <SocialAuthButtons intent="signup" google={google} apple={apple} />
+      {joiningTeam ? null : (
+        <SocialAuthButtons intent="signup" google={google} apple={apple} />
+      )}
     </form>
   );
 }

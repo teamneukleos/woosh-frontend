@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { prisma } from "@/lib/db";
+import { listJobsForCreator } from "@/domains/marketplace/briefs";
 import { EmptyState, Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { WorkStatus } from "@/components/work/work-status";
@@ -17,18 +17,28 @@ export default async function ApplicationsPage() {
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx?.creatorProfile) redirect("/app");
 
-  const apps = await prisma.application.findMany({
-    where: { creatorProfileId: ctx.creatorProfile.id },
-    include: {
-      brief: { include: { brand: true } },
-      offers: {
-        where: { status: { in: ["OPEN", "COUNTERED"] } },
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  const jobs = await listJobsForCreator(ctx.creatorProfile.id, "applied");
+  const apps = jobs.flatMap((job) =>
+    job.myApplication
+      ? [
+          {
+            id: job.myApplication.id,
+            briefId: job.id,
+            status: job.myApplication.status,
+            proposedRate: job.myApplication.proposedRate ?? null,
+            currency: job.myApplication.currency ?? job.currency,
+            brief: {
+              title: job.title,
+              brand: job.brand,
+              applicationDeadline: job.applicationDeadline
+                ? new Date(job.applicationDeadline)
+                : null,
+            },
+            offers: [] as Array<{ amount: number; currency: string }>,
+          },
+        ]
+      : [],
+  );
 
   return (
     <AppPage

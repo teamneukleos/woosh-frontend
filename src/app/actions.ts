@@ -3,14 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { api } from "@/lib/api";
 import { setActiveBrandId } from "@/lib/brand-cookie";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { createProspect } from "@/domains/creator/prospects";
 import { expressInterest, claimProspect } from "@/domains/creator/claim";
 import {
   updateCreatorProfile,
-  connectSocialChannel,
 } from "@/domains/creator/profile";
 import {
   createBrief,
@@ -52,6 +51,7 @@ import {
 import {
   completeDevOAuth,
   refreshSocialMetrics,
+  startSocialOAuth,
 } from "@/domains/creator/oauth";
 import {
   addPortfolioEmbed,
@@ -73,8 +73,12 @@ import {
   setDeliverableLive,
   completeDeliverable,
 } from "@/domains/analytics";
-import { deleteUpload, storeUpload, validateUpload } from "@/lib/storage";
-import type { MembershipRole } from "@/generated/prisma/client";
+import type {
+  DisputeCategory,
+  DisputeResolutionType,
+  MembershipRole,
+  SocialChannel,
+} from "@/lib/enums";
 import {
   createBrandForOrganisation,
   updateOrganisationProfile,
@@ -84,7 +88,6 @@ import {
   parseSelectedLanguages,
   CREATOR_CATEGORIES,
 } from "@/lib/taxonomy";
-import type { SocialChannel } from "@/generated/prisma/client";
 import {
   changePassword,
   updateNotificationPreferences,
@@ -96,11 +99,7 @@ import {
   resolvePaymentDispute,
 } from "@/domains/payments/disputes";
 import { createCreatorStatement } from "@/domains/payments/documents";
-import type {
-  DisputeCategory,
-  DisputeResolutionType,
-} from "@/generated/prisma/client";
-import { markNotificationsRead } from "@/lib/notify";
+import { markNotificationsRead } from "@/domains/identity/notifications";
 import {
   acceptCampaignTerms,
   declineInvitation,
@@ -119,13 +118,8 @@ function compactRecord(value: Record<string, unknown>) {
 
 async function requireUser() {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { status: true, emailVerified: true },
-  });
-  if (user?.status !== "ACTIVE" || !user.emailVerified) {
-    throw new Error("Account is not active");
+  if (!session?.user?.id || session.error === "RefreshFailed" || !session.accessToken) {
+    throw new Error("Unauthorized");
   }
   return session.user;
 }
@@ -134,6 +128,10 @@ export async function switchBrandAction(formData: FormData) {
   await requireUser();
   const brandId = String(formData.get("brandId") ?? "");
   if (!brandId) return;
+  await api("/workspace/active-brand", {
+    method: "POST",
+    body: { brandId },
+  });
   await setActiveBrandId(brandId);
   revalidatePath("/app", "layout");
 }
@@ -391,6 +389,7 @@ export async function withdrawApplicationAction(formData: FormData) {
 export async function acceptCampaignTermsAction(formData: FormData) {
   const user = await requireUser();
   await acceptCampaignTerms({
+    campaignId: String(formData.get("campaignId") || ""),
     campaignParticipantId: String(formData.get("campaignParticipantId")),
     actorUserId: user.id!,
   });
@@ -704,14 +703,8 @@ export async function refreshSocialMetricsAction(formData: FormData) {
   const user = await requireUser();
   const ctx = await getWorkspaceContext(user.id!);
   if (!ctx?.creatorProfile) throw new Error("Creator only");
-  const accountId = String(formData.get("socialAccountId"));
-  const account = await prisma.socialAccount.findFirst({
-    where: { id: accountId, creatorProfileId: ctx.creatorProfile.id },
-  });
-  if (!account) throw new Error("Social account not found");
-  await refreshSocialMetrics(account.id);
+  await refreshSocialMetrics(String(formData.get("socialAccountId") ?? ""));
   revalidatePath("/app/profile");
-  revalidatePath("/app/insights");
 }
 
 export async function createClientBrandAction(formData: FormData) {
@@ -747,15 +740,9 @@ export async function connectSocialAction(formData: FormData) {
   const channel = String(formData.get("channel") || "") as SocialChannel;
   if (!channel) throw new Error("Channel required");
 
-  await connectSocialChannel({
-    creatorProfileId: ctx.creatorProfile.id,
-    channel,
-    actorId: user.id!,
-  });
-
-  redirect(
-    `/api/oauth/${channel.toLowerCase()}?start=1&creatorProfileId=${ctx.creatorProfile.id}`,
-  );
+  const result = await startSocialOAuth(channel);
+  if (result.authorizeUrl) redirect(result.authorizeUrl);
+  revalidatePath("/app/profile");
 }
 
 export async function devOAuthCompleteAction(formData: FormData) {
@@ -817,81 +804,39 @@ export async function uploadDraftAction(formData: FormData) {
   const ctx = await getWorkspaceContext(user.id!);
   if (!ctx?.creatorProfile) throw new Error("Creator only");
   const deliverableId = String(formData.get("deliverableId"));
-  const allowed = await prisma.deliverable.count({
-    where: {
-      id: deliverableId,
-      campaign: {
-        participants: {
-          some: { creatorProfileId: ctx.creatorProfile.id },
-        },
-      },
-    },
-  });
-  if (!allowed) throw new Error("Deliverable not found");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
     throw new Error("Choose a file to upload");
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  validateUpload({
-    buffer,
-    contentType: file.type || "application/octet-stream",
-    kind: "deliverable",
+  const body = new FormData();
+  body.set("file", file);
+  const notes = String(formData.get("notes") || "");
+  if (notes) body.set("notes", notes);
+  await api(`/deliverables/${deliverableId}/upload`, {
+    method: "POST",
+    body,
   });
-  const stored = await storeUpload({
-    buffer,
-    filename: file.name,
-    contentType: file.type || "application/octet-stream",
-    folder: `deliverables/${deliverableId}`,
-  });
-
-  try {
-    await submitDraft({
-      deliverableId,
-      draftUrl: stored.url,
-      notes: String(formData.get("notes") || "") || undefined,
-      actorUserId: user.id!,
-      storageKey: stored.key,
-      fileName: file.name,
-      mimeType: file.type || "application/octet-stream",
-      fileSizeBytes: file.size,
-      idempotencyKey: `upload:${stored.key}`,
-    });
-  } catch (error) {
-    await deleteUpload(stored.key);
-    throw error;
-  }
 
   revalidatePath("/app/campaigns");
+  revalidatePath("/app/work");
 }
 
 export async function logMetricAction(formData: FormData) {
   const user = await requireUser();
-  const ctx = await getWorkspaceContext(user.id!);
   const campaignId = String(formData.get("campaignId"));
-  const campaign = await prisma.campaign.findUnique({
-    where: { id: campaignId },
-    select: { brandId: true },
-  });
-  if (
-    !campaign ||
-    (!ctx?.user.isPlatformAdmin && campaign.brandId !== ctx?.activeBrandId)
-  ) {
-    throw new Error("You cannot log metrics for this campaign");
-  }
+  const optionalNumber = (key: string) => {
+    const raw = String(formData.get(key) || "");
+    return raw ? Number(raw) : undefined;
+  };
   await logCampaignMetric({
     campaignId,
     source: String(formData.get("source") || "manual"),
     postUrl: String(formData.get("postUrl") || "") || undefined,
-    reach: formData.get("reach") ? Number(formData.get("reach")) : undefined,
-    views: formData.get("views") ? Number(formData.get("views")) : undefined,
-    impressions: formData.get("impressions")
-      ? Number(formData.get("impressions"))
-      : undefined,
-    engagement: formData.get("engagement")
-      ? Number(formData.get("engagement"))
-      : undefined,
+    reach: optionalNumber("reach"),
+    views: optionalNumber("views"),
+    impressions: optionalNumber("impressions"),
+    engagement: optionalNumber("engagement"),
     creatorProfileId:
       String(formData.get("creatorProfileId") || "") || undefined,
     deliverableId: String(formData.get("deliverableId") || "") || undefined,
@@ -983,6 +928,7 @@ export async function markNotificationsReadAction() {
   const user = await requireUser();
   await markNotificationsRead(user.id!);
   revalidatePath("/app/notifications");
+  revalidatePath("/app", "layout");
 }
 
 export async function updateNotificationPreferencesAction(formData: FormData) {
@@ -1148,6 +1094,7 @@ export async function adminSeedAction(formData: FormData) {
   if (!ctx?.user.isPlatformAdmin) throw new Error("Admin only");
 
   const raw = String(formData.get("rows") ?? "");
+  const allowedChannels = new Set(["INSTAGRAM", "TIKTOK", "YOUTUBE"]);
   const rows = raw
     .split("\n")
     .map((line) => line.trim())
@@ -1160,15 +1107,20 @@ export async function adminSeedAction(formData: FormData) {
         .filter((c) =>
           (CREATOR_CATEGORIES as readonly string[]).includes(c),
         );
+      const estimate = followers ? Number(followers) : undefined;
       return {
-        channel: (channel || "INSTAGRAM") as SocialChannel,
+        channel: (allowedChannels.has(channel) ? channel : "INSTAGRAM") as SocialChannel,
         handle: handle || "",
         displayName: displayName || undefined,
         categories: cats,
-        followerEstimate: followers ? Number(followers) : undefined,
+        followerEstimate:
+          estimate && Number.isFinite(estimate) && estimate >= 1
+            ? estimate
+            : undefined,
         locationCountry: "NG",
       };
-    });
+    })
+    .filter((row) => row.handle);
 
   await adminSeedProspects(rows, user.id!);
   revalidatePath("/admin");

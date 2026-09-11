@@ -1,4 +1,4 @@
-import type { ObligationStatus } from "@/generated/prisma/client";
+import type { ObligationStatus } from "@/lib/enums";
 
 const TRANSITIONS: Record<ObligationStatus, readonly ObligationStatus[]> = {
   PENDING_FUNDING: ["FUNDED", "REVERSED"],

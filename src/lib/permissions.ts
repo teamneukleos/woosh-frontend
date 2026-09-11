@@ -1,4 +1,4 @@
-import type { MembershipRole } from "@/generated/prisma/client";
+import type { MembershipRole } from "@/lib/enums";
 
 export type Permission =
   | "team.manage"
