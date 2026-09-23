@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Woosh — Culture doesn't wait. Nigeria";
+export const alt = "Woosh — The creator marketplace Naija always needed";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -40,12 +40,14 @@ export default function Image() {
               letterSpacing: -2,
             }}
           >
-            Culture doesn’t
+            The creator
             <br />
-            wait.
+            Marketplace Naija
+            <br />
+            always needed.
           </div>
           <div style={{ display: "flex", fontSize: 28, opacity: 0.9 }}>
-            Nigeria · claimed supply · Paystack
+            Discover · run campaigns · get paid
           </div>
         </div>
       </div>

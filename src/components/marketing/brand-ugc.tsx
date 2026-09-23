@@ -163,11 +163,13 @@ export function BrandUgc() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The feed}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          This is how Nigeria already talks.
+          The culture is already moving.
         </h2>
         <p className="mt-4 max-w-lg text-sm leading-6 text-mkt-subtle">
-          Phone-native. Lagos, the feed, the brief. Tap a card — it opens on
-          TikTok Nigeria. Not a moodboard from another continent.
+          Nigeria&apos;s creators are shaping conversations across TikTok,
+          Instagram, Facebook and YouTube. From food and fashion to tech,
+          finance, events and travel, there is a creator for almost every corner
+          of culture. We&apos;re making it easier to connect with them.
         </p>
 
         <div className="mkt-ugc-mask mkt-marquee-mask mt-12 overflow-hidden">

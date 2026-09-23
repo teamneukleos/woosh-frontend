@@ -30,22 +30,22 @@ export function HomeExperience() {
       <main>
         <BrandHero />
         <Reveal>
-          <BrandLogos />
-        </Reveal>
-        <Reveal>
-          <BrandAdvantage />
+          <BrandSteps />
         </Reveal>
         <Reveal>
           <BrandOs />
         </Reveal>
         <Reveal>
+          <BrandAdvantage />
+        </Reveal>
+        <Reveal>
           <BrandWho />
         </Reveal>
         <Reveal>
-          <BrandSteps />
+          <BrandUgc />
         </Reveal>
         <Reveal>
-          <BrandUgc />
+          <BrandLogos />
         </Reveal>
         <Reveal>
           <BrandTestimonials />

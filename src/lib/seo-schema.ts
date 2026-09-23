@@ -35,7 +35,7 @@ export function softwareSchema() {
     operatingSystem: "Web",
     url: siteUrl(),
     description:
-      "Nigeria marketplace for creator campaigns. Claimed socials, funded briefs, one thread, Paystack. Zero platform fee.",
+      "The creator marketplace Naija always needed. Discover opportunities, run campaigns and get paid.",
     offers: {
       "@type": "Offer",
       price: "0",

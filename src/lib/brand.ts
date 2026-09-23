@@ -14,8 +14,8 @@ export const brand = {
     sans: "Geist",
     sansNote: "Geist via next/font/google for UI and display.",
   },
-  promise: "Motion at the speed of culture",
-  tagline: "Culture at campaign speed.",
+  promise: "The creator marketplace Naija always needed",
+  tagline: "The creator marketplace Naija always needed",
   personality: [
     "Swift",
     "Modern",
