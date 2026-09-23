@@ -12,7 +12,6 @@ import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Input, Label } from "@/components/ui/field";
 import { PasswordInput } from "@/components/auth/password-input";
 import { cn } from "@/lib/cn";
-import { PASSWORD_HINT } from "@/lib/password";
 
 const initial: RegisterState = { ok: false };
 
@@ -101,6 +100,7 @@ export function RegisterForm({
           required
           autoComplete="new-password"
           enforceComplexity
+          showRequirements
           onInput={(event) => {
             const form = event.currentTarget.form;
             const confirm = form?.elements.namedItem("confirmPassword");
@@ -113,9 +113,6 @@ export function RegisterForm({
             }
           }}
         />
-        <p className="text-xs leading-5 text-[var(--text-muted)]">
-          {PASSWORD_HINT}
-        </p>
       </div>
       <div className="flex min-w-0 flex-col gap-1.5">
         <Label htmlFor="register-password-confirm">Confirm password</Label>
