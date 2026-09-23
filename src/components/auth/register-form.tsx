@@ -10,7 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Input, Label } from "@/components/ui/field";
+import { PasswordInput } from "@/components/auth/password-input";
 import { cn } from "@/lib/cn";
+import { PASSWORD_HINT } from "@/lib/password";
 
 const initial: RegisterState = { ok: false };
 
@@ -91,16 +93,50 @@ export function RegisterForm({
           invited you — not start a new brand, agency, or creator account.
         </p>
       ) : null}
-      <Label>
-        Password
-        <Input
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <Label htmlFor="register-password">Password</Label>
+        <PasswordInput
+          id="register-password"
           name="password"
-          type="password"
-          minLength={8}
           required
           autoComplete="new-password"
+          enforceComplexity
+          onInput={(event) => {
+            const form = event.currentTarget.form;
+            const confirm = form?.elements.namedItem("confirmPassword");
+            if (confirm instanceof HTMLInputElement) {
+              confirm.setCustomValidity(
+                confirm.value && confirm.value !== event.currentTarget.value
+                  ? "Passwords do not match."
+                  : "",
+              );
+            }
+          }}
         />
-      </Label>
+        <p className="text-xs leading-5 text-[var(--text-muted)]">
+          {PASSWORD_HINT}
+        </p>
+      </div>
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <Label htmlFor="register-password-confirm">Confirm password</Label>
+        <PasswordInput
+          id="register-password-confirm"
+          name="confirmPassword"
+          required
+          autoComplete="new-password"
+          onInput={(event) => {
+            const form = event.currentTarget.form;
+            const password = form?.elements.namedItem("password");
+            const value =
+              password instanceof HTMLInputElement ? password.value : "";
+            event.currentTarget.setCustomValidity(
+              event.currentTarget.value !== value
+                ? "Passwords do not match."
+                : "",
+            );
+          }}
+        />
+      </div>
 
       {joiningTeam ? null : (
         <fieldset>
