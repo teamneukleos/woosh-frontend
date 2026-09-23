@@ -6,7 +6,7 @@ export const siteName = "Woosh";
 export const defaultTitle = `${siteName} — ${brand.tagline}`;
 
 export const defaultDescription =
-  "Nigeria marketplace for creator campaigns. Claimed Instagram, TikTok and YouTube — not typed bios. Fund the brief. One thread. Paystack. Zero platform fee.";
+  "Creators, brands and agencies, tale as old as Y2K. Woosh brings everyone together to discover opportunities, run campaigns and get paid.";
 
 export const sameAs = [
   "https://www.instagram.com/woosh.app",

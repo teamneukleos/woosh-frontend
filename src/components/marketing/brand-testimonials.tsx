@@ -104,12 +104,8 @@ export function BrandTestimonials() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{The receipts}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          How it sounds when the money and the work stay in the same room.
+          How it sounds when the work and the money stay in the same room.
         </h2>
-        <p className="mt-4 max-w-lg text-sm leading-6 text-mkt-subtle">
-          Illustrated voices on the same four moves — find, brief, ship, pay.
-          Not a customer scoreboard.
-        </p>
       </div>
       <div className="mt-12 flex flex-col gap-4">
         <Row items={stackA} />

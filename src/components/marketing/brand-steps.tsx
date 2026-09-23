@@ -13,29 +13,29 @@ import { cn } from "@/lib/cn";
 const steps = [
   {
     n: "01",
-    title: "Find who is real",
-    copy: "Search claimed Instagram, TikTok, YouTube — or invite someone still off the platform. Metrics are sourced and dated. Prospects stay labelled until they connect.",
+    title: "Find the right fit.",
+    copy: "Search Nigerian creators by niche, location, platform, audience and engagement, whether you're looking from Lagos or London, so you spend less time scrolling.",
     frame: "woosh.app / creators",
     mock: <DiscoveryMock />,
   },
   {
     n: "02",
-    title: "Write the brief like you mean it",
-    copy: "Open, invite-only, or both. Deliverables, rights, timeline, budget — one document. First campaigns from unverified orgs wait on review.",
+    title: "Put the brief out.",
+    copy: "Post an opportunity, invite specific creators or open it up to the marketplace, giving the right people a chance to come to you.",
     frame: "woosh.app / briefs",
     mock: <BriefPipelineMock />,
   },
   {
     n: "03",
-    title: "Run it in one thread",
-    copy: "Drafts, notes, versions, approvals — on the campaign. One thread per creator. The group chat can rest.",
+    title: "Keep the work together.",
+    copy: "Briefs, chats, deliverables, feedback and approvals stay together, so nobody has to go digging through the WhatsApp archives.",
     frame: "woosh.app / campaigns",
     mock: <DeliverMock />,
   },
   {
     n: "04",
-    title: "Pay. We take 0%.",
-    copy: "Accept commits the rate from a funded wallet. After approval: 72 hours, then Paystack to a NUBAN. Every payment on the ledger.",
+    title: "Keep the money clear.",
+    copy: "Campaign funds are secured before work starts and released when the agreed work is completed, so everyone knows where they stand from start to finish.",
     frame: "woosh.app / earnings",
     mock: <PayMock />,
   },
@@ -50,10 +50,11 @@ export function BrandSteps() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{How it works}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          Find them. Brief them. Ship. Pay them.
+          Find. Brief. Work. Pay.
         </h2>
         <p className="mt-4 text-sm text-mkt-subtle">
-          Four moves. One ledger. Zero platform fee.
+          From finding the right fit to getting the work done, Woosh keeps the
+          process simple.
         </p>
 
         <div className="mt-12 grid items-start gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">

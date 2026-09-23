@@ -83,18 +83,18 @@ export function BrandOs() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{Marketplace + workspace}"}</p>
         <h2 className="font-display mt-4 max-w-2xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          A face the street already knows. A brief with money behind it.
+          Keep the work together.
         </h2>
         <p className="mt-5 max-w-lg text-sm leading-6 text-mkt-subtle">
-          The storefront a brand opens at 11pm. The brief a creator can actually
-          finish. Same product. Two surfaces. No theatre.
+          Briefs, chats, deliverables, feedback and approvals stay together, so
+          nobody has to go digging through the WhatsApp archives.
         </p>
 
         <div className="mt-12 grid gap-6">
           <Scene
             kicker="{01 / Storefront}"
             title="The profile they open first"
-            copy="Connected channels. Packages. Work you actually delivered. Metrics from the app — not a number somebody typed. No public scoreboard."
+            copy="Build your profile, showcase your work, find briefs that fit and build your reputation. Metrics come from connected social accounts."
             image={marketingPhotos.osCreator}
             alt="Creator styled for a claimed Woosh storefront"
             objectPosition="center 18%"
@@ -104,8 +104,8 @@ export function BrandOs() {
           />
           <Scene
             kicker="{02 / Briefs}"
-            title="A yes that already has money"
-            copy="Open, invite-only or hybrid. Accept locks the rate from a funded wallet. If finance cannot see it, it is not a yes."
+            title="Put the brief out."
+            copy="Post an opportunity, invite specific creators or open it up to the marketplace, giving the right people a chance to come to you."
             image={marketingPhotos.whoAgencies}
             alt="Team reviewing a funded creator campaign together"
             objectPosition="center 40%"

@@ -12,7 +12,7 @@ export function BrandFaq() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <p className="mkt-kicker">{"{FAQ}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          Ask it like you would in the room.
+          Ask away.
         </h2>
         <div className="mt-12 divide-y divide-mkt-border border-t border-mkt-border">
           {marketingFaqs.map((item, i) => {

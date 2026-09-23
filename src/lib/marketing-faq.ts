@@ -1,46 +1,42 @@
 export const marketingFaqs = [
   {
     q: "What is Woosh?",
-    a: "The Nigeria marketplace for creator campaigns that refuse to live in WhatsApp. Claimed Instagram, TikTok and YouTube. One thread. Money on Paystack. Zero platform fee.",
+    a: "Woosh is a platform where creators, brands and agencies can discover each other, work together and manage creator campaigns.",
   },
   {
-    q: "Who is it for?",
-    a: "Brands who run their own briefs. Agencies with client wallets that must not mix. Creators who want claimed profiles and money they can see. First campaigns from unverified orgs can wait on review.",
+    q: "Who is Woosh for?",
+    a: "Creators looking for opportunities, brands looking for creators and agencies managing creator campaigns.",
   },
   {
-    q: "Which social channels count?",
-    a: "Instagram, TikTok, YouTube. Numbers come from the app after connect. Nobody types a follower count. Until they connect, it stays unverified.",
+    q: "How do I find creators?",
+    a: "Search by niche, location, platform, followers, engagement and other relevant profile information.",
   },
   {
-    q: "What currency do you settle in?",
-    a: "Naira, through Paystack. Wallet, quote, payout. No USD theatre until that rail is real.",
+    q: "How do creator profiles work?",
+    a: "When creators sign up, they give Woosh access to their social accounts. This allows relevant information and metrics to appear on their profiles.",
   },
   {
-    q: "Do you charge a platform fee?",
-    a: "0% of the creator rate — always. Creators never pay Woosh. Brands and agencies pay a monthly seat for how many briefs they can publish. See /pricing. Paystack may still take its own processing on top-up or payout.",
+    q: "Can I post a brief?",
+    a: "Yes. Briefs can be open to the marketplace, invite-only, or both.",
   },
   {
-    q: "When does a brand fund a campaign?",
-    a: "Before they select. Draft the brief empty-handed if you must. The moment you accept someone, the rate leaves the wallet. There is no “we will pay after they post”.",
+    q: "Can creators apply to briefs?",
+    a: "Yes. Creators can discover relevant opportunities and apply directly.",
   },
   {
-    q: "How do creators get paid?",
-    a: "Paystack to a verified NUBAN. Approve the work, wait 72 hours, then the transfer. We take 0%. Paystack processing is theirs, not ours.",
+    q: "What if I don't find the right fit?",
+    a: "Keep searching, invite other creators or adjust your brief. That's the point of the marketplace.",
   },
   {
-    q: "Can I invite someone who isn’t on Woosh yet?",
-    a: "Yes. Add them as a prospect. The handle stays pending until they claim and connect. You are not buying a screenshot.",
+    q: "How does payment work?",
+    a: "Campaign funds are secured before work begins. Once the agreed work is completed and approved, payment is released.",
   },
   {
-    q: "Are there public creator ratings?",
-    a: "No. No stars. No leaderboard. Brands judge the storefront, the connected metrics, and the work you actually ran together.",
+    q: "Can both sides rate each other?",
+    a: "Yes. Creators and clients can rate each other and build a track record on the platform.",
   },
   {
-    q: "What’s the difference between a brand and an agency?",
-    a: "One brand, one wallet. An agency holds many clients — each with their own ledger. Same campaign rules. Different scoping.",
-  },
-  {
-    q: "Do I need an agency to run a brief?",
-    a: "No. If you are the brand, register as the brand. Open or invite-only. Shortlist yourself.",
+    q: "What platforms are supported?",
+    a: "Instagram, TikTok, Facebook and YouTube, with more platforms planned.",
   },
 ] as const;

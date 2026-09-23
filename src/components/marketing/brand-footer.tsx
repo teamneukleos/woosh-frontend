@@ -33,8 +33,7 @@ export function BrandFooter() {
         <div>
           <Logo href="/" adaptive size="md" />
           <p className="mt-4 max-w-xs text-sm leading-6 text-mkt-subtle">
-            {brand.tagline} Claimed supply. Funded briefs. Paystack.
-            Zero platform fee.
+            {brand.tagline}. Discover opportunities, run campaigns and get paid.
           </p>
           <ul className="mt-6 flex flex-wrap items-center gap-2">
             {social.map((item) => (

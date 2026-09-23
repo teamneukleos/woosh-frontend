@@ -8,8 +8,8 @@ import { marketingCast } from "@/components/marketing/cast";
 
 const items = [
   {
-    title: "Nobody types a follower count",
-    copy: "Instagram, TikTok, YouTube — live from the platform. Unclaimed prospects stay labelled. If they did not connect it, it is not claimed.",
+    title: "Know what you're really getting.",
+    copy: "Creator profiles are built from connected social accounts, giving a clearer picture of audience and performance, while helping creators demonstrate the value behind their numbers.",
     frame: "woosh.app / creators",
     mock: (
       <DiscoveryMock
@@ -42,14 +42,14 @@ const items = [
     ),
   },
   {
-    title: "Kill the group chat",
-    copy: "Drafts, revisions, rights, deadlines — on the campaign. Not a disappearing WhatsApp. Not final_v7 in Drive.",
+    title: "Let the right opportunities find their way.",
+    copy: "From highly specific niches to emerging talent, Woosh makes discovery more intentional, helping creators and campaigns find their way to each other beyond who happens to appear in your feed.",
     frame: "woosh.app / campaign",
     mock: <ThreadMock />,
   },
   {
-    title: "Money first. We take 0%.",
-    copy: "Fund the wallet before you pick anyone. The rate you agree is the rate that pays. Paystack. A ledger finance can actually read.",
+    title: "Give everyone skin in the game.",
+    copy: "With secure payments and two-way ratings, Woosh gives everyone more confidence to work together and a reputation that grows with every campaign.",
     frame: "woosh.app / wallet",
     mock: <WalletMock />,
   },
@@ -59,9 +59,9 @@ export function BrandAdvantage() {
   return (
     <section id="advantage" className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <p className="mkt-kicker">{"{The advantage}"}</p>
+        <p className="mkt-kicker">{"{Why Woosh}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
-          Built for how Nigeria actually ships culture
+          Built for how Nigeria creates and collaborates
         </h2>
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {items.map((item) => (
