@@ -7,6 +7,7 @@ export type OwnCreatorProfile = {
   displayName: string;
   bio: string | null;
   websiteUrl: string | null;
+  phone: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
   locationCountry: string | null;
@@ -106,6 +107,7 @@ export async function getCreatorProfile(emailVerified?: Date | string | null) {
     displayName: string;
     bio: string | null;
     websiteUrl?: string | null;
+    phone?: string | null;
     avatarUrl?: string | null;
     coverUrl?: string | null;
     locationCountry: string | null;
@@ -152,6 +154,7 @@ export async function getCreatorProfile(emailVerified?: Date | string | null) {
     avatarUrl: raw.avatarUrl ?? null,
     coverUrl: raw.coverUrl ?? null,
     websiteUrl: raw.websiteUrl ?? null,
+    phone: raw.phone ?? null,
     locationState: raw.locationState ?? null,
     preferredIndustries: raw.preferredIndustries ?? [],
     excludedIndustries: raw.excludedIndustries ?? [],

@@ -3,15 +3,34 @@ import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import { authConfig } from "@/lib/auth.config";
 import {
+  ApiError,
   loginWithPassword,
   logoutNest,
   refreshNestTokens,
+  type NestTokens,
 } from "@/lib/nest";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
+
+const refreshInFlight = new Map<string, Promise<NestTokens>>();
+
+function refreshNestTokensOnce(refreshToken: string) {
+  const existing = refreshInFlight.get(refreshToken);
+  if (existing) return existing;
+  const pending = refreshNestTokens(refreshToken).finally(() => {
+    refreshInFlight.delete(refreshToken);
+  });
+  refreshInFlight.set(refreshToken, pending);
+  return pending;
+}
+
+function accessStillValid(expires: unknown) {
+  const at = typeof expires === "number" ? expires : Number(expires);
+  return Number.isFinite(at) && Date.now() < at - 30_000;
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -56,11 +75,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         delete token.error;
         return token;
       }
-      if (
-        typeof token.accessExpires === "number" &&
-        Date.now() < token.accessExpires - 30_000 &&
-        token.accessToken
-      ) {
+      if (token.accessToken && accessStillValid(token.accessExpires)) {
         return token;
       }
       if (!token.refreshToken) {
@@ -68,17 +83,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
       try {
-        const refreshToken = String(token.refreshToken ?? "");
-        const refreshed = await refreshNestTokens(refreshToken);
+        const refreshToken = String(token.refreshToken);
+        const refreshed = await refreshNestTokensOnce(refreshToken);
         token.accessToken = refreshed.accessToken;
         token.refreshToken = refreshed.refreshToken;
         token.accessExpires = Date.now() + refreshed.expiresIn * 1000;
         delete token.error;
         return token;
-      } catch {
-        token.error = "RefreshFailed";
-        delete token.accessToken;
-        delete token.refreshToken;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          token.error = "RefreshFailed";
+          delete token.accessToken;
+          delete token.refreshToken;
+          return token;
+        }
         return token;
       }
     },

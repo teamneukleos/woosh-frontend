@@ -12,7 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       storageKey="woosh-theme"
       disableTransitionOnChange
     >
-      <SessionProvider>
+      <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
         <TooltipProvider delayDuration={200}>
           <ToastProvider>{children}</ToastProvider>
         </TooltipProvider>
