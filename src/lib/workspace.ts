@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
 import { getActiveBrandId } from "@/lib/brand-cookie";
 import type { MembershipRole } from "@/lib/enums";
 
@@ -120,7 +120,8 @@ export async function getWorkspaceContext(
       activeBrandId: workspace.activeBrandId,
       activeBrand: workspace.activeBrand,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return null;
+    throw error;
   }
 }

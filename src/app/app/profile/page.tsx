@@ -26,6 +26,7 @@ import { Input, TextArea, Label, Select } from "@/components/ui/field";
 import {
   CategoryPicker,
   LanguagePicker,
+  TaxonomyDropdown,
 } from "@/components/ui/taxonomy-pickers";
 import { SocialConnections } from "@/components/creator/social-connections";
 import {
@@ -272,13 +273,26 @@ export default async function ProfilePage({
             />
           </Label>
           <Label>
-            Website or link-in-bio
+            Website (optional)
             <Input
               name="websiteUrl"
               type="url"
               defaultValue={profile.websiteUrl ?? ""}
               placeholder="https://"
             />
+          </Label>
+          <Label>
+            Phone number
+            <Input
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              defaultValue={profile.phone ?? ""}
+              placeholder="e.g. +234 801 234 5678"
+            />
+            <span className="text-xs font-normal text-[var(--woosh-dull)]/55">
+              Only Woosh can see this. It is not shown on your public profile.
+            </span>
           </Label>
           <div className="grid gap-3 sm:grid-cols-2">
             <Label>
@@ -312,38 +326,23 @@ export default async function ProfilePage({
             defaultSelected={profile.languages}
           />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Label>
-              Preferred brand industries
-              <Select
-                name="preferredIndustries"
-                multiple
-                size={6}
-                defaultValue={profile.preferredIndustries}
-              >
-                {BRAND_INDUSTRIES.map((industry) => (
-                  <option key={industry}>{industry}</option>
-                ))}
-              </Select>
-              <span className="text-xs font-normal text-[var(--woosh-dull)]/55">
-                Hold Cmd/Ctrl to select more than one.
-              </span>
-            </Label>
-            <Label>
-              Industries to exclude
-              <Select
-                name="excludedIndustries"
-                multiple
-                size={6}
-                defaultValue={profile.excludedIndustries}
-              >
-                {BRAND_INDUSTRIES.map((industry) => (
-                  <option key={industry}>{industry}</option>
-                ))}
-              </Select>
-            </Label>
+            <TaxonomyDropdown
+              name="preferredIndustries"
+              label="Preferred brand industries"
+              options={BRAND_INDUSTRIES}
+              defaultSelected={profile.preferredIndustries}
+              placeholder="Select industries"
+            />
+            <TaxonomyDropdown
+              name="excludedIndustries"
+              label="Industries to exclude"
+              options={BRAND_INDUSTRIES}
+              defaultSelected={profile.excludedIndustries}
+              placeholder="Select industries"
+            />
           </div>
           <Label>
-            Availability
+            Availability (optional)
             <TextArea
               name="availabilityNotes"
               defaultValue={profile.availabilityNotes ?? ""}
@@ -352,9 +351,11 @@ export default async function ProfilePage({
           </Label>
           <div className="grid gap-3 sm:grid-cols-2">
             <Label>
-              Age band (optional)
-              <Select name="ageBand" defaultValue={profile.ageBand ?? ""}>
-                <option value="">Prefer not to say</option>
+              Age band
+              <Select name="ageBand" required defaultValue={profile.ageBand ?? ""}>
+                <option value="" disabled>
+                  Select age band
+                </option>
                 <option value="18-24">18–24</option>
                 <option value="25-34">25–34</option>
                 <option value="35-44">35–44</option>
@@ -362,13 +363,13 @@ export default async function ProfilePage({
               </Select>
             </Label>
             <Label>
-              Gender (optional)
-              <Select name="gender" defaultValue={profile.gender ?? ""}>
-                {/* <option value="">Prefer not to say</option> */}
+              Gender
+              <Select name="gender" required defaultValue={profile.gender ?? ""}>
+                <option value="" disabled>
+                  Select gender
+                </option>
                 <option value="Woman">Male</option>
                 <option value="Man">Female</option>
-                {/* <option value="Non-binary">Non-binary</option> */}
-                {/* <option value="Self-described">Self-described</option> */}
               </Select>
             </Label>
           </div>

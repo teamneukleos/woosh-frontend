@@ -515,6 +515,7 @@ export async function updateCreatorProfileAction(formData: FormData) {
         String(formData.get("locationState") || "") || undefined,
       locationCity: String(formData.get("locationCity") || "") || undefined,
       websiteUrl: String(formData.get("websiteUrl") || "") || undefined,
+      phone: String(formData.get("phone") || "").trim() || null,
       categories: parseSelectedCategories(formData) as never,
       languages: parseSelectedLanguages(formData) as never,
       preferredIndustries: formData
@@ -525,8 +526,16 @@ export async function updateCreatorProfileAction(formData: FormData) {
         .getAll("excludedIndustries")
         .map(String)
         .filter(Boolean),
-      ageBand: String(formData.get("ageBand") || "") || undefined,
-      gender: String(formData.get("gender") || "") || undefined,
+      ageBand: (() => {
+        const value = String(formData.get("ageBand") || "").trim();
+        if (!value) throw new Error("Age band is required.");
+        return value;
+      })(),
+      gender: (() => {
+        const value = String(formData.get("gender") || "").trim();
+        if (!value) throw new Error("Gender is required.");
+        return value;
+      })(),
       ageSearchable: formData.get("ageSearchable") === "on",
       genderSearchable: formData.get("genderSearchable") === "on",
       availabilityNotes:
