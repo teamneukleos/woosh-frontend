@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useTransition } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ export function MessageComposer({
   placeholder?: string;
 }) {
   const field = useRef<HTMLTextAreaElement>(null);
+  const [pending, startTransition] = useTransition();
 
   function resize() {
     const el = field.current;
@@ -28,7 +29,18 @@ export function MessageComposer({
 
   return (
     <form
-      action={campaignId ? sendCampaignMessageAction : sendMessageAction}
+      action={(formData) => {
+        startTransition(async () => {
+          const send = campaignId
+            ? sendCampaignMessageAction
+            : sendMessageAction;
+          await send(formData);
+          if (field.current) {
+            field.current.value = "";
+            field.current.style.height = "auto";
+          }
+        });
+      }}
       className="flex items-end gap-2 border-t border-[var(--woosh-border)] bg-white p-3 sm:p-4"
     >
       <input type="hidden" name="conversationId" value={conversationId} />
@@ -46,6 +58,7 @@ export function MessageComposer({
         maxLength={5000}
         rows={1}
         placeholder={placeholder}
+        disabled={pending}
         onInput={resize}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.shiftKey) {
@@ -53,9 +66,14 @@ export function MessageComposer({
             event.currentTarget.form?.requestSubmit();
           }
         }}
-        className="max-h-40 min-h-11 min-w-0 flex-1 resize-none rounded-[var(--radius-control)] border border-[var(--woosh-border)] bg-[var(--surface-sunken)] px-3 py-2.5 text-sm leading-5 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--woosh-blue)] focus:bg-white focus:shadow-[var(--shadow-focus)]"
+        className="max-h-40 min-h-11 min-w-0 flex-1 resize-none rounded-[var(--radius-control)] border border-[var(--woosh-border)] bg-[var(--surface-sunken)] px-3 py-2.5 text-sm leading-5 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--woosh-blue)] focus:bg-white focus:shadow-[var(--shadow-focus)] disabled:opacity-60"
       />
-      <Button type="submit" size="icon" aria-label="Send message">
+      <Button
+        type="submit"
+        size="icon"
+        aria-label="Send message"
+        disabled={pending}
+      >
         <Send aria-hidden="true" className="size-4" />
       </Button>
     </form>

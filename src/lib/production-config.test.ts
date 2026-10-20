@@ -7,6 +7,7 @@ const complete = {
   NEXT_PUBLIC_APP_URL: "https://app.woosh.example",
   AUTH_URL: "https://app.woosh.example",
   WOOSH_API_URL: "https://api.woosh.example/api",
+  NEXT_PUBLIC_API_URL: "https://api.woosh.example/api",
   WOOSH_ALLOW_DEV_OAUTH: "false",
 };
 

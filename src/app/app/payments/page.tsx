@@ -4,7 +4,8 @@ import { getWorkspaceContext } from "@/lib/workspace";
 import { getWalletBalance } from "@/domains/payments/wallet";
 import { listBrandPayments } from "@/domains/payments/ledger";
 import { listBrandDocuments } from "@/domains/payments/documents";
-import { walletTopUpAction, markPaidAction } from "@/app/actions";
+import { markPaidAction } from "@/app/actions";
+import { WalletFundPanel } from "@/components/payments/wallet-fund";
 import { Panel, EmptyState } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -12,7 +13,7 @@ import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Stat } from "@/components/ui/stat";
 import { Button } from "@/components/ui/button";
 import { ActionForm } from "@/components/ui/action-form";
-import { Input, Label } from "@/components/ui/field";
+import { Input } from "@/components/ui/field";
 import { Select, TextArea } from "@/components/ui/field";
 import { hasPermission } from "@/lib/permissions";
 import Link from "next/link";
@@ -100,26 +101,24 @@ export default async function PaymentsPage({
       </div>
 
       <Panel title="Top up wallet">
-        <ActionForm action={walletTopUpAction} successTitle="Redirecting to Paystack">
-          <div className="flex flex-wrap items-end gap-3">
-            <Label className="min-w-0 w-full sm:w-auto sm:min-w-[12rem]">
-              Amount (NGN)
-              <Input
-                name="amount"
-                type="number"
-                min={1000}
-                step={1000}
-                defaultValue={100000}
-                required
-              />
-            </Label>
-            <Button type="submit">Add funds</Button>
-          </div>
-        </ActionForm>
+        {canPay ? (
+          <WalletFundPanel
+            canPay={canPay}
+            brandName={ctx.activeBrand?.name ?? "this brand"}
+            initialDva={wallet?.dva ?? null}
+            defaultName={ctx.user.name}
+            defaultPhone={ctx.user.phone ?? null}
+          />
+        ) : (
+          <p className="text-sm text-[var(--woosh-dull)]/70">
+            You can view this wallet. A teammate with payment permission can add
+            funds.
+          </p>
+        )}
         <p className="mt-3 text-xs text-[var(--woosh-dull)]/65">
-          Add funds opens Paystack Checkout. After you pay, we verify the charge
-          and credit this brand&apos;s wallet. Accepting a creator reserves the
-          creator rate from this wallet. Woosh platform fee is 0%.
+          Card uses Paystack Checkout. Bank transfer uses a dedicated NUBAN for
+          this brand only. Accepting a creator reserves the creator rate from
+          this wallet. Woosh platform fee is 0%.
         </p>
       </Panel>
 

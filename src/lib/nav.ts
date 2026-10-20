@@ -45,6 +45,7 @@ export const navByKind: Record<string, NavItem[]> = {
   ],
   brand: [
     { href: "/app", label: "Home", icon: Home, mobile: true },
+    { href: "/app/brands", label: "Brands", icon: Building2, section: "Find" },
     { href: "/app/creators", label: "Creators", icon: UsersRound, mobile: true, section: "Find" },
     { href: "/app/briefs", label: "Briefs", icon: FileText, mobile: true, section: "Find" },
     { href: "/app/campaigns", label: "Campaigns", icon: Layers, mobile: true, section: "Run" },

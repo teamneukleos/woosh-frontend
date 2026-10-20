@@ -19,6 +19,7 @@ export type NestMe = {
   id: string;
   email: string;
   name: string | null;
+  phone?: string | null;
   image: string | null;
   status: string;
   emailVerified: string | Date | null;

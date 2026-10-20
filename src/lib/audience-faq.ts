@@ -11,7 +11,7 @@ export const brandAudienceFaqs: AudienceFaqItem[] = [
   },
   {
     q: "Do I need an agency?",
-    a: "Not if you run one brand. One organisation. One wallet. Briefs you actually ship. Agencies exist for client rosters.",
+    a: "Not if the work is yours. One organisation, brand lines that never mix wallets. Agencies exist for other people’s clients.",
   },
   {
     q: "What currency?",
@@ -41,7 +41,7 @@ export const creatorAudienceFaqs: AudienceFaqItem[] = [
 export const agencyAudienceFaqs: AudienceFaqItem[] = [
   {
     q: "Brand seat or agency seat?",
-    a: "One brand? Brand seat. Many clients? Agency. Same campaign rules. Wallets never mix on the agency side.",
+    a: "Your own brands? Brand seat — add lines, each with a wallet. Other people’s clients? Agency. Same campaign rules. Wallets never mix.",
   },
   {
     q: "Can client money mix?",
@@ -53,6 +53,6 @@ export const agencyAudienceFaqs: AudienceFaqItem[] = [
   },
   {
     q: "We only have one brand. Agency?",
-    a: "No. Register as a brand. You can publish an open or invite-only brief without a roster.",
+    a: "No. Register as a brand. Add more of your own lines later. Agency is for a roster of other people’s clients.",
   },
 ];

@@ -13,10 +13,13 @@ const STEPS = ["Welcome", "First brand", "Invite team"];
 
 export function AgencyOnboarding({
   orgName,
+  kind = "agency",
 }: {
   orgName: string;
+  kind?: "agency" | "brand";
 }) {
   const [step, setStep] = useState(0);
+  const isAgency = kind === "agency";
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
@@ -25,8 +28,9 @@ export function AgencyOnboarding({
       {step === 0 ? (
         <Panel title={`Welcome, ${orgName}`}>
           <p className="text-sm leading-6 text-[var(--woosh-dull)]/75">
-            Agencies work in brand context. Next you&apos;ll create a client
-            brand, then you can optionally invite a teammate.
+            {isAgency
+              ? "Agencies work in brand context. Next you\u2019ll create a client brand, then you can optionally invite a teammate."
+              : "Work happens on a brand line with its own wallet. Create the first one, then you can optionally invite a teammate."}
           </p>
           <Button
             type="button"
@@ -39,7 +43,7 @@ export function AgencyOnboarding({
       ) : null}
 
       {step === 1 ? (
-        <Panel title="Create your first client brand">
+        <Panel title={isAgency ? "Create your first client brand" : "Create your first brand"}>
           <ActionForm action={createClientBrandAction} successTitle="Brand created" className="grid gap-4">
             <input
               type="hidden"
@@ -47,7 +51,7 @@ export function AgencyOnboarding({
               value="/app/onboarding?step=invite"
             />
             <Label>
-              Client brand name
+              {isAgency ? "Client brand name" : "Brand name"}
               <Input name="name" required placeholder="Palm Cola" />
             </Label>
             <Label>

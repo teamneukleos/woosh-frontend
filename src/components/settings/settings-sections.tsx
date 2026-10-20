@@ -64,7 +64,7 @@ export function SettingsSections({
         {organisation ? (
           <TabsTrigger value="organisation">Organisation</TabsTrigger>
         ) : null}
-        {kind === "agency" && canManageOrganisation ? (
+        {(kind === "agency" || kind === "brand") && canManageOrganisation ? (
           <TabsTrigger value="brands">Brands</TabsTrigger>
         ) : null}
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -134,9 +134,9 @@ export function SettingsSections({
         </TabsContent>
       ) : null}
 
-      {kind === "agency" && canManageOrganisation ? (
+      {(kind === "agency" || kind === "brand") && canManageOrganisation ? (
         <TabsContent value="brands">
-          <Panel title="Add client brand">
+          <Panel title={kind === "agency" ? "Add client brand" : "Add brand"}>
             <ActionForm
               action={createClientBrandAction}
               successTitle="Brand created"

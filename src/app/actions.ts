@@ -38,7 +38,11 @@ import {
   moderateCreatorMedia,
   moderateCreatorProfile,
 } from "@/domains/trust/admin";
-import { startWalletTopUp } from "@/domains/payments/wallet";
+import {
+  listDvaBanks,
+  requestBrandDva,
+  startWalletTopUp,
+} from "@/domains/payments/wallet";
 import {
   inviteTeammate,
   inviteToBrief,
@@ -416,7 +420,6 @@ export async function sendMessageAction(formData: FormData) {
     body: String(formData.get("body") ?? ""),
   });
   revalidatePath("/app/messages");
-  redirect(`/app/messages?c=${conversationId}`);
 }
 
 export async function sendCampaignMessageAction(formData: FormData) {
@@ -497,6 +500,35 @@ export async function walletTopUpAction(formData: FormData) {
   if (result.mode === "paystack" && result.authorizationUrl) {
     redirect(result.authorizationUrl);
   }
+}
+
+export async function createWalletDvaAction(formData: FormData) {
+  const user = await requireUser();
+  const ctx = await getWorkspaceContext(user.id!);
+  if (!ctx || ctx.kind === "creator" || !ctx.activeBrandId) {
+    throw new Error("Brand workspace required");
+  }
+  const result = await requestBrandDva({
+    brandId: ctx.activeBrandId,
+    firstName: String(formData.get("firstName") ?? "").trim(),
+    lastName: String(formData.get("lastName") ?? "").trim(),
+    phone: String(formData.get("phone") ?? "").trim(),
+    consent: String(formData.get("consent") ?? "") === "true",
+    bvn: String(formData.get("bvn") ?? "").trim() || undefined,
+    accountNumber: String(formData.get("accountNumber") ?? "").trim() || undefined,
+    bankCode: String(formData.get("bankCode") ?? "").trim() || undefined,
+  });
+  revalidatePath("/app/payments");
+  return result;
+}
+
+export async function listDvaBanksAction() {
+  const user = await requireUser();
+  const ctx = await getWorkspaceContext(user.id!);
+  if (!ctx || ctx.kind === "creator") {
+    throw new Error("Brand workspace required");
+  }
+  return listDvaBanks(ctx.activeBrandId ?? undefined);
 }
 
 export async function updateCreatorProfileAction(formData: FormData) {
@@ -720,6 +752,9 @@ export async function createClientBrandAction(formData: FormData) {
   const user = await requireUser();
   const ctx = await getWorkspaceContext(user.id!);
   if (!ctx?.organisation) throw new Error("Organisation required");
+  if (ctx.kind !== "agency" && ctx.kind !== "brand" && ctx.kind !== "admin") {
+    throw new Error("Only brand and agency seats can add brands");
+  }
 
   await createBrandForOrganisation(
     {

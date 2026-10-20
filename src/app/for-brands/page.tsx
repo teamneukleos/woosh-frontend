@@ -18,7 +18,7 @@ import { breadcrumbSchema, faqSchemaFrom } from "@/lib/seo-schema";
 export const metadata = pageMetadata({
   title: "Run campaigns without the group chat",
   description:
-    "Claimed Instagram, TikTok and YouTube. Fund the brief before you select. One thread. Zero platform fee.",
+    "Claimed Instagram, TikTok and YouTube. Fund the brief before you select. Add brand lines with their own wallets. One thread. Zero platform fee.",
   path: "/for-brands",
 });
 
@@ -77,7 +77,7 @@ export default function ForBrandsPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#07080c] via-transparent to-transparent" />
             <p className="absolute bottom-4 left-4 text-xs text-white/80">
-              Operator board · one organisation, one wallet
+              Operator board · brand lines, separate wallets
             </p>
           </div>
           <div className="absolute bottom-6 right-3 w-[min(100%,18rem)] sm:-right-2 sm:w-72">
@@ -126,7 +126,7 @@ export default function ForBrandsPage() {
           </p>
           <dl className="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
             {[
-              { label: "Wallet", value: "One ledger" },
+              { label: "Wallet", value: "Per brand line" },
               { label: "Select", value: "After fund" },
               { label: "Settle", value: "Paystack" },
             ].map((row) => (
@@ -148,8 +148,9 @@ export default function ForBrandsPage() {
             </h2>
             <p className="mt-4 text-sm leading-6 text-mkt-muted">
               Creators upload into the campaign. You request a change without a
-              new group chat. One organisation, one wallet — unless you need a
-              client roster, which is the{" "}
+              new group chat. One organisation, as many of your brand lines as
+              you need — each with its own wallet. Other people&apos;s clients
+              belong on the{" "}
               <Link
                 href="/for-agencies"
                 className="mkt-link"
@@ -171,7 +172,7 @@ export default function ForBrandsPage() {
       />
       <AudienceClose
         title="Open the brand seat."
-        lede="Creators claim and get paid. You fund, pick, settle — one ledger. We take 0%."
+        lede="Creators claim and get paid. You fund, pick, settle — a wallet per brand line. We take 0%."
         primaryHref="/register?type=brand"
         primaryLabel="Sign up"
         secondaryHref="/for-creators"

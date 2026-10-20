@@ -86,8 +86,8 @@ export default function ForAgenciesPage() {
                 </thead>
                 <tbody className="text-mkt-muted">
                   {[
-                    ["Workspaces", "One organisation", "Client roster"],
-                    ["Wallets", "One ledger", "One ledger per client"],
+                    ["Workspaces", "Your brand lines", "Client roster"],
+                    ["Wallets", "One ledger per brand line", "One ledger per client"],
                     ["Briefs", "Yours to run", "Scoped to the active brand"],
                     ["Fund before select", "Yes", "Yes — from that client wallet"],
                     ["Claimed supply", "Yes", "Yes"],
@@ -152,7 +152,7 @@ export default function ForAgenciesPage() {
       <AudienceFaq heading="Before you add the next client." items={agencyAudienceFaqs} />
       <AudienceClose
         title="Open the agency seat."
-        lede="Creators still see the rate before they say yes. One-brand teams stay on a brand seat."
+        lede="Creators still see the rate before they say yes. Your own brand lines stay on a brand seat."
         primaryHref="/register?type=agency"
         primaryLabel="Sign up"
         secondaryHref="/for-creators"

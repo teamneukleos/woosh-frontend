@@ -4,8 +4,8 @@ import { marketingPhotos } from "@/components/marketing/cast";
 
 const claims = [
   {
-    title: "One brand, one wallet",
-    copy: "Each brand keeps its own briefs, campaigns and funds. Switch context without mixing client money.",
+    title: "A wallet per brand line",
+    copy: "Each of your brands keeps its own briefs, campaigns and funds. Switch context without mixing money.",
   },
   {
     title: "Work stays on the work",
