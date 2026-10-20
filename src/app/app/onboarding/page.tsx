@@ -37,9 +37,10 @@ export default async function OnboardingPage({
     );
   }
 
-  if (ctx.kind !== "agency") redirect("/app");
+  if (ctx.kind !== "agency" && ctx.kind !== "brand") redirect("/app");
 
   const { step } = await searchParams;
+  const isAgency = ctx.kind === "agency";
 
   if (step === "invite" && ctx.brands.length > 0) {
     return (
@@ -60,12 +61,19 @@ export default async function OnboardingPage({
   return (
     <AppPage
       eyebrow="Onboarding"
-      title="Set up your agency"
-      description="Three quick steps to open discovery and briefs."
+      title={isAgency ? "Set up your agency" : "Set up your brand"}
+      description={
+        isAgency
+          ? "Three quick steps to open discovery and briefs."
+          : "Create your first brand line to open discovery and briefs."
+      }
       width="narrow"
       className="max-w-lg"
     >
-      <AgencyOnboarding orgName={ctx.organisation?.publicName ?? "Agency"} />
+      <AgencyOnboarding
+        kind={ctx.kind}
+        orgName={ctx.organisation?.publicName ?? (isAgency ? "Agency" : "Brand")}
+      />
     </AppPage>
   );
 }

@@ -26,6 +26,7 @@ export function productionConfigurationIssues(
     "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY",
     "NEXT_PUBLIC_APP_URL",
     "WOOSH_API_URL",
+    "NEXT_PUBLIC_API_URL",
   ].forEach(requireValue);
 
   const appUrl = env.NEXT_PUBLIC_APP_URL?.trim();
@@ -47,8 +48,16 @@ export function productionConfigurationIssues(
   }
 
   const apiUrl = env.WOOSH_API_URL?.trim() || env.NEXT_PUBLIC_API_URL?.trim();
+  const publicApiUrl = env.NEXT_PUBLIC_API_URL?.trim();
   if (apiUrl && !apiUrl.startsWith("https://") && appUrl?.startsWith("https://")) {
     issues.push("WOOSH_API_URL must use HTTPS in production");
+  }
+  if (
+    publicApiUrl &&
+    !publicApiUrl.startsWith("https://") &&
+    appUrl?.startsWith("https://")
+  ) {
+    issues.push("NEXT_PUBLIC_API_URL must use HTTPS in production");
   }
 
   if (env.WOOSH_ALLOW_DEV_OAUTH === "true") {

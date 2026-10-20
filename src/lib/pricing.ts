@@ -45,7 +45,7 @@ export const BRAND_PLANS: PricingPlan[] = [
     pitch: "First brief. See if the loop holds.",
     monthlyNgn: 0,
     briefsPerMonth: 1,
-    clientBrands: 1,
+    clientBrands: Number.POSITIVE_INFINITY,
     seats: 1,
     cta: { label: "Start free", href: "/register?type=brand&plan=brand-starter" },
     features: [
@@ -54,7 +54,7 @@ export const BRAND_PLANS: PricingPlan[] = [
       "Fund before you select",
       "One campaign thread",
       "0% on the creator rate",
-      "Wallet on Paystack",
+      "Brand lines, each with its own Paystack wallet",
     ],
   },
   {
@@ -64,7 +64,7 @@ export const BRAND_PLANS: PricingPlan[] = [
     pitch: "A month of briefs without opening WhatsApp.",
     monthlyNgn: 20_000,
     briefsPerMonth: 5,
-    clientBrands: 1,
+    clientBrands: Number.POSITIVE_INFINITY,
     seats: 3,
     popular: true,
     cta: { label: "Start Studio", href: "/register?type=brand&plan=brand-studio" },
@@ -84,12 +84,13 @@ export const BRAND_PLANS: PricingPlan[] = [
     pitch: "Always-on. No counting slots.",
     monthlyNgn: 75_000,
     briefsPerMonth: Number.POSITIVE_INFINITY,
-    clientBrands: 1,
+    clientBrands: Number.POSITIVE_INFINITY,
     seats: 8,
     cta: { label: "Start House", href: "/register?type=brand&plan=brand-house" },
     features: [
       "Everything in Studio",
       "Unlimited published briefs",
+      "Unlimited brand lines, wallets never mix",
       "8 team seats",
       "Priority review on first campaigns",
       "Exportable ledger for finance",
@@ -99,7 +100,7 @@ export const BRAND_PLANS: PricingPlan[] = [
     id: "brand-enterprise",
     audience: "brand",
     name: "Enterprise",
-    pitch: "Several markets. One ledger they can audit.",
+    pitch: "Several markets. A wallet per brand line they can audit.",
     monthlyNgn: null,
     briefsPerMonth: Number.POSITIVE_INFINITY,
     clientBrands: Number.POSITIVE_INFINITY,
@@ -107,6 +108,7 @@ export const BRAND_PLANS: PricingPlan[] = [
     cta: { label: "Talk to us", href: "/register?type=brand&plan=brand-enterprise" },
     features: [
       "Everything in House",
+      "Unlimited brand lines across markets",
       "Custom seats and permissions",
       "Named onboarding",
       "Billing that matches finance",
@@ -209,7 +211,7 @@ export const PRICING_FEATURES = [
   {
     kicker: "04 / Pay",
     title: "Money first. We take 0% of it.",
-    body: "Fund the wallet before you pick anyone. The rate you agree is the rate that pays. Subscription is for volume. Paystack processing is theirs.",
+    body: "Fund the active brand wallet before you pick anyone. Extra brand lines never share a ledger. The rate you agree is the rate that pays. Subscription is for volume. Paystack processing is theirs.",
   },
 ] as const;
 
@@ -240,7 +242,11 @@ export const PRICING_FAQS = [
   },
   {
     q: "What’s the difference between brand and agency pricing?",
-    a: "A brand seat is one organisation, one wallet. An agency seat is client brands that must not mix. Roster and Floor price the extra ledgers.",
+    a: "A brand seat is your organisation; extra brand lines each get their own wallet. An agency seat is client brands that must not mix. Roster and Floor price the extra ledgers.",
+  },
+  {
+    q: "Can a brand seat run more than one brand?",
+    a: "Yes. Add brand lines from Brands. Each line has its own wallet, briefs and campaigns. Use an agency seat when the money belongs to someone else’s client.",
   },
 ] as const;
 
@@ -270,6 +276,11 @@ export function formatNgn(amount: number) {
 
 export function formatCap(value: BriefCap) {
   return Number.isFinite(value) ? String(value) : "Unlimited";
+}
+
+export function formatCapPhrase(value: BriefCap, singular: string, plural: string) {
+  if (!Number.isFinite(value)) return `Unlimited ${plural}`;
+  return `${value} ${value === 1 ? singular : plural}`;
 }
 
 export function canPublishBrief(input: {

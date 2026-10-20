@@ -19,10 +19,9 @@ import { AppPage } from "@/components/ui/app-page";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { ThreadList } from "@/components/messages/thread-list";
-import { MessageBubbles } from "@/components/messages/message-bubbles";
+import { LiveInbox } from "@/components/messages/live-inbox";
+import { LiveThread } from "@/components/messages/live-thread";
 import { MessageComposer } from "@/components/messages/message-composer";
-import { ThreadScroller } from "@/components/messages/thread-scroller";
 
 export default async function MessagesPage({
   searchParams,
@@ -97,7 +96,7 @@ export default async function MessagesPage({
               {threads.length} {threads.length === 1 ? "thread" : "threads"}
             </p>
           </div>
-          <ThreadList items={threads} activeId={activeId} />
+          <LiveInbox items={threads} activeId={activeId} />
         </aside>
 
         <section
@@ -142,18 +141,17 @@ export default async function MessagesPage({
                   </Link>
                 ) : null}
               </header>
-              <ThreadScroller>
-                <MessageBubbles
-                  currentUserId={userId}
-                  messages={active.messages.map((message) => ({
-                    id: message.id,
-                    body: message.body,
-                    senderUserId: message.senderUserId,
-                    isSystem: message.isSystem,
-                    createdAt: message.createdAt,
-                  }))}
-                />
-              </ThreadScroller>
+              <LiveThread
+                conversationId={active.id}
+                currentUserId={userId}
+                initialMessages={active.messages.map((message) => ({
+                  id: message.id,
+                  body: message.body,
+                  senderUserId: message.senderUserId,
+                  isSystem: message.isSystem,
+                  createdAt: message.createdAt,
+                }))}
+              />
               <MessageComposer conversationId={active.id} />
             </>
           ) : (

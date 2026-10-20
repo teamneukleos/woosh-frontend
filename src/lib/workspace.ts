@@ -8,6 +8,7 @@ export type WorkspaceUser = {
   id: string;
   email: string;
   name: string | null;
+  phone?: string | null;
   image?: string | null;
   isPlatformAdmin: boolean;
   status: string;
@@ -80,6 +81,7 @@ type NestMe = {
   id: string;
   email: string;
   name: string | null;
+  phone?: string | null;
   image: string | null;
   status: string;
   emailVerified: string | Date | null;
@@ -106,6 +108,7 @@ export async function getWorkspaceContext(
         id: me.id,
         email: me.email,
         name: me.name,
+        phone: me.phone ?? null,
         image: me.image,
         isPlatformAdmin: me.isPlatformAdmin,
         status: me.status,

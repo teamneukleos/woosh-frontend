@@ -17,7 +17,10 @@ export default async function AppHomePage() {
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx) redirect("/login");
 
-  if (ctx.kind === "agency" && ctx.brands.length === 0) {
+  if (
+    (ctx.kind === "agency" || ctx.kind === "brand") &&
+    ctx.brands.length === 0
+  ) {
     redirect("/app/onboarding");
   }
   if (

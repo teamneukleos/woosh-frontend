@@ -180,6 +180,7 @@ async function smokeAuthenticated() {
   await checkRoutes(
     [
       "/app",
+      "/app/brands",
       "/app/creators",
       "/app/briefs",
       "/app/campaigns",

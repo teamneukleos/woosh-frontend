@@ -13,15 +13,24 @@ export default async function BrandsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const ctx = await getWorkspaceContext(session.user.id);
-  if (!ctx || (ctx.kind !== "agency" && ctx.kind !== "admin")) {
+  if (
+    !ctx ||
+    (ctx.kind !== "agency" && ctx.kind !== "admin" && ctx.kind !== "brand")
+  ) {
     redirect("/app");
   }
 
+  const isAgency = ctx.kind === "agency";
+
   return (
     <AppPage
-        eyebrow="Agency"
+        eyebrow={isAgency ? "Agency" : "Organisation"}
         title="Brands"
-        description="Client brand workspaces. Switch context or add brands from settings."
+        description={
+          isAgency
+            ? "Client brand workspaces. Switch context or add brands from settings."
+            : "Each brand line has its own wallet. Switch context or add another from settings."
+        }
         actions={
           <ButtonLink href="/app/settings" variant="secondary">
             Add brand
@@ -63,7 +72,7 @@ export default async function BrandsPage() {
         </ul>
       ) : (
         <EmptyState
-          title="No client brands"
+          title={isAgency ? "No client brands" : "No brands yet"}
           description="Create your first brand to open discovery and briefs."
           action={
             <ButtonLink href="/app/onboarding">Create brand</ButtonLink>

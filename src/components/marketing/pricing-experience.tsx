@@ -14,6 +14,7 @@ import {
   type PricingPlan,
   annualSavingsNgn,
   billedMonthlyNgn,
+  formatCapPhrase,
   formatNgn,
   plansFor,
 } from "@/lib/pricing";
@@ -181,6 +182,15 @@ function PlanCard({ plan, cycle }: { plan: PricingPlan; cycle: BillingCycle }) {
       </div>
       <h2 className="mt-2 font-display text-2xl text-mkt-fg">{plan.name}</h2>
       <p className="mt-1 text-sm leading-5 text-mkt-muted md:min-h-10">{plan.pitch}</p>
+      <p className="mt-3 text-[0.6875rem] leading-4 text-mkt-faint">
+        {formatCapPhrase(plan.briefsPerMonth, "brief", "briefs")} ·{" "}
+        {formatCapPhrase(
+          plan.clientBrands,
+          plan.audience === "agency" ? "client brand" : "brand line",
+          plan.audience === "agency" ? "client brands" : "brand lines",
+        )}{" "}
+        · {formatCapPhrase(plan.seats, "seat", "seats")}
+      </p>
 
       <div className="mt-5 md:mt-6">
         {plan.monthlyNgn == null ? (

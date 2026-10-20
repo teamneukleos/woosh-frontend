@@ -1,5 +1,5 @@
 import { Panel } from "@/components/ui/panel";
-import { MessageBubbles } from "@/components/messages/message-bubbles";
+import { LiveThread } from "@/components/messages/live-thread";
 import { MessageComposer } from "@/components/messages/message-composer";
 
 export function CampaignConversation({
@@ -28,20 +28,26 @@ export function CampaignConversation({
       className="overflow-hidden"
     >
       <div className="flex max-h-[28rem] min-h-64 flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface-sunken)]/70 px-4 py-4">
-          <MessageBubbles
+        {conversation ? (
+          <LiveThread
+            variant="campaign"
+            conversationId={conversation.id}
             currentUserId={currentUserId}
-            messages={
-              conversation?.messages.map((message) => ({
-                id: message.id,
-                body: message.body,
-                senderUserId: message.senderUserId,
-                isSystem: message.isSystem,
-                createdAt: message.createdAt,
-              })) ?? []
-            }
+            initialMessages={conversation.messages.map((message) => ({
+              id: message.id,
+              body: message.body,
+              senderUserId: message.senderUserId,
+              isSystem: message.isSystem,
+              createdAt: message.createdAt,
+            }))}
           />
-        </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto bg-[var(--surface-sunken)]/70 px-4 py-4">
+            <p className="m-auto max-w-xs text-center text-sm text-[var(--text-muted)]">
+              No messages yet. Start the thread — keep it attached to the work.
+            </p>
+          </div>
+        )}
         {conversation ? (
           <MessageComposer
             conversationId={conversation.id}
