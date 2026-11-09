@@ -6,7 +6,7 @@ export const siteName = "Woosh";
 export const defaultTitle = `${siteName} — ${brand.tagline}`;
 
 export const defaultDescription =
-  "Creators, brands and agencies, tale as old as Y2K. Woosh brings everyone together to discover opportunities, run campaigns and get paid.";
+  "Creators, brands and agencies, tale as old as Y2K. Wuush brings everyone together to discover opportunities, run campaigns and get paid.";
 
 export const sameAs = [
   "https://www.instagram.com/woosh.app",

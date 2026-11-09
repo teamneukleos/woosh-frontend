@@ -61,7 +61,7 @@ export function BrandHero() {
       <div aria-hidden className="mkt-pattern absolute inset-0 -z-10 opacity-80" />
       <div className="mx-auto w-full max-w-6xl px-5 pb-16 pt-8 md:px-8 md:pb-20 md:pt-10">
         <p className="mkt-rise text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-[#0de3af]">
-          Woosh
+          Wuush
         </p>
         <div className="mkt-rise mt-4 grid items-end gap-8 md:grid-cols-[1.2fr_0.8fr] md:gap-12">
           <h1 className="font-display max-w-[18ch] text-[clamp(2.75rem,7vw,4.75rem)] leading-[1.02] tracking-[-0.035em]">
@@ -70,7 +70,7 @@ export function BrandHero() {
           </h1>
           <div>
             <p className="max-w-md text-[0.9375rem] leading-7 text-mkt-muted md:text-base">
-              Creators, brands and agencies, tale as old as Y2K. Woosh brings
+              Creators, brands and agencies, tale as old as Y2K. Wuush brings
               everyone together to discover opportunities, run campaigns and get
               paid.
             </p>

@@ -1,10 +1,10 @@
 export const marketingFaqs = [
   {
-    q: "What is Woosh?",
-    a: "Woosh is a platform where creators, brands and agencies can discover each other, work together and manage creator campaigns.",
+    q: "What is Wuush?",
+    a: "Wuush is a platform where creators, brands and agencies can discover each other, work together and manage creator campaigns.",
   },
   {
-    q: "Who is Woosh for?",
+    q: "Who is Wuush for?",
     a: "Creators looking for opportunities, brands looking for creators and agencies managing creator campaigns.",
   },
   {
@@ -13,7 +13,7 @@ export const marketingFaqs = [
   },
   {
     q: "How do creator profiles work?",
-    a: "When creators sign up, they give Woosh access to their social accounts. This allows relevant information and metrics to appear on their profiles.",
+    a: "When creators sign up, they give Wuush access to their social accounts. This allows relevant information and metrics to appear on their profiles.",
   },
   {
     q: "Can I post a brief?",
