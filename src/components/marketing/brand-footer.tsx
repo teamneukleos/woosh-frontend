@@ -77,7 +77,7 @@ export function BrandFooter() {
         </div>
       </div>
       <div className="mx-auto mt-14 flex max-w-6xl flex-col gap-2 border-t border-mkt-border px-5 pt-8 text-xs text-mkt-faint sm:flex-row sm:justify-between md:px-8">
-        <p>© {new Date().getFullYear()} Woosh. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Wuush. All rights reserved.</p>
         <p>Lagos · Nigeria</p>
       </div>
     </footer>

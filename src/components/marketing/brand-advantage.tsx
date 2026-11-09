@@ -10,7 +10,7 @@ const items = [
   {
     title: "Know what you're really getting.",
     copy: "Creator profiles are built from connected social accounts, giving a clearer picture of audience and performance, while helping creators demonstrate the value behind their numbers.",
-    frame: "woosh.app / creators",
+    frame: "wuush.app / creators",
     mock: (
       <DiscoveryMock
         heading="Claimed + prospects"
@@ -43,14 +43,14 @@ const items = [
   },
   {
     title: "Let the right opportunities find their way.",
-    copy: "From highly specific niches to emerging talent, Woosh makes discovery more intentional, helping creators and campaigns find their way to each other beyond who happens to appear in your feed.",
-    frame: "woosh.app / campaign",
+    copy: "From highly specific niches to emerging talent, Wuush makes discovery more intentional, helping creators and campaigns find their way to each other beyond who happens to appear in your feed.",
+    frame: "wuush.app / campaign",
     mock: <ThreadMock />,
   },
   {
     title: "Give everyone skin in the game.",
-    copy: "With secure payments and two-way ratings, Woosh gives everyone more confidence to work together and a reputation that grows with every campaign.",
-    frame: "woosh.app / wallet",
+    copy: "With secure payments and two-way ratings, Wuush gives everyone more confidence to work together and a reputation that grows with every campaign.",
+    frame: "wuush.app / wallet",
     mock: <WalletMock />,
   },
 ];
@@ -59,7 +59,7 @@ export function BrandAdvantage() {
   return (
     <section id="advantage" className="border-t border-mkt-border bg-mkt-bg py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <p className="mkt-kicker">{"{Why Woosh}"}</p>
+        <p className="mkt-kicker">{"{Why Wuush}"}</p>
         <h2 className="font-display mt-4 max-w-xl text-[clamp(1.85rem,4vw,3rem)] leading-[1.1] text-mkt-fg">
           Built for how Nigeria creates and collaborates
         </h2>
