@@ -101,7 +101,7 @@ export default async function AppAdminPage() {
           </Table>
         ) : (
           <p className="text-sm text-[var(--text-secondary)]">
-            No failed Paystack events are waiting for replay.
+            No failed Paystack events are waiting for replay..
           </p>
         )}
       </Panel>
