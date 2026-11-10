@@ -7,6 +7,7 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons";
 import { Input, Label } from "@/components/ui/field";
+import { PasswordInput } from "@/components/auth/password-input";
 import {
   requestPasswordResetAction,
   requestVerificationAction,
@@ -107,9 +108,8 @@ export function LoginForm({
       </Label>
       <Label>
         Password
-        <Input
+        <PasswordInput
           name="password"
-          type="password"
           minLength={8}
           required
           autoComplete="current-password"
@@ -230,9 +230,8 @@ function ResetPasswordForm({ token, email }: { token: string; email: string }) {
       <input type="hidden" name="email" value={email} />
       <Label>
         New password
-        <Input
+        <PasswordInput
           name="password"
-          type="password"
           required
           minLength={8}
           maxLength={128}
