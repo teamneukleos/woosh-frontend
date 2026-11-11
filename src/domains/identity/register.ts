@@ -16,11 +16,22 @@ const registerSchema = z
     confirmPassword: z.string().min(1),
     invite: z.string().optional(),
     accountType: z.enum(["creator", "brand", "agency"]).optional(),
+    organisationName: z.string().max(120).optional(),
     terms: z.literal("on"),
   })
   .refine((value) => Boolean(value.invite?.trim() || value.accountType), {
     message: "Account type is required",
   })
+  .refine(
+    (value) =>
+      Boolean(value.invite?.trim()) ||
+      value.accountType === "creator" ||
+      (value.organisationName?.trim().length ?? 0) >= 2,
+    {
+      message: "Organisation name is required",
+      path: ["organisationName"],
+    },
+  )
   .refine((value) => value.password === value.confirmPassword, {
     message: "Passwords do not match.",
     path: ["confirmPassword"],
@@ -43,6 +54,8 @@ export async function registerUser(
     confirmPassword: formData.get("confirmPassword"),
     invite: String(formData.get("invite") || "").trim() || undefined,
     accountType: formData.get("accountType") || undefined,
+    organisationName:
+      String(formData.get("organisationName") || "").trim() || undefined,
     terms: formData.get("terms") === "on" ? "on" : "",
   });
 
@@ -54,6 +67,9 @@ export async function registerUser(
     }
     if (field === "password") {
       return { ok: false, error: PASSWORD_HINT };
+    }
+    if (field === "organisationName") {
+      return { ok: false, error: "Enter the organisation or agency name." };
     }
     return { ok: false, error: "Check name, email, password, and accept the terms." };
   }
@@ -67,7 +83,12 @@ export async function registerUser(
         password: parsed.data.password,
         ...(parsed.data.invite
           ? { inviteToken: parsed.data.invite }
-          : { accountType: parsed.data.accountType }),
+          : {
+              accountType: parsed.data.accountType,
+              ...(parsed.data.organisationName
+                ? { organisationName: parsed.data.organisationName }
+                : {}),
+            }),
       },
     });
     return { ok: true, viaInvite: Boolean(parsed.data.invite) };

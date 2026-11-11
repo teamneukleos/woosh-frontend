@@ -135,6 +135,7 @@ export async function switchBrandAction(formData: FormData) {
   await api("/workspace/active-brand", {
     method: "POST",
     body: { brandId },
+    brandId,
   });
   await setActiveBrandId(brandId);
   revalidatePath("/app", "layout");
@@ -817,12 +818,16 @@ export async function inviteTeammateAction(formData: FormData) {
     .trim()
     .toLowerCase();
   const role = String(formData.get("role") ?? "MANAGER") as MembershipRole;
+  const brandId =
+    String(formData.get("brandId") ?? "").trim() || ctx.activeBrandId || "";
   if (!email || !email.includes("@")) throw new Error("Valid email required");
+  if (!brandId) throw new Error("Select the brand this person can access");
 
   await inviteTeammate({
     organisationId: ctx.organisation.id,
     email,
     role,
+    brandId,
     invitedById: user.id!,
   });
 
@@ -839,6 +844,7 @@ export async function inviteToBriefAction(formData: FormData) {
     actorUserId: user.id!,
   });
   revalidatePath("/app/briefs");
+  revalidatePath(`/app/briefs/${String(formData.get("briefId"))}`);
   revalidatePath("/app/invitations");
   revalidatePath("/app/creators");
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { acceptTeamInvite, previewTeamInvite } from "@/domains/organisation/invites";
+import { RegisterForm } from "@/components/auth/register-form";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ButtonLink } from "@/components/ui/button-link";
 
@@ -13,14 +15,19 @@ export default async function InvitePage({
   const { token, email: emailFromLink } = await searchParams;
   if (!token) redirect("/register");
 
-  let invitedEmail = emailFromLink?.trim() || "";
-  if (!invitedEmail) {
-    try {
-      invitedEmail = (await previewTeamInvite(token)).email;
-    } catch {
-      invitedEmail = "";
-    }
+  let preview: {
+    email: string;
+    orgName: string;
+    brandName: string;
+    role: string;
+  } | null = null;
+  try {
+    preview = await previewTeamInvite(token);
+  } catch {
+    preview = null;
   }
+
+  const invitedEmail = emailFromLink?.trim() || preview?.email || "";
 
   const session = await auth();
   if (session?.user?.id && session.error !== "RefreshFailed") {
@@ -41,28 +48,48 @@ export default async function InvitePage({
     );
   }
 
-  const registerHref = invitedEmail
-    ? `/register?invite=${encodeURIComponent(token)}&email=${encodeURIComponent(invitedEmail)}`
-    : `/register?invite=${encodeURIComponent(token)}`;
+  if (!preview) {
+    return (
+      <AuthShell
+        title="Invite not found"
+        description="This link is invalid, expired, or already used. Ask a teammate to send a new invite."
+      >
+        <ButtonLink href="/login">Sign in</ButtonLink>
+      </AuthShell>
+    );
+  }
+
   const loginHref = `/login?${new URLSearchParams({
     callbackUrl: `/invite?token=${token}${invitedEmail ? `&email=${invitedEmail}` : ""}`,
     ...(invitedEmail ? { email: invitedEmail } : {}),
   }).toString()}`;
 
+  const roleLabel = preview.role.replaceAll("_", " ").toLowerCase();
+
   return (
     <AuthShell
-      title="Join a Woosh organisation"
-      description="Create an account or sign in with the email this invite was sent to. You will join as a teammate — not as a new brand, agency, or creator."
+      title={`Join ${preview.brandName}`}
+      description={`You were invited to ${preview.brandName} at ${preview.orgName} as ${roleLabel}. You will only see this brand. Choose a password here to create your account, then you can sign in.`}
+      footer={
+        <p>
+          Already have a Woosh account on this email?{" "}
+          <Link
+            href={loginHref}
+            className="font-medium text-[var(--woosh-blue)] hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+      }
     >
-      <div className="flex flex-col gap-3">
-        <ButtonLink href={registerHref}>Create account</ButtonLink>
-        <Link
-          href={loginHref}
-          className="text-center text-sm font-medium text-[var(--woosh-blue)] hover:underline"
-        >
-          Sign in instead
-        </Link>
-      </div>
+      <Suspense fallback={<p className="text-sm text-[var(--text-secondary)]">Loading…</p>}>
+        <RegisterForm
+          inviteToken={token}
+          invitedEmail={invitedEmail}
+          google={false}
+          apple={false}
+        />
+      </Suspense>
     </AuthShell>
   );
 }

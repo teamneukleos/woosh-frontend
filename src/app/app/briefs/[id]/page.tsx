@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { getWorkspaceContext } from "@/lib/workspace";
 import { getBrief } from "@/domains/marketplace/briefs";
+import { listDiscovery } from "@/domains/creator/prospects";
 import {
   acceptOfferAction,
   counterOfferAction,
@@ -19,6 +21,7 @@ import { ActionForm } from "@/components/ui/action-form";
 import { VerifiedCheck } from "@/components/ui/verified-check";
 import { formatHandle } from "@/lib/handle";
 import { ChannelMark } from "@/components/ui/social-icon";
+import { BriefInvitePanel } from "@/components/briefs/brief-invite-panel";
 
 function statusTone(status: string) {
   if (status === "OPEN") return "teal" as const;
@@ -36,9 +39,20 @@ export default async function BriefDetailPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  const ctx = await getWorkspaceContext(session.user.id);
+  if (!ctx) redirect("/login");
   const { id } = await params;
   const brief = await getBrief(id, session.user.id);
   if (!brief) notFound();
+  const canManageBrief = ctx.kind !== "creator";
+  const canInvite =
+    canManageBrief &&
+    ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(brief.status);
+  const claimedCreators = canInvite
+    ? (await listDiscovery({ claimedOnly: true, sort: "followers" })).map(
+        (item) => ({ id: item.id, displayName: item.displayName }),
+      )
+    : [];
 
   return (
     <AppPage
@@ -76,6 +90,15 @@ export default async function BriefDetailPage({
           </ActionForm>
         ) : null}
       </Panel>
+
+      {canInvite ? (
+        <BriefInvitePanel
+          briefId={brief.id}
+          distribution={brief.distribution}
+          invited={brief.invitations}
+          creators={claimedCreators}
+        />
+      ) : null}
 
       <section>
           <h2 className="text-[0.9375rem] font-semibold tracking-[-0.015em] text-[var(--woosh-navy)]">
@@ -229,7 +252,11 @@ export default async function BriefDetailPage({
           <div className="mt-4">
             <EmptyState
               title="No applications yet"
-              description="Share the brief or invite creators from discovery."
+              description={
+                brief.distribution === "INVITE_ONLY"
+                  ? "Invite a claimed creator above. They will not see this brief on the marketplace until you do."
+                  : "Invite a creator above, or wait for applications from the marketplace."
+              }
             />
           </div>
         )}

@@ -51,7 +51,10 @@ export default async function OnboardingPage({
         width="narrow"
         className="max-w-lg"
       >
-        <AgencyInviteStep />
+        <AgencyInviteStep
+          brands={ctx.brands.map((brand) => ({ id: brand.id, name: brand.name }))}
+          defaultBrandId={ctx.activeBrandId}
+        />
       </AppPage>
     );
   }

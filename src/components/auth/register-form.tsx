@@ -36,15 +36,20 @@ const ROLES = [
 export function RegisterForm({
   google = true,
   apple = true,
+  inviteToken,
+  invitedEmail: invitedEmailProp,
 }: {
   google?: boolean;
   apple?: boolean;
+  inviteToken?: string;
+  invitedEmail?: string;
 }) {
   const router = useRouter();
   const params = useSearchParams();
   const [state, action, pending] = useActionState(registerUser, initial);
-  const invite = params.get("invite") ?? "";
-  const invitedEmail = params.get("email")?.trim() ?? "";
+  const invite = inviteToken ?? params.get("invite") ?? "";
+  const invitedEmail =
+    invitedEmailProp?.trim() || params.get("email")?.trim() || "";
   const typeParam = params.get("type");
   const plan = params.get("plan") ?? "";
   const joiningTeam = Boolean(invite);
@@ -72,8 +77,13 @@ export function RegisterForm({
       {invite ? <input type="hidden" name="invite" value={invite} /> : null}
       {plan ? <input type="hidden" name="plan" value={plan} /> : null}
       <Label>
-        Full name
-        <Input name="name" required autoComplete="name" />
+        Your name
+        <Input
+          name="name"
+          required
+          autoComplete="name"
+          placeholder="Ada Okonkwo"
+        />
       </Label>
       <Label>
         Email
@@ -167,6 +177,20 @@ export function RegisterForm({
             })}
           </div>
         </fieldset>
+      )}
+
+      {joiningTeam || accountType === "creator" ? null : (
+        <Label>
+          {accountType === "agency" ? "Agency name" : "Organisation name"}
+          <Input
+            name="organisationName"
+            required
+            autoComplete="organization"
+            placeholder={
+              accountType === "agency" ? "Northstar Media" : "Palm Cola"
+            }
+          />
+        </Label>
       )}
 
       <label className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">

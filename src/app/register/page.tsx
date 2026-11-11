@@ -25,7 +25,7 @@ export default async function RegisterPage({
       title={joiningTeam ? "Join your team" : "Take a seat"}
       description={
         joiningTeam
-          ? "Create an account with the invited email, then sign in. No second verification email."
+          ? "Choose a password for this email to join the team. That is how you sign in afterwards — the invite is not a login link."
           : "Brand, agency or creator. Same loop. Different wallet."
       }
       footer={

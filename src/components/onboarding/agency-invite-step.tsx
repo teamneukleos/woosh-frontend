@@ -8,19 +8,40 @@ import { Input, Select, Label } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { Stepper } from "@/components/ui/stepper";
 
-export function AgencyInviteStep() {
+export function AgencyInviteStep({
+  brands,
+  defaultBrandId,
+}: {
+  brands: { id: string; name: string }[];
+  defaultBrandId?: string | null;
+}) {
+  const selectedBrandId = defaultBrandId || brands[0]?.id || "";
   return (
     <div className="flex flex-col gap-6">
       <Stepper steps={["Welcome", "First brand", "Invite team"]} current={2} />
       <Panel
         title="Invite a teammate"
-        description="Optional. We'll email an invite if email is configured."
+        description="Optional. They join only the brand you pick — not every client in the organisation. They get a link to create their own account and choose a password."
       >
         <ActionForm
           action={inviteTeammateAction}
           successTitle="Invite queued"
           className="grid gap-4"
         >
+          {brands.length > 1 ? (
+            <Label>
+              Brand they can access
+              <Select name="brandId" defaultValue={selectedBrandId} required>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </Select>
+            </Label>
+          ) : (
+            <input type="hidden" name="brandId" value={selectedBrandId} />
+          )}
           <Label>
             Email
             <Input
