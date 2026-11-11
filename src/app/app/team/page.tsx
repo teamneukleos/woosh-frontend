@@ -42,7 +42,7 @@ export default async function TeamPage() {
     <AppPage
       eyebrow="Organisation"
       title="Team"
-      description="Members and roles. Invites create memberships and send email when Resend is configured."
+      description="Invite people to one brand. They will not see other client brands unless you invite them there too. Owners and admins still see every brand."
     >
       {members.length ? (
         <ul className="grid gap-3">
@@ -73,14 +73,14 @@ export default async function TeamPage() {
 
       {canManageTeam ? <Panel
         title="Invite teammate"
-        description="Sends an invite email and adds existing users immediately."
+        description="Pick the brand they belong to. They only see that brand’s briefs, wallet, and messages."
       >
         <ActionForm
           action={inviteTeammateAction}
           successTitle="Invite sent"
-          className="grid gap-3 sm:grid-cols-3"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <Label className="sm:col-span-1">
+          <Label>
             Email
             <Input
               type="email"
@@ -88,6 +88,20 @@ export default async function TeamPage() {
               required
               placeholder="colleague@brand.ng"
             />
+          </Label>
+          <Label>
+            Brand
+            <Select
+              name="brandId"
+              required
+              defaultValue={ctx.activeBrandId ?? ctx.brands[0]?.id ?? ""}
+            >
+              {ctx.brands.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </Select>
           </Label>
           <Label>
             Role

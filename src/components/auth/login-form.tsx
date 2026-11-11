@@ -29,6 +29,7 @@ export function LoginForm({
   const [pending, setPending] = useState(false);
   const registered = params.get("registered") === "1";
   const joined = params.get("joined") === "1";
+  const fromInvite = (params.get("callbackUrl") ?? "").startsWith("/invite");
   const verify = params.get("verify");
   const reset = params.get("reset");
   const oauthError = params.get("error");
@@ -68,7 +69,20 @@ export function LoginForm({
     <form onSubmit={onSubmit} className="flex w-full flex-col gap-4">
       {joined ? (
         <p className="rounded-[var(--radius-control)] bg-[var(--success-soft)] px-3 py-2 text-sm text-[var(--text-strong)]">
-          You&apos;re on the team. Sign in to open the workspace.
+          You&apos;re on the team. Sign in with the password you just chose.
+        </p>
+      ) : null}
+      {fromInvite && !joined ? (
+        <p className="rounded-[var(--radius-control)] bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--text-strong)]">
+          The invite email does not create a password. If this is your first time
+          on Woosh,{" "}
+          <Link
+            href={params.get("callbackUrl") || "/register"}
+            className="font-medium text-[var(--woosh-blue)] underline"
+          >
+            join and set a password
+          </Link>{" "}
+          first. Sign in here only if you already have an account.
         </p>
       ) : null}
       {registered ? (

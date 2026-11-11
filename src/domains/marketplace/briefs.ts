@@ -72,6 +72,7 @@ type NestBrief = {
     creatorProfileId: string;
     status: string;
     message?: string | null;
+    creator?: { id: string; displayName: string };
   }>;
   myApplication?: {
     id: string;

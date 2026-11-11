@@ -5,18 +5,22 @@ export async function inviteTeammate(input: {
   organisationId: string;
   email: string;
   role: MembershipRole;
+  brandId: string;
   invitedById: string;
 }) {
   return api("/team/invites", {
     method: "POST",
-    body: { email: input.email, role: input.role },
+    body: { email: input.email, role: input.role, brandId: input.brandId },
   });
 }
 
 export async function previewTeamInvite(token: string) {
-  return publicApi<{ email: string; orgName: string; role: string }>(
-    `/invites/preview?token=${encodeURIComponent(token)}`,
-  );
+  return publicApi<{
+    email: string;
+    orgName: string;
+    brandName: string;
+    role: string;
+  }>(`/invites/preview?token=${encodeURIComponent(token)}`);
 }
 
 export async function acceptTeamInvite(input: { token: string; userId: string }) {
