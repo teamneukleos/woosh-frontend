@@ -137,24 +137,30 @@ export function CreatorDiscoveryCard({
         </div>
 
         <div className="mt-auto flex min-w-0 items-center gap-1.5 border-t border-[var(--woosh-border)] pt-3">
-          {item.type === "claimed" ? (
-            <ActionForm
-              action={toggleSaveCreatorAction}
-              successTitle={saved ? "Creator removed" : "Creator saved"}
-              className="min-w-0"
+          <ActionForm
+            action={toggleSaveCreatorAction}
+            successTitle={saved ? "Removed from shortlist" : "Creator shortlisted"}
+            className="min-w-0"
+          >
+            <input
+              type="hidden"
+              name={
+                item.type === "prospect"
+                  ? "prospectId"
+                  : "creatorProfileId"
+              }
+              value={item.id}
+            />
+            <input type="hidden" name="saved" value={saved ? "1" : "0"} />
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              className="h-8 px-2.5 text-xs"
             >
-              <input type="hidden" name="creatorProfileId" value={item.id} />
-              <input type="hidden" name="saved" value={saved ? "1" : "0"} />
-              <Button
-                type="submit"
-                size="sm"
-                variant="secondary"
-                className="h-8 px-2.5 text-xs"
-              >
-                {saved ? "Saved" : "Save"}
-              </Button>
-            </ActionForm>
-          ) : null}
+              {saved ? "Saved" : "Save"}
+            </Button>
+          </ActionForm>
 
           <div className="min-w-0 flex-1 [&_button]:h-8 [&_button]:px-2.5 [&_button]:text-xs">
             <InterestButton

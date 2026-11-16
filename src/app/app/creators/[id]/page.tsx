@@ -6,7 +6,10 @@ import {
   getClaimedCreator,
   getProspect,
 } from "@/domains/creator/prospects";
-import { inviteToBriefAction } from "@/app/actions";
+import {
+  inviteToBriefAction,
+  toggleSaveCreatorAction,
+} from "@/app/actions";
 import { listBriefsForBrand } from "@/domains/marketplace/briefs";
 import { InterestButton } from "@/components/creator/interest-button";
 import { BackLink } from "@/components/ui/back-link";
@@ -14,6 +17,7 @@ import { Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { TextArea, Label, Select } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { CreatorIntel } from "@/components/creator/creator-intel";
@@ -48,6 +52,13 @@ export default async function CreatorDetailPage({
     }
 
     const alreadyInterested = Boolean(prospect.interested);
+    const briefs = ctx.activeBrandId
+      ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
+          ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(
+            brief.status,
+          ),
+        )
+      : [];
 
     return (
       <AppPage
@@ -91,7 +102,9 @@ export default async function CreatorDetailPage({
                 {prospect.followerEstimate ? (
                   <p className="rounded-[var(--radius-md)] border border-[var(--woosh-border)] bg-white px-4 py-3 text-sm text-[var(--woosh-dull)]">
                     ~{prospect.followerEstimate.toLocaleString()} followers
-                    <span className="ml-1 text-xs">(estimate, unverified)</span>
+                    <span className="ml-1 text-xs">
+                      (estimate, unverified)
+                    </span>
                   </p>
                 ) : null}
 
@@ -110,9 +123,85 @@ export default async function CreatorDetailPage({
                     />
                   </Label>
                 </InterestButton>
+
+                <div className="border-t border-[var(--woosh-border)] pt-4">
+                  <p className="mb-3 text-sm font-medium text-[var(--woosh-navy)]">
+                    Shortlist
+                  </p>
+                  <ActionForm
+                    action={toggleSaveCreatorAction}
+                    successTitle={
+                      prospect.saved
+                        ? "Removed from shortlist"
+                        : "Creator shortlisted"
+                    }
+                  >
+                    <input
+                      type="hidden"
+                      name="prospectId"
+                      value={prospect.id}
+                    />
+                    <input
+                      type="hidden"
+                      name="saved"
+                      value={prospect.saved ? "1" : "0"}
+                    />
+                    <Button type="submit" variant="secondary">
+                      {prospect.saved ? "Shortlisted" : "Shortlist"}
+                    </Button>
+                  </ActionForm>
+                </div>
               </div>
             </div>
           </Panel>
+
+          {briefs.length ? (
+            <Panel
+              title="Invite to brief"
+              description="They receive a claim email with the brief summary and must complete profile setup before taking the work."
+            >
+              <ActionForm
+                action={inviteToBriefAction}
+                successTitle="Invitation sent"
+                className="grid gap-3"
+              >
+                <input type="hidden" name="prospectId" value={prospect.id} />
+
+                <Label>
+                  Brief
+                  <Select name="briefId" required defaultValue={briefs[0]?.id}>
+                    {briefs.map((brief) => (
+                      <option key={brief.id} value={brief.id}>
+                        {brief.title}
+                      </option>
+                    ))}
+                  </Select>
+                </Label>
+
+                <Label>
+                  Message
+                  <TextArea
+                    name="message"
+                    rows={2}
+                    placeholder="Optional note"
+                  />
+                </Label>
+
+                <Button type="submit" className="w-fit">
+                  Send invitation
+                </Button>
+              </ActionForm>
+            </Panel>
+          ) : (
+            <Panel
+              title="Invite to brief"
+              description="Create a brief first. Unclaimed creators are invited through a brief."
+            >
+              <ButtonLink href="/app/briefs/new" variant="secondary">
+                New brief
+              </ButtonLink>
+            </Panel>
+          )}
         </div>
       </AppPage>
     );
@@ -137,6 +226,7 @@ export default async function CreatorDetailPage({
   }
 
   const alreadyInterested = Boolean(raw.interested);
+  const saved = Boolean(raw.saved);
 
   const briefs = ctx.activeBrandId
     ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
@@ -225,6 +315,32 @@ export default async function CreatorDetailPage({
               activeBrandId={ctx.activeBrandId}
               creatorProfileId={raw.id}
             />
+
+            <div className="mt-4 border-t border-[var(--woosh-border)] pt-4">
+              <p className="mb-3 text-sm font-medium text-[var(--woosh-navy)]">
+                Shortlist
+              </p>
+              <ActionForm
+                action={toggleSaveCreatorAction}
+                successTitle={
+                  saved ? "Removed from shortlist" : "Creator shortlisted"
+                }
+              >
+                <input
+                  type="hidden"
+                  name="creatorProfileId"
+                  value={raw.id}
+                />
+                <input
+                  type="hidden"
+                  name="saved"
+                  value={saved ? "1" : "0"}
+                />
+                <Button type="submit" variant="secondary">
+                  {saved ? "Shortlisted" : "Shortlist"}
+                </Button>
+              </ActionForm>
+            </div>
           </Panel>
 
           {briefs.length ? (
@@ -239,9 +355,9 @@ export default async function CreatorDetailPage({
                 <Label>
                   Brief
                   <Select name="briefId" required defaultValue={briefs[0]?.id}>
-                    {briefs.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title}
+                    {briefs.map((brief) => (
+                      <option key={brief.id} value={brief.id}>
+                        {brief.title}
                       </option>
                     ))}
                   </Select>
@@ -249,7 +365,11 @@ export default async function CreatorDetailPage({
 
                 <Label>
                   Message
-                  <TextArea name="message" rows={2} placeholder="Optional note" />
+                  <TextArea
+                    name="message"
+                    rows={2}
+                    placeholder="Optional note"
+                  />
                 </Label>
 
                 <Button type="submit" className="w-fit">
@@ -257,7 +377,17 @@ export default async function CreatorDetailPage({
                 </Button>
               </ActionForm>
             </Panel>
-          ) : null}
+          ) : (
+            <Panel title="Invite to brief" className="h-full">
+              <p className="mb-4 text-sm text-[var(--text-secondary)]">
+                Publish a brief first. Creators are only notified when you
+                invite them to one.
+              </p>
+              <ButtonLink href="/app/briefs/new" variant="secondary">
+                New brief
+              </ButtonLink>
+            </Panel>
+          )}
         </div>
       </div>
     </AppPage>

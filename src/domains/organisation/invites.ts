@@ -1,3 +1,4 @@
+
 import { api, publicApi } from "@/lib/api";
 import type { MembershipRole } from "@/lib/enums";
 
@@ -14,9 +15,12 @@ export async function inviteTeammate(input: {
 }
 
 export async function previewTeamInvite(token: string) {
-  return publicApi<{ email: string; orgName: string; role: string }>(
-    `/invites/preview?token=${encodeURIComponent(token)}`,
-  );
+  return publicApi<{
+    email: string;
+    orgName: string;
+    brandName?: string;
+    role: string;
+  }>(`/invites/preview?token=${encodeURIComponent(token)}`);
 }
 
 export async function acceptTeamInvite(input: { token: string; userId: string }) {
@@ -28,13 +32,20 @@ export async function acceptTeamInvite(input: { token: string; userId: string })
 
 export async function inviteToBrief(input: {
   briefId: string;
-  creatorProfileId: string;
+  creatorProfileId?: string;
+  prospectId?: string;
   message?: string;
   actorUserId: string;
 }) {
   return api(`/briefs/${input.briefId}/invites`, {
     method: "POST",
-    body: { creatorProfileId: input.creatorProfileId, message: input.message },
+    body: {
+      ...(input.creatorProfileId
+        ? { creatorProfileId: input.creatorProfileId }
+        : {}),
+      ...(input.prospectId ? { prospectId: input.prospectId } : {}),
+      message: input.message,
+    },
   });
 }
 

@@ -1,3 +1,4 @@
+
 import { api } from "@/lib/api";
 import type { SocialChannel } from "@/lib/enums";
 
@@ -57,6 +58,7 @@ export async function getProspect(id: string) {
     status: string;
     contactEmail: string | null;
     interested?: boolean;
+    saved?: boolean;
   }>(`/creators/prospects/${id}`);
 }
 
@@ -66,6 +68,7 @@ export async function listDiscovery(filters: {
   category?: string;
   claimedOnly?: boolean;
   prospectOnly?: boolean;
+  savedOnly?: boolean;
   country?: string;
   city?: string;
   language?: string;
@@ -83,16 +86,24 @@ export async function listDiscovery(filters: {
   if (filters.category) params.set("category", filters.category);
   if (filters.claimedOnly) params.set("claimedOnly", "true");
   if (filters.prospectOnly) params.set("prospectOnly", "true");
+  if (filters.savedOnly) params.set("savedOnly", "true");
   if (filters.country) params.set("country", filters.country);
   if (filters.city) params.set("city", filters.city);
   if (filters.language) params.set("language", filters.language);
-  if (filters.minFollowers != null) params.set("minFollowers", String(filters.minFollowers));
-  if (filters.minEngagement != null) params.set("minEngagement", String(filters.minEngagement));
+  if (filters.minFollowers != null) {
+    params.set("minFollowers", String(filters.minFollowers));
+  }
+  if (filters.minEngagement != null) {
+    params.set("minEngagement", String(filters.minEngagement));
+  }
   if (filters.minAverageViews != null) {
     params.set("minAverageViews", String(filters.minAverageViews));
   }
-  if (filters.maxRate != null) params.set("maxRate", String(filters.maxRate));
+  if (filters.maxRate != null) {
+    params.set("maxRate", String(filters.maxRate));
+  }
   if (filters.sort) params.set("sort", filters.sort);
+
   const query = params.toString();
   return api<DiscoveryItem[]>(`/creators/discovery${query ? `?${query}` : ""}`);
 }

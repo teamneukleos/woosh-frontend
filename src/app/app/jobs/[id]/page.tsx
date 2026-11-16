@@ -1,18 +1,13 @@
 
 import { notFound, redirect } from "next/navigation";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Banknote,
   CalendarDays,
   CheckCircle2,
-  Clock3,
   FileText,
   Handshake,
-  MessageSquareText,
-  ShieldCheck,
   Sparkles,
-  Wallet,
 } from "lucide-react";
 
 import { auth } from "@/lib/auth";
@@ -32,6 +27,7 @@ import { BackLink } from "@/components/ui/back-link";
 import { Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Input, TextArea, Label } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { WorkStatus } from "@/components/work/work-status";
@@ -83,6 +79,9 @@ export default async function JobDetailPage({
 
   const canDeclineInvitation =
     myInvite && ["SENT", "VIEWED"].includes(myInvite.status);
+
+  const needsProfileCompletion =
+    ctx.creatorProfile.marketplaceStatus !== "PUBLISHED" && !myApp;
 
   return (
     <AppPage
@@ -166,8 +165,8 @@ export default async function JobDetailPage({
             ) : null}
           </div>
 
-           {brief.eligibility || brief.rights || brief.timing ? (
-              <div className="space-y-6 border-b border-[var(--woosh-border)] p-5 sm:p-6">
+          {brief.eligibility || brief.rights || brief.timing ? (
+            <div className="space-y-6 border-b border-[var(--woosh-border)] p-5 sm:p-6">
               <div>
                 <div className="mb-4 flex items-center gap-2">
                   <FileText className="size-4 text-[var(--woosh-blue)]" />
@@ -218,7 +217,55 @@ export default async function JobDetailPage({
           ) : null}
 
           <div className="bg-[var(--woosh-mist)]/35 p-5 sm:p-6">
-            {myApp ? (
+            {needsProfileCompletion ? (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-[var(--warning)]/20 bg-[var(--warning-soft)] p-4">
+                  <div className="flex items-start gap-3">
+                    <FileText className="mt-0.5 size-5 shrink-0 text-[var(--text-strong)]" />
+                    <div>
+                      <p className="font-semibold text-[var(--text-strong)]">
+                        Finish your profile before you take this brief
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                        You can review the opportunity, but you need a
+                        completed, published creator profile before you can
+                        apply.
+                      </p>
+                      <div className="mt-3">
+                        <ButtonLink
+                          href="/app/profile"
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Complete profile
+                        </ButtonLink>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {canDeclineInvitation ? (
+                  <ActionForm
+                    action={declineInvitationAction}
+                    successTitle="Invitation declined"
+                    className="grid gap-2 border-t border-[var(--woosh-border)] pt-4 sm:flex sm:flex-wrap sm:items-center"
+                  >
+                    <input
+                      type="hidden"
+                      name="invitationId"
+                      value={myInvite.id}
+                    />
+                    <Input
+                      name="reason"
+                      placeholder="Reason (optional)"
+                    />
+                    <Button type="submit" variant="ghost" size="sm">
+                      Decline invitation
+                    </Button>
+                  </ActionForm>
+                ) : null}
+              </div>
+            ) : myApp ? (
               <div className="space-y-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

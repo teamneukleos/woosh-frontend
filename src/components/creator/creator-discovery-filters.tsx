@@ -22,6 +22,7 @@ export function CreatorDiscoveryFilters({
   language,
   minEngagement,
   minAverageViews,
+  type,
 }: {
   q?: string;
   channel?: string;
@@ -33,6 +34,7 @@ export function CreatorDiscoveryFilters({
   language?: string;
   minEngagement?: string;
   minAverageViews?: string;
+  type?: string;
 }) {
   const moreOpen = Boolean(
     country || language || minEngagement || minAverageViews,
@@ -52,7 +54,17 @@ export function CreatorDiscoveryFilters({
         </Label>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <Label>
+          Roster
+          <Select name="type" defaultValue={type ?? ""}>
+            <option value="">All creators</option>
+            <option value="saved">Shortlisted</option>
+            <option value="claimed">Claimed</option>
+            <option value="prospect">Prospects</option>
+          </Select>
+        </Label>
+
         <Label>
           Platform
           <Select name="channel" defaultValue={channel ?? ""}>

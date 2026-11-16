@@ -64,6 +64,7 @@ export default async function CreatorsPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx || ctx.kind === "creator") redirect("/app");
 
@@ -76,6 +77,7 @@ export default async function CreatorsPage({
     category: params.category,
     claimedOnly: params.type === "claimed",
     prospectOnly: params.type === "prospect",
+    savedOnly: params.type === "saved",
     country: params.country,
     city: params.city,
     language: params.language,
@@ -98,7 +100,7 @@ export default async function CreatorsPage({
     <AppPage
       eyebrow="Find"
       title="Creators"
-      description="Search by platform, niche, city and reach."
+      description="Shortlist people to review later. Invite them to a brief when you want them notified."
       width="wide"
       className="w-full max-w-none"
     >
@@ -115,6 +117,7 @@ export default async function CreatorsPage({
             language={params.language}
             minEngagement={params.minEngagement}
             minAverageViews={params.minAverageViews}
+            type={params.type}
           />
         </DataToolbar>
 
@@ -122,7 +125,7 @@ export default async function CreatorsPage({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold text-[var(--woosh-navy)]">
-                Discover creators
+                {params.type === "saved" ? "Shortlisted creators" : "Discover creators"}
               </h2>
               <p className="mt-1 text-xs tabular-nums text-[var(--text-muted)]">
                 {items.length} creator{items.length === 1 ? "" : "s"}
@@ -131,7 +134,7 @@ export default async function CreatorsPage({
           </div>
 
           {items.length ? (
-            <ul className="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            <ul className="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {items.map((item) => (
                 <li key={`${item.type}-${item.id}`} className="min-w-0">
                   <CreatorDiscoveryCard
@@ -146,8 +149,16 @@ export default async function CreatorsPage({
           ) : (
             <div className="rounded-2xl border border-[var(--woosh-border)] bg-white px-5 py-10">
               <EmptyState
-                title="No creators match"
-                description="Clear a filter or add someone by handle."
+                title={
+                  params.type === "saved"
+                    ? "No shortlisted creators"
+                    : "No creators match"
+                }
+                description={
+                  params.type === "saved"
+                    ? "Shortlist a claimed creator or an unclaimed handle. They stay here until you invite them to a brief."
+                    : "Clear a filter or add someone by handle."
+                }
               />
             </div>
           )}
