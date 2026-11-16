@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { groupNav, navByKind, type NavItem } from "@/lib/nav";
+import { groupNav, navForSeat, type NavItem } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
@@ -39,6 +39,8 @@ export function AppShell({
   activeBrandId,
   activeBrandName,
   unreadNotifications = 0,
+  membershipRole,
+  isPlatformAdmin = false,
   signOutAction,
   children,
 }: {
@@ -49,12 +51,17 @@ export function AppShell({
   activeBrandId?: string | null;
   activeBrandName?: string | null;
   unreadNotifications?: number;
+  membershipRole?: string | null;
+  isPlatformAdmin?: boolean;
   signOutAction: () => Promise<void>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const nav = navByKind[kind] ?? navByKind.brand;
+  const nav = navForSeat(kind, {
+    role: membershipRole,
+    isPlatformAdmin,
+  });
   const groups = groupNav(nav);
   const mobileNav = nav.filter((item) => item.mobile);
   const showActiveBrand =

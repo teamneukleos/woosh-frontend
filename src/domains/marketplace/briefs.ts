@@ -69,10 +69,12 @@ type NestBrief = {
   }>;
   invitations?: Array<{
     id: string;
-    creatorProfileId: string;
+    creatorProfileId: string | null;
+    prospectId?: string | null;
     status: string;
     message?: string | null;
-    creator?: { id: string; displayName: string };
+    creator?: { id: string; displayName: string } | null;
+    prospect?: { id: string; handle: string; displayName: string | null } | null;
   }>;
   myApplication?: {
     id: string;
@@ -108,6 +110,25 @@ export async function createBrief(
 
 export async function publishBrief(briefId: string, _actorId?: string) {
   return api(`/briefs/${briefId}/publish`, { method: "POST" });
+}
+
+export type BrandApplication = {
+  id: string;
+  status: string;
+  proposedRate: number | null;
+  currency: string;
+  createdAt: string;
+  creator: {
+    id: string;
+    displayName: string;
+    avatarUrl?: string | null;
+    avatarStatus?: string;
+  };
+  brief: { id: string; title: string; status: string };
+};
+
+export async function listBrandApplications(brandId: string) {
+  return api<BrandApplication[]>("/briefs/applications", { brandId });
 }
 
 export async function listBriefsForBrand(brandId: string) {

@@ -51,6 +51,7 @@ export default async function CreatorsPage({
     category: params.category,
     claimedOnly: params.type === "claimed",
     prospectOnly: params.type === "prospect",
+    savedOnly: params.type === "saved",
     country: params.country,
     city: params.city,
     language: params.language,
@@ -73,7 +74,7 @@ export default async function CreatorsPage({
     <AppPage
       eyebrow="Find"
       title="Creators"
-      description="Search by platform, niche, city and reach."
+      description="Shortlist people to review later. Invite them to a brief when you want them notified."
       width="wide"
     >
       <DataToolbar className="p-4 md:p-5">
@@ -88,6 +89,7 @@ export default async function CreatorsPage({
           language={params.language}
           minEngagement={params.minEngagement}
           minAverageViews={params.minAverageViews}
+          type={params.type}
         />
       </DataToolbar>
 
@@ -102,16 +104,22 @@ export default async function CreatorsPage({
               <CreatorDiscoveryCard
                 item={item}
                 saved={Boolean(item.saved)}
-                interested={Boolean(item.interested)}
-                activeBrandId={ctx.activeBrandId}
               />
             </li>
           ))}
         </ul>
       ) : (
         <EmptyState
-          title="No creators match"
-          description="Clear a filter or add someone by handle."
+          title={
+            params.type === "saved"
+              ? "No shortlisted creators"
+              : "No creators match"
+          }
+          description={
+            params.type === "saved"
+              ? "Shortlist a claimed creator or an unclaimed handle. They stay here until you invite them to a brief."
+              : "Clear a filter or add someone by handle."
+          }
         />
       )}
 

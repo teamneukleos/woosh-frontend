@@ -48,10 +48,14 @@ export default async function BriefDetailPage({
   const canInvite =
     canManageBrief &&
     ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(brief.status);
-  const claimedCreators = canInvite
-    ? (await listDiscovery({ claimedOnly: true, sort: "followers" })).map(
-        (item) => ({ id: item.id, displayName: item.displayName }),
-      )
+  const inviteTargets = canInvite
+    ? (await listDiscovery({ sort: "followers" })).map((item) => ({
+        id: item.id,
+        displayName:
+          item.displayName ||
+          (item.handle ? `@${item.handle}` : "Creator"),
+        kind: item.type,
+      }))
     : [];
 
   return (
@@ -95,8 +99,8 @@ export default async function BriefDetailPage({
         <BriefInvitePanel
           briefId={brief.id}
           distribution={brief.distribution}
-          invited={brief.invitations}
-          creators={claimedCreators}
+          invited={brief.invitations ?? []}
+          creators={inviteTargets}
         />
       ) : null}
 

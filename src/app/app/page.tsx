@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { getCreatorWorkHub } from "@/domains/work/hub";
-import { listBriefsForBrand, listJobsForCreator } from "@/domains/marketplace/briefs";
+import {
+  listBrandApplications,
+  listBriefsForBrand,
+  listJobsForCreator,
+} from "@/domains/marketplace/briefs";
 import { countUnreadNotifications } from "@/domains/identity/notifications";
 import { Panel } from "@/components/ui/panel";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -66,17 +70,19 @@ export default async function AppHomePage() {
       },
     );
   } else if (ctx.activeBrandId) {
-    const briefs = await listBriefsForBrand(ctx.activeBrandId);
-    const pendingApps = briefs.reduce(
-      (sum, brief) => sum + (brief._count?.applications ?? 0),
-      0,
-    );
+    const [briefs, applications] = await Promise.all([
+      listBriefsForBrand(ctx.activeBrandId),
+      listBrandApplications(ctx.activeBrandId),
+    ]);
     const drafts = briefs.filter((brief) => brief.status === "DRAFT").length;
     attention.push(
       {
         label: "New applications",
-        href: "/app/briefs",
-        hint: `${pendingApps} waiting for review`,
+        href: "/app/applicants",
+        hint:
+          applications.length === 1
+            ? "1 waiting for review"
+            : `${applications.length} waiting for review`,
       },
       {
         label: "Draft briefs",

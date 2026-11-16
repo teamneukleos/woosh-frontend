@@ -82,6 +82,27 @@ export const navByKind: Record<string, NavItem[]> = {
   ],
 };
 
+/** Team roster: agency/brand owners and admins. Not managers or other invited roles. */
+export function canManageTeamNav(
+  kind: string,
+  opts: { role?: string | null; isPlatformAdmin?: boolean } = {},
+) {
+  if (opts.isPlatformAdmin) return true;
+  if (kind !== "agency" && kind !== "brand") return false;
+  return opts.role === "OWNER" || opts.role === "ADMIN";
+}
+
+export function navForSeat(
+  kind: string,
+  opts: { role?: string | null; isPlatformAdmin?: boolean } = {},
+) {
+  const items = navByKind[kind] ?? navByKind.brand;
+  return items.filter((item) => {
+    if (item.href !== "/app/team") return true;
+    return canManageTeamNav(kind, opts);
+  });
+}
+
 export function groupNav(items: NavItem[]) {
   const groups: { label?: string; items: NavItem[] }[] = [];
   for (const item of items) {

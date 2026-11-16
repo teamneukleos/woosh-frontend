@@ -191,10 +191,14 @@ export async function toggleSaveCreatorAction(formData: FormData) {
   if (!ctx?.organisation || ctx.kind === "creator") {
     throw new Error("Brand or agency workspace required");
   }
+  const creatorProfileId =
+    String(formData.get("creatorProfileId") || "") || undefined;
+  const prospectId = String(formData.get("prospectId") || "") || undefined;
   const input = {
     organisationId: ctx.organisation.id,
     brandId: ctx.activeBrandId ?? undefined,
-    creatorProfileId: String(formData.get("creatorProfileId")),
+    creatorProfileId,
+    prospectId,
     actorUserId: user.id!,
   };
   if (formData.get("saved") === "1") {
@@ -203,6 +207,7 @@ export async function toggleSaveCreatorAction(formData: FormData) {
     await saveCreator(input);
   }
   revalidatePath("/app/creators");
+  revalidatePath(`/app/creators/${creatorProfileId || prospectId}`);
 }
 
 export async function claimInviteAction(
@@ -837,9 +842,19 @@ export async function inviteTeammateAction(formData: FormData) {
 
 export async function inviteToBriefAction(formData: FormData) {
   const user = await requireUser();
+  const target = String(formData.get("target") || formData.get("creatorProfileId") || "");
+  const prospectId = target.startsWith("prospect:")
+    ? target.slice("prospect:".length)
+    : String(formData.get("prospectId") || "") || undefined;
+  const creatorProfileId = target.startsWith("claimed:")
+    ? target.slice("claimed:".length)
+    : target.startsWith("prospect:")
+      ? undefined
+      : target || undefined;
   await inviteToBrief({
     briefId: String(formData.get("briefId")),
-    creatorProfileId: String(formData.get("creatorProfileId")),
+    creatorProfileId,
+    prospectId,
     message: String(formData.get("message") || "") || undefined,
     actorUserId: user.id!,
   });
@@ -847,6 +862,9 @@ export async function inviteToBriefAction(formData: FormData) {
   revalidatePath(`/app/briefs/${String(formData.get("briefId"))}`);
   revalidatePath("/app/invitations");
   revalidatePath("/app/creators");
+  if (prospectId) {
+    revalidatePath(`/app/creators/${prospectId}`);
+  }
 }
 
 export async function uploadDraftAction(formData: FormData) {
@@ -979,6 +997,21 @@ export async function markNotificationsReadAction() {
   await markNotificationsRead(user.id!);
   revalidatePath("/app/notifications");
   revalidatePath("/app", "layout");
+}
+
+function appPath(raw: string) {
+  const href = raw.trim();
+  if (href.startsWith("/") && !href.startsWith("//")) return href;
+  return "/app/notifications";
+}
+
+export async function openNotificationAction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "").trim();
+  if (id) await markNotificationsRead(user.id!, [id]);
+  revalidatePath("/app/notifications");
+  revalidatePath("/app", "layout");
+  redirect(appPath(String(formData.get("href") ?? "")));
 }
 
 export async function updateNotificationPreferencesAction(formData: FormData) {

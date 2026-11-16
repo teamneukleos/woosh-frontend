@@ -10,19 +10,21 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Label } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
-import { hasPermission } from "@/lib/permissions";
+import { canManageTeamNav } from "@/lib/nav";
 
 export default async function TeamPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx?.organisation) redirect("/app");
-  const canManageTeam =
-    ctx.user.isPlatformAdmin ||
-    (!!ctx.membership &&
-      hasPermission(ctx.membership.role, "team.manage", ctx.membership));
-  const canAssignAdmin =
-    ctx.membership?.role === "OWNER" || ctx.membership?.role === "ADMIN";
+  if (
+    !canManageTeamNav(ctx.kind, {
+      role: ctx.membership?.role,
+      isPlatformAdmin: ctx.user.isPlatformAdmin,
+    })
+  ) {
+    redirect("/app");
+  }
 
   const team = await api<{
     members: Array<{
@@ -30,11 +32,13 @@ export default async function TeamPage() {
       email: string;
       name: string | null;
       role: string;
+      brands: Array<{ id: string; name: string; role: string }>;
     }>;
   }>("/team");
   const members = team.members.map((member) => ({
     id: member.userId,
     role: member.role,
+    brands: member.brands ?? [],
     user: { name: member.name, email: member.email },
   }));
 
@@ -49,18 +53,37 @@ export default async function TeamPage() {
           {members.map((m) => (
             <li
               key={m.id}
-              className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
+              className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white px-4 py-3 shadow-[var(--shadow-soft)]"
             >
               <Avatar name={m.user.name || m.user.email} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-[var(--woosh-navy)]">
-                  {m.user.name || m.user.email}
-                </p>
-                <p className="truncate text-sm text-[var(--woosh-dull)]/65">
-                  {m.user.email}
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-[var(--woosh-navy)]">
+                      {m.user.name || m.user.email}
+                    </p>
+                    <p className="truncate text-sm text-[var(--woosh-dull)]/65">
+                      {m.user.email}
+                    </p>
+                  </div>
+                  <Badge tone="navy">{m.role.replaceAll("_", " ")}</Badge>
+                </div>
+                {m.brands.length ? (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {m.brands.map((brand) => (
+                      <li key={brand.id}>
+                        <Badge tone="muted">
+                          {brand.name} · {brand.role.replaceAll("_", " ")}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-[var(--woosh-dull)]/65">
+                    No brand assigned
+                  </p>
+                )}
               </div>
-              <Badge tone="navy">{m.role}</Badge>
             </li>
           ))}
         </ul>
@@ -71,7 +94,7 @@ export default async function TeamPage() {
         />
       )}
 
-      {canManageTeam ? <Panel
+      <Panel
         title="Invite teammate"
         description="Pick the brand they belong to. They only see that brand’s briefs, wallet, and messages."
       >
@@ -110,7 +133,7 @@ export default async function TeamPage() {
               <option value="ACCOUNT_MANAGER">Account manager</option>
               <option value="FINANCE">Finance</option>
               <option value="VIEWER">Viewer</option>
-              {canAssignAdmin ? <option value="ADMIN">Admin</option> : null}
+              <option value="ADMIN">Admin</option>
             </Select>
           </Label>
           <div className="flex items-end">
@@ -119,7 +142,7 @@ export default async function TeamPage() {
             </Button>
           </div>
         </ActionForm>
-      </Panel> : null}
+      </Panel>
     </AppPage>
   );
 }
