@@ -39,6 +39,8 @@ export default async function AppLayout({
         activeBrandId={ctx.activeBrandId}
         activeBrandName={ctx.activeBrand?.name}
         unreadNotifications={unreadNotifications}
+        membershipRole={ctx.membership?.role}
+        isPlatformAdmin={ctx.user.isPlatformAdmin}
         signOutAction={signOutAction}
       >
         {children}

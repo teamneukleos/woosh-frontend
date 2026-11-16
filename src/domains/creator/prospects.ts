@@ -57,6 +57,7 @@ export async function getProspect(id: string) {
     status: string;
     contactEmail: string | null;
     interested?: boolean;
+    saved?: boolean;
   }>(`/creators/prospects/${id}`);
 }
 
@@ -66,6 +67,7 @@ export async function listDiscovery(filters: {
   category?: string;
   claimedOnly?: boolean;
   prospectOnly?: boolean;
+  savedOnly?: boolean;
   country?: string;
   city?: string;
   language?: string;
@@ -83,6 +85,7 @@ export async function listDiscovery(filters: {
   if (filters.category) params.set("category", filters.category);
   if (filters.claimedOnly) params.set("claimedOnly", "true");
   if (filters.prospectOnly) params.set("prospectOnly", "true");
+  if (filters.savedOnly) params.set("savedOnly", "true");
   if (filters.country) params.set("country", filters.country);
   if (filters.city) params.set("city", filters.city);
   if (filters.language) params.set("language", filters.language);

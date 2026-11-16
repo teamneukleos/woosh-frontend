@@ -8,14 +8,17 @@ import { ActionForm } from "@/components/ui/action-form";
 
 type Invited = {
   id: string;
-  creatorProfileId: string;
+  creatorProfileId: string | null;
+  prospectId?: string | null;
   status: string;
-  creator?: { id: string; displayName: string };
+  creator?: { id: string; displayName: string } | null;
+  prospect?: { id: string; handle: string; displayName: string | null } | null;
 };
 
-type CreatorOption = {
+type InviteOption = {
   id: string;
   displayName: string;
+  kind: "claimed" | "prospect";
 };
 
 export function BriefInvitePanel({
@@ -27,10 +30,19 @@ export function BriefInvitePanel({
   briefId: string;
   distribution: string;
   invited: Invited[];
-  creators: CreatorOption[];
+  creators: InviteOption[];
 }) {
-  const invitedIds = new Set(invited.map((row) => row.creatorProfileId));
-  const available = creators.filter((creator) => !invitedIds.has(creator.id));
+  const invitedKeys = new Set(
+    invited.flatMap((row) => {
+      const keys: string[] = [];
+      if (row.creatorProfileId) keys.push(`claimed:${row.creatorProfileId}`);
+      if (row.prospectId) keys.push(`prospect:${row.prospectId}`);
+      return keys;
+    }),
+  );
+  const available = creators.filter(
+    (creator) => !invitedKeys.has(`${creator.kind}:${creator.id}`),
+  );
   const inviteOnly = distribution === "INVITE_ONLY";
 
   return (
@@ -38,26 +50,42 @@ export function BriefInvitePanel({
       title="Invite creators"
       description={
         inviteOnly
-          ? "This brief is not on the open marketplace. Creators only see it after you invite them."
-          : "Invite a claimed creator. They get an in-app notification and can apply from Jobs."
+          ? "This brief is not on the open marketplace. Claimed creators and unclaimed handles only see it after you invite them. Unclaimed accounts must finish profile setup before they can apply."
+          : "Invite a claimed creator or an unclaimed handle. Unclaimed accounts get a claim email and must finish profile setup before they can take the work."
       }
     >
       {invited.length ? (
         <ul className="mb-4 grid gap-2">
-          {invited.map((row) => (
-            <li
-              key={row.id}
-              className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--woosh-border)] px-3 py-2 text-sm"
-            >
-              <Link
-                href={`/app/creators/${row.creatorProfileId}`}
-                className="font-medium text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
+          {invited.map((row) => {
+            const name =
+              row.creator?.displayName ||
+              row.prospect?.displayName ||
+              (row.prospect?.handle ? `@${row.prospect.handle}` : "Creator");
+            const href = row.creatorProfileId
+              ? `/app/creators/${row.creatorProfileId}`
+              : row.prospectId
+                ? `/app/creators/${row.prospectId}?type=prospect`
+                : null;
+            return (
+              <li
+                key={row.id}
+                className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--woosh-border)] px-3 py-2 text-sm"
               >
-                {row.creator?.displayName ?? "Creator"}
-              </Link>
-              <Badge tone="navy">{row.status.replaceAll("_", " ")}</Badge>
-            </li>
-          ))}
+                {href ? (
+                  <Link
+                    href={href}
+                    className="font-medium text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
+                  >
+                    {name}
+                    {row.prospectId && !row.creatorProfileId ? " (unclaimed)" : ""}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-[var(--woosh-navy)]">{name}</span>
+                )}
+                <Badge tone="navy">{row.status.replaceAll("_", " ")}</Badge>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
 
@@ -70,10 +98,16 @@ export function BriefInvitePanel({
           <input type="hidden" name="briefId" value={briefId} />
           <Label>
             Creator
-            <Select name="creatorProfileId" required defaultValue={available[0]?.id}>
+            <Select
+              name="target"
+              required
+              defaultValue={`${available[0]?.kind}:${available[0]?.id}`}
+            >
               {available.map((creator) => (
-                <option key={creator.id} value={creator.id}>
-                  {creator.displayName}
+                <option key={`${creator.kind}:${creator.id}`} value={`${creator.kind}:${creator.id}`}>
+                  {creator.kind === "prospect"
+                    ? `${creator.displayName} (unclaimed)`
+                    : creator.displayName}
                 </option>
               ))}
             </Select>
@@ -88,11 +122,11 @@ export function BriefInvitePanel({
         </ActionForm>
       ) : (
         <EmptyState
-          title={creators.length ? "Everyone here is already invited" : "No claimed creators yet"}
-          description="Open Creators, pick a claimed profile, then invite them to this brief."
+          title={creators.length ? "Everyone here is already invited" : "No creators to invite"}
+          description="Open Creators to find a claimed profile or an unclaimed handle."
           action={
             <Link
-              href="/app/creators?type=claimed"
+              href="/app/creators"
               className="text-sm font-medium text-[var(--woosh-blue)] hover:underline"
             >
               Find creators

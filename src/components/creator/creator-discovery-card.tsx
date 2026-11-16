@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { toggleSaveCreatorAction } from "@/app/actions";
-import { InterestButton } from "@/components/creator/interest-button";
 import { ActionForm } from "@/components/ui/action-form";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,13 +15,9 @@ import {
 export function CreatorDiscoveryCard({
   item,
   saved,
-  interested,
-  activeBrandId,
 }: {
   item: DiscoveryItem;
   saved: boolean;
-  interested: boolean;
-  activeBrandId?: string | null;
 }) {
   const platforms = item.channels?.length
     ? item.channels
@@ -93,25 +88,21 @@ export function CreatorDiscoveryCard({
         </p>
 
         <div className="mt-auto flex flex-col gap-2 pt-4 sm:flex-row sm:flex-wrap">
-          {item.type === "claimed" ? (
-            <ActionForm
-              action={toggleSaveCreatorAction}
-              successTitle={saved ? "Creator removed" : "Creator saved"}
-              className="w-full sm:w-auto"
-            >
-              <input type="hidden" name="creatorProfileId" value={item.id} />
-              <input type="hidden" name="saved" value={saved ? "1" : "0"} />
-              <Button type="submit" size="sm" variant="secondary" className="w-full sm:w-auto">
-                {saved ? "Saved" : "Save"}
-              </Button>
-            </ActionForm>
-          ) : null}
-          <InterestButton
-            interested={interested}
-            activeBrandId={activeBrandId}
-            prospectId={item.type === "prospect" ? item.id : undefined}
-            creatorProfileId={item.type === "claimed" ? item.id : undefined}
-          />
+          <ActionForm
+            action={toggleSaveCreatorAction}
+            successTitle={saved ? "Removed from shortlist" : "Creator shortlisted"}
+            className="w-full sm:w-auto"
+          >
+            <input
+              type="hidden"
+              name={item.type === "prospect" ? "prospectId" : "creatorProfileId"}
+              value={item.id}
+            />
+            <input type="hidden" name="saved" value={saved ? "1" : "0"} />
+            <Button type="submit" size="sm" variant="secondary" className="w-full sm:w-auto">
+              {saved ? "Shortlisted" : "Shortlist"}
+            </Button>
+          </ActionForm>
           <Link
             href={`/app/creators/${item.id}?type=${item.type}`}
             className="inline-flex h-10 w-full items-center justify-center px-2 text-sm font-medium text-[var(--woosh-blue)] hover:underline sm:h-8 sm:w-auto"

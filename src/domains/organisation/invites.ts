@@ -32,13 +32,20 @@ export async function acceptTeamInvite(input: { token: string; userId: string })
 
 export async function inviteToBrief(input: {
   briefId: string;
-  creatorProfileId: string;
+  creatorProfileId?: string;
+  prospectId?: string;
   message?: string;
   actorUserId: string;
 }) {
   return api(`/briefs/${input.briefId}/invites`, {
     method: "POST",
-    body: { creatorProfileId: input.creatorProfileId, message: input.message },
+    body: {
+      ...(input.creatorProfileId
+        ? { creatorProfileId: input.creatorProfileId }
+        : {}),
+      ...(input.prospectId ? { prospectId: input.prospectId } : {}),
+      message: input.message,
+    },
   });
 }
 

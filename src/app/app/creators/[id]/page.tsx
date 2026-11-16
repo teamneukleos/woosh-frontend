@@ -5,14 +5,14 @@ import {
   getClaimedCreator,
   getProspect,
 } from "@/domains/creator/prospects";
-import { inviteToBriefAction } from "@/app/actions";
+import { inviteToBriefAction, toggleSaveCreatorAction } from "@/app/actions";
 import { listBriefsForBrand } from "@/domains/marketplace/briefs";
-import { InterestButton } from "@/components/creator/interest-button";
 import { BackLink } from "@/components/ui/back-link";
 import { Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { TextArea, Label, Select } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { CreatorIntel } from "@/components/creator/creator-intel";
@@ -43,7 +43,13 @@ export default async function CreatorDetailPage({
       if (error instanceof ApiError && error.status === 404) notFound();
       throw error;
     }
-    const alreadyInterested = Boolean(prospect.interested);
+    const briefs = ctx.activeBrandId
+      ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
+          ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(
+            brief.status,
+          ),
+        )
+      : [];
 
     return (
       <AppPage
@@ -57,6 +63,23 @@ export default async function CreatorDetailPage({
         className="max-w-2xl"
       >
         <BackLink href="/app/creators">Creators</BackLink>
+        <Panel
+          title="Shortlist"
+          description="Save them to your roster. They are not notified until you invite them to a brief."
+        >
+          <ActionForm
+            action={toggleSaveCreatorAction}
+            successTitle={
+              prospect.saved ? "Removed from shortlist" : "Creator shortlisted"
+            }
+          >
+            <input type="hidden" name="prospectId" value={prospect.id} />
+            <input type="hidden" name="saved" value={prospect.saved ? "1" : "0"} />
+            <Button type="submit" variant="secondary">
+              {prospect.saved ? "Shortlisted" : "Shortlist"}
+            </Button>
+          </ActionForm>
+        </Panel>
         <Panel>
           <ChannelMark channel={prospect.channel} />
           {prospect.categories.length ? (
@@ -70,24 +93,47 @@ export default async function CreatorDetailPage({
               <span className="ml-1 text-xs">(estimate, unverified)</span>
             </p>
           ) : null}
-          <div className="mt-6">
-            <InterestButton
-              interested={alreadyInterested}
-              activeBrandId={ctx.activeBrandId}
-              prospectId={prospect.id}
-              className="flex flex-col gap-3"
-            >
-              <Label>
-                Invite message
-                <TextArea
-                  name="message"
-                  placeholder="Optional note to the creator"
-                  rows={3}
-                />
-              </Label>
-            </InterestButton>
-          </div>
         </Panel>
+        {briefs.length ? (
+          <Panel
+            title="Invite to brief"
+            description="They get a claim email with the brief summary. They must finish profile setup before they can take the work."
+          >
+            <ActionForm
+              action={inviteToBriefAction}
+              successTitle="Invitation sent"
+              className="grid gap-3"
+            >
+              <input type="hidden" name="prospectId" value={prospect.id} />
+              <Label>
+                Brief
+                <Select name="briefId" required defaultValue={briefs[0]?.id}>
+                  {briefs.map((brief) => (
+                    <option key={brief.id} value={brief.id}>
+                      {brief.title}
+                    </option>
+                  ))}
+                </Select>
+              </Label>
+              <Label>
+                Message
+                <TextArea name="message" rows={2} placeholder="Optional note" />
+              </Label>
+              <Button type="submit" className="w-fit">
+                Send invitation
+              </Button>
+            </ActionForm>
+          </Panel>
+        ) : (
+          <Panel
+            title="Invite to brief"
+            description="Publish a brief first. Unclaimed accounts are invited to a brief, not pinged on their own."
+          >
+            <ButtonLink href="/app/briefs/new" variant="secondary">
+              New brief
+            </ButtonLink>
+          </Panel>
+        )}
       </AppPage>
     );
   }
@@ -106,7 +152,7 @@ export default async function CreatorDetailPage({
     throw error;
   }
 
-  const alreadyInterested = Boolean(raw.interested);
+  const saved = Boolean(raw.saved);
   const briefs = ctx.activeBrandId
     ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
         ["OPEN", "SELECTING"].includes(brief.status),
@@ -177,16 +223,27 @@ export default async function CreatorDetailPage({
     >
       <BackLink href="/app/creators">Creators</BackLink>
       <CreatorIntel profile={profile} />
-      <Panel title="Work with this creator">
-        <InterestButton
-          interested={alreadyInterested}
-          activeBrandId={ctx.activeBrandId}
-          creatorProfileId={raw.id}
-        />
+      <Panel
+        title="Shortlist"
+        description="Save them to your roster. They are not notified until you invite them to a brief."
+      >
+        <ActionForm
+          action={toggleSaveCreatorAction}
+          successTitle={saved ? "Removed from shortlist" : "Creator shortlisted"}
+        >
+          <input type="hidden" name="creatorProfileId" value={raw.id} />
+          <input type="hidden" name="saved" value={saved ? "1" : "0"} />
+          <Button type="submit" variant="secondary">
+            {saved ? "Shortlisted" : "Shortlist"}
+          </Button>
+        </ActionForm>
       </Panel>
 
       {briefs.length ? (
-        <Panel title="Invite to brief">
+        <Panel
+          title="Invite to brief"
+          description="This is what notifies the creator. The invite includes the brief title and summary."
+        >
           <ActionForm
             action={inviteToBriefAction}
             successTitle="Invitation sent"
@@ -212,7 +269,16 @@ export default async function CreatorDetailPage({
             </Button>
           </ActionForm>
         </Panel>
-      ) : null}
+      ) : (
+        <Panel
+          title="Invite to brief"
+          description="Publish a brief first. Creators are only notified when you invite them to one."
+        >
+          <ButtonLink href="/app/briefs/new" variant="secondary">
+            New brief
+          </ButtonLink>
+        </Panel>
+      )}
     </AppPage>
   );
 }

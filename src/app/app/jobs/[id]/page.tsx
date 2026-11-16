@@ -16,6 +16,7 @@ import { BackLink } from "@/components/ui/back-link";
 import { Panel } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Input, TextArea, Label } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { WorkStatus } from "@/components/work/work-status";
@@ -122,7 +123,39 @@ export default async function JobDetailPage({
           </div>
         ) : null}
 
-        {myApp ? (
+        {ctx.creatorProfile.marketplaceStatus !== "PUBLISHED" && !myApp ? (
+          <div className="mt-6 rounded-[var(--radius-md)] border border-[var(--warning)]/20 bg-[var(--warning-soft)] p-4">
+            <p className="font-semibold text-[var(--text-strong)]">
+              Finish your profile before you take this brief
+            </p>
+            <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+              You can review the invite, but you need a completed, published
+              profile before you apply.
+            </p>
+            <div className="mt-3">
+              <ButtonLink href="/app/profile" variant="secondary" size="sm">
+                Complete profile
+              </ButtonLink>
+            </div>
+            {myInvite && ["SENT", "VIEWED"].includes(myInvite.status) ? (
+              <ActionForm
+                action={declineInvitationAction}
+                successTitle="Invitation declined"
+                className="mt-4 grid gap-2 border-t border-[var(--woosh-border)] pt-4 sm:flex sm:flex-wrap"
+              >
+                <input
+                  type="hidden"
+                  name="invitationId"
+                  value={myInvite.id}
+                />
+                <Input name="reason" placeholder="Reason (optional)" />
+                <Button type="submit" variant="ghost">
+                  Decline invitation
+                </Button>
+              </ActionForm>
+            ) : null}
+          </div>
+        ) : myApp ? (
           <div className="mt-6 rounded-[var(--radius-md)] border border-[var(--woosh-teal)]/40 bg-[var(--woosh-teal)]/10 p-4">
             <p className="font-semibold text-[var(--woosh-navy)]">
               Application: {myApp.status}
