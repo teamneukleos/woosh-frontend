@@ -1,3 +1,4 @@
+
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, MessageSquare } from "lucide-react";
@@ -75,50 +76,60 @@ export default async function MessagesPage({
       eyebrow="Inbox"
       title="Messages"
       description="The conversation lives on the work — not a disappearing chat."
-      className="gap-4"
+      className="gap-5"
     >
       <div
         className={cn(
-          "grid min-h-[min(36rem,calc(100dvh-12rem))] overflow-hidden rounded-[var(--radius-surface)] border border-[var(--woosh-border)] bg-white md:min-h-[calc(100dvh-10rem)] lg:grid-cols-[minmax(17rem,22rem)_minmax(0,1fr)]",
+          "grid min-h-[min(40rem,calc(100dvh-11rem))] overflow-hidden rounded-2xl border border-[var(--woosh-border)] bg-[var(--woosh-surface)] shadow-[var(--shadow-soft)] md:min-h-[calc(100dvh-11rem)] lg:grid-cols-[minmax(18rem,23rem)_minmax(0,1fr)]",
         )}
       >
         <aside
           className={cn(
-            "min-h-0 flex-col border-[var(--woosh-border)] lg:border-r",
+            "min-h-0 flex-col border-[var(--woosh-border)] bg-white lg:border-r",
             c ? "hidden lg:flex" : "flex",
           )}
         >
-          <div className="flex items-center justify-between border-b border-[var(--woosh-border)] px-4 py-3">
-            <p className="text-sm font-semibold text-[var(--text-strong)]">
-              Inbox
-            </p>
-            <p className="text-xs text-[var(--text-muted)]">
-              {threads.length} {threads.length === 1 ? "thread" : "threads"}
-            </p>
+          <div className="flex items-center justify-between border-b border-[var(--woosh-border)] px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold text-[var(--woosh-navy)]">
+                Inbox
+              </p>
+              <p className="mt-1 text-xs text-[var(--woosh-grey)]">
+                {threads.length} {threads.length === 1 ? "thread" : "threads"}
+              </p>
+            </div>
+            <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--woosh-mist)] text-[var(--woosh-navy)]">
+              <MessageSquare className="size-4" />
+            </div>
           </div>
-          <LiveInbox items={threads} activeId={activeId} />
+
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <LiveInbox items={threads} activeId={activeId} />
+          </div>
         </aside>
 
         <section
           className={cn(
-            "min-h-0 flex-col bg-[var(--surface-sunken)]/70",
+            "min-h-0 flex-col bg-[var(--surface-base)]",
             c ? "flex" : "hidden lg:flex",
           )}
         >
           {active ? (
             <>
-              <header className="flex items-center gap-3 border-b border-[var(--woosh-border)] bg-white px-3 py-3 sm:px-4">
+              <header className="flex items-center gap-3 border-b border-[var(--woosh-border)] bg-white px-4 py-4 sm:px-6">
                 <Link
                   href="/app/messages"
-                  className="grid size-9 place-items-center rounded-full text-[var(--text-strong)] hover:bg-[var(--surface-sunken)] lg:hidden"
+                  className="grid size-9 shrink-0 place-items-center rounded-lg border border-[var(--woosh-border)] text-[var(--woosh-navy)] transition hover:border-[var(--woosh-blue)]/30 hover:bg-[var(--woosh-mist)] lg:hidden"
                   aria-label="Back to inbox"
                 >
                   <ArrowLeft aria-hidden="true" className="size-4" />
                 </Link>
+
                 <Avatar name={counterpart} size="sm" />
+
                 <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold text-[var(--text-strong)]">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h2 className="truncate text-sm font-semibold text-[var(--woosh-navy)]">
                       {activeTitle}
                     </h2>
                     {kindLabel ? (
@@ -127,32 +138,36 @@ export default async function MessagesPage({
                       </Badge>
                     ) : null}
                   </div>
-                  <p className="truncate text-xs text-[var(--text-muted)]">
+                  <p className="mt-1 truncate text-xs text-[var(--woosh-grey)]">
                     {counterpart}
                   </p>
                 </div>
+
                 {workHref ? (
                   <Link
                     href={workHref}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-control)] px-2 py-1.5 text-xs font-medium text-[var(--woosh-blue)] hover:bg-[var(--accent-soft)]"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--woosh-border)] px-3 py-2 text-xs font-semibold text-[var(--woosh-blue)] transition hover:border-[var(--woosh-blue)]/30 hover:bg-[var(--accent-soft)]"
                   >
                     Open work
                     <ArrowUpRight aria-hidden="true" className="size-3.5" />
                   </Link>
                 ) : null}
               </header>
-              <LiveThread
-                conversationId={active.id}
-                currentUserId={userId}
-                initialMessages={active.messages.map((message) => ({
-                  id: message.id,
-                  body: message.body,
-                  senderUserId: message.senderUserId,
-                  isSystem: message.isSystem,
-                  createdAt: message.createdAt,
-                }))}
-              />
-              <MessageComposer conversationId={active.id} />
+
+              <div className="flex min-h-0 flex-1 flex-col">
+                <LiveThread
+                  conversationId={active.id}
+                  currentUserId={userId}
+                  initialMessages={active.messages.map((message) => ({
+                    id: message.id,
+                    body: message.body,
+                    senderUserId: message.senderUserId,
+                    isSystem: message.isSystem,
+                    createdAt: message.createdAt,
+                  }))}
+                />
+                <MessageComposer conversationId={active.id} />
+              </div>
             </>
           ) : (
             <div className="flex flex-1 items-center justify-center p-8">

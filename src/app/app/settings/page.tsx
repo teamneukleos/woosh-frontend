@@ -1,3 +1,4 @@
+
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
@@ -8,8 +9,10 @@ import { SettingsSections } from "@/components/settings/settings-sections";
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx) redirect("/login");
+
   const canManageOrganisation =
     ctx.user.isPlatformAdmin ||
     (!!ctx.membership &&
@@ -20,26 +23,29 @@ export default async function SettingsPage() {
       eyebrow="Account"
       title="Settings"
       description="Profile, organisation, brands, notifications, and security."
-      className="max-w-2xl"
+      width="wide"
+      className="w-full max-w-none"
     >
-      <SettingsSections
-        kind={ctx.kind}
-        hasCreator={!!ctx.creatorProfile}
-        canManageOrganisation={canManageOrganisation}
-        notificationPreferences={{
-          emailNotifications: ctx.user.emailNotifications,
-          weeklyDigest: ctx.user.weeklyDigest,
-        }}
-        organisation={
-          ctx.organisation
-            ? {
-                publicName: ctx.organisation.publicName,
-                website: ctx.organisation.website ?? null,
-                industry: ctx.organisation.industry ?? null,
-              }
-            : null
-        }
-      />
+      <div className="w-full min-w-0">
+        <SettingsSections
+          kind={ctx.kind}
+          hasCreator={!!ctx.creatorProfile}
+          canManageOrganisation={canManageOrganisation}
+          notificationPreferences={{
+            emailNotifications: ctx.user.emailNotifications,
+            weeklyDigest: ctx.user.weeklyDigest,
+          }}
+          organisation={
+            ctx.organisation
+              ? {
+                  publicName: ctx.organisation.publicName,
+                  website: ctx.organisation.website ?? null,
+                  industry: ctx.organisation.industry ?? null,
+                }
+              : null
+          }
+        />
+      </div>
     </AppPage>
   );
 }

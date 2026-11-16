@@ -1,3 +1,4 @@
+
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
@@ -28,6 +29,7 @@ export default async function CreatorDetailPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx || ctx.kind === "creator") redirect("/app");
 
@@ -37,12 +39,14 @@ export default async function CreatorDetailPage({
 
   if (isProspect) {
     let prospect;
+
     try {
       prospect = await getProspect(id);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) notFound();
       throw error;
     }
+
     const alreadyInterested = Boolean(prospect.interested);
 
     return (
@@ -53,46 +57,69 @@ export default async function CreatorDetailPage({
           prospect.locationCity ? ` · ${prospect.locationCity}` : ""
         }`}
         actions={<Badge tone="teal">Unclaimed prospect</Badge>}
-        width="narrow"
-        className="max-w-2xl"
+        width="wide"
+        className="w-full max-w-none"
       >
-        <BackLink href="/app/creators">Creators</BackLink>
-        <Panel>
-          <ChannelMark channel={prospect.channel} />
-          {prospect.categories.length ? (
-            <p className="mt-3 text-sm text-[var(--woosh-dull)]/70">
-              {prospect.categories.join(" · ")}
-            </p>
-          ) : null}
-          {prospect.followerEstimate ? (
-            <p className="mt-4 rounded-[var(--radius-md)] bg-[var(--woosh-mist)] px-3 py-2 text-sm text-[var(--woosh-dull)]">
-              ~{prospect.followerEstimate.toLocaleString()} followers
-              <span className="ml-1 text-xs">(estimate, unverified)</span>
-            </p>
-          ) : null}
-          <div className="mt-6">
-            <InterestButton
-              interested={alreadyInterested}
-              activeBrandId={ctx.activeBrandId}
-              prospectId={prospect.id}
-              className="flex flex-col gap-3"
-            >
-              <Label>
-                Invite message
-                <TextArea
-                  name="message"
-                  placeholder="Optional note to the creator"
-                  rows={3}
-                />
-              </Label>
-            </InterestButton>
-          </div>
-        </Panel>
+        <div className="w-full space-y-5">
+          <BackLink href="/app/creators">Creators</BackLink>
+
+          <Panel className="w-full">
+            <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.7fr)] md:gap-10">
+              <div className="min-w-0">
+                <ChannelMark channel={prospect.channel} />
+
+                {prospect.categories.length ? (
+                  <div className="mt-6 border-t border-[var(--woosh-border)] pt-5">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                      Categories
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {prospect.categories.map((category) => (
+                        <span
+                          key={category}
+                          className="rounded-full border border-[var(--woosh-border)] bg-[var(--woosh-mist)] px-3 py-1.5 text-sm text-[var(--woosh-navy)]"
+                        >
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-5 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/50 p-4 md:p-5">
+                {prospect.followerEstimate ? (
+                  <p className="rounded-[var(--radius-md)] border border-[var(--woosh-border)] bg-white px-4 py-3 text-sm text-[var(--woosh-dull)]">
+                    ~{prospect.followerEstimate.toLocaleString()} followers
+                    <span className="ml-1 text-xs">(estimate, unverified)</span>
+                  </p>
+                ) : null}
+
+                <InterestButton
+                  interested={alreadyInterested}
+                  activeBrandId={ctx.activeBrandId}
+                  prospectId={prospect.id}
+                  className="flex flex-col gap-3"
+                >
+                  <Label>
+                    Invite message
+                    <TextArea
+                      name="message"
+                      placeholder="Optional note to the creator"
+                      rows={3}
+                    />
+                  </Label>
+                </InterestButton>
+              </div>
+            </div>
+          </Panel>
+        </div>
       </AppPage>
     );
   }
 
   let raw;
+
   try {
     raw = await getClaimedCreator(id, {
       userId: session.user.id,
@@ -100,18 +127,23 @@ export default async function CreatorDetailPage({
       isAdmin: ctx.user.isPlatformAdmin,
     });
   } catch (error) {
-    if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+    if (
+      error instanceof ApiError &&
+      (error.status === 404 || error.status === 403)
+    ) {
       notFound();
     }
     throw error;
   }
 
   const alreadyInterested = Boolean(raw.interested);
+
   const briefs = ctx.activeBrandId
     ? (await listBriefsForBrand(ctx.activeBrandId)).filter((brief) =>
         ["OPEN", "SELECTING"].includes(brief.status),
       )
     : [];
+
   const profile = {
     displayName: raw.displayName,
     bio: raw.bio,
@@ -173,46 +205,61 @@ export default async function CreatorDetailPage({
       title="Storefront"
       description="Performance, portfolio, rates and collaboration history."
       width="wide"
-      className="max-w-6xl"
+      className="w-full max-w-none"
     >
-      <BackLink href="/app/creators">Creators</BackLink>
-      <CreatorIntel profile={profile} />
-      <Panel title="Work with this creator">
-        <InterestButton
-          interested={alreadyInterested}
-          activeBrandId={ctx.activeBrandId}
-          creatorProfileId={raw.id}
-        />
-      </Panel>
+      <div className="w-full space-y-5">
+        <BackLink href="/app/creators">Creators</BackLink>
 
-      {briefs.length ? (
-        <Panel title="Invite to brief">
-          <ActionForm
-            action={inviteToBriefAction}
-            successTitle="Invitation sent"
-            className="grid gap-3"
-          >
-            <input type="hidden" name="creatorProfileId" value={raw.id} />
-            <Label>
-              Brief
-              <Select name="briefId" required defaultValue={briefs[0]?.id}>
-                {briefs.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title}
-                  </option>
-                ))}
-              </Select>
-            </Label>
-            <Label>
-              Message
-              <TextArea name="message" rows={2} placeholder="Optional note" />
-            </Label>
-            <Button type="submit" className="w-fit">
-              Send invitation
-            </Button>
-          </ActionForm>
-        </Panel>
-      ) : null}
+        <div className="w-full min-w-0 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white">
+          <CreatorIntel profile={profile} />
+        </div>
+
+        <div
+          className={`grid gap-5 ${
+            briefs.length ? "lg:grid-cols-2" : "grid-cols-1"
+          }`}
+        >
+          <Panel title="Work with this creator" className="h-full">
+            <InterestButton
+              interested={alreadyInterested}
+              activeBrandId={ctx.activeBrandId}
+              creatorProfileId={raw.id}
+            />
+          </Panel>
+
+          {briefs.length ? (
+            <Panel title="Invite to brief" className="h-full">
+              <ActionForm
+                action={inviteToBriefAction}
+                successTitle="Invitation sent"
+                className="grid gap-3"
+              >
+                <input type="hidden" name="creatorProfileId" value={raw.id} />
+
+                <Label>
+                  Brief
+                  <Select name="briefId" required defaultValue={briefs[0]?.id}>
+                    {briefs.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title}
+                      </option>
+                    ))}
+                  </Select>
+                </Label>
+
+                <Label>
+                  Message
+                  <TextArea name="message" rows={2} placeholder="Optional note" />
+                </Label>
+
+                <Button type="submit" className="w-fit">
+                  Send invitation
+                </Button>
+              </ActionForm>
+            </Panel>
+          ) : null}
+        </div>
+      </div>
     </AppPage>
   );
 }

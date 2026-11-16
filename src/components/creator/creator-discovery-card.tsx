@@ -1,4 +1,6 @@
+
 import Link from "next/link";
+import { ChevronRight, type LucideIcon } from "lucide-react";
 import { toggleSaveCreatorAction } from "@/app/actions";
 import { InterestButton } from "@/components/creator/interest-button";
 import { ActionForm } from "@/components/ui/action-form";
@@ -12,6 +14,29 @@ import {
   formatCompact,
   formatEngagement,
 } from "@/lib/discovery-stats";
+
+const STROKE = { light: 1.25, regular: 1.5 } as const;
+
+function Glyph({
+  icon: Icon,
+  size = 18,
+  weight = "regular",
+  className = "",
+}: {
+  icon: LucideIcon;
+  size?: number;
+  weight?: keyof typeof STROKE;
+  className?: string;
+}) {
+  return (
+    <Icon
+      size={size}
+      strokeWidth={STROKE[weight]}
+      className={`shrink-0 ${className}`}
+      aria-hidden="true"
+    />
+  );
+}
 
 export function CreatorDiscoveryCard({
   item,
@@ -29,6 +54,7 @@ export function CreatorDiscoveryCard({
     : item.channel
       ? [item.channel]
       : [];
+
   const stats = [
     { label: "Followers", value: formatCompact(item.followers) },
     { label: "Engagement", value: formatEngagement(item.engagementRate) },
@@ -36,87 +62,119 @@ export function CreatorDiscoveryCard({
     { label: "Avg views", value: formatCompact(item.averageViews) },
   ];
 
+  const profileHref = `/app/creators/${item.id}?type=${item.type}`;
+
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start gap-3">
+    <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-[var(--woosh-border)] bg-white shadow-[var(--shadow-soft)]">
+      <div className="flex min-w-0 flex-1 flex-col p-3.5">
+        <div className="flex min-w-0 items-start gap-2.5">
           <Avatar name={item.displayName} src={item.avatarUrl} size="lg" />
+
           <div className="min-w-0 flex-1">
-            <Link
-              href={`/app/creators/${item.id}?type=${item.type}`}
-              className="inline-flex max-w-full items-center gap-1.5 font-semibold text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
-            >
-              <span className="truncate">{item.displayName}</span>
+            <div className="flex min-w-0 items-center gap-1">
+              <Link
+                href={profileHref}
+                className="min-w-0 truncate text-[13px] font-semibold leading-5 text-[var(--woosh-navy)] hover:underline hover:underline-offset-4"
+              >
+                {item.displayName}
+              </Link>
               {item.verified ? <VerifiedCheck /> : null}
-            </Link>
-            <p className="truncate text-sm text-[var(--text-secondary)]">
+            </div>
+
+            <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
               {formatHandle(item.handle) ?? "No handle"}
             </p>
+
             {platforms.length ? (
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 {platforms.map((channel) => (
                   <span
                     key={channel}
                     title={socialLabel(channel) ?? channel}
-                    className="inline-flex"
+                    className="inline-flex h-5 w-5 items-center justify-center"
                   >
-                    <SocialIcon channel={channel} size="md" />
+                    <SocialIcon channel={channel} size="sm" />
                     <span className="sr-only">{socialLabel(channel)}</span>
                   </span>
                 ))}
               </div>
             ) : null}
-            <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
-              {[item.locationCity, ...item.categories.slice(0, 2)]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
           </div>
         </div>
 
-        <dl className="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 p-3 sm:grid-cols-4">
+        <p className="mt-3 min-h-4 truncate text-xs text-[var(--text-secondary)]">
+          {[item.locationCity, ...item.categories.slice(0, 2)]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-3 border-y border-[var(--woosh-border)] py-3">
           {stats.map((stat) => (
-            <div key={stat.label}>
-              <dt className="text-[0.65rem] uppercase tracking-[0.04em] text-[var(--woosh-dull)]/55">
+            <div key={stat.label} className="min-w-0">
+              <dt className="text-[11px] font-medium text-[var(--text-muted)]">
                 {stat.label}
               </dt>
-              <dd className="mt-0.5 text-sm font-semibold text-[var(--woosh-navy)]">
+              <dd className="mt-0.5 truncate text-base font-semibold tracking-tight tabular-nums text-[var(--woosh-navy)]">
                 {stat.value}
               </dd>
             </div>
           ))}
         </dl>
-        <p className="mt-2 text-[0.6875rem] text-[var(--text-muted)]">
-          {item.metricsVerified
-            ? "Live from the connected app."
-            : "Estimate until they connect."}
-        </p>
 
-        <div className="mt-auto flex flex-col gap-2 pt-4 sm:flex-row sm:flex-wrap">
+        <div className="mt-2.5 flex min-w-0 items-center gap-1.5">
+          <span
+            className={`size-1.5 shrink-0 rounded-full ${
+              item.metricsVerified
+                ? "bg-[#087d62]"
+                : "bg-[var(--text-muted)]"
+            }`}
+          />
+          <p className="truncate text-[11px] text-[var(--text-muted)]">
+            {item.metricsVerified
+              ? "Live from the connected app."
+              : "Estimate until they connect."}
+          </p>
+        </div>
+
+        <div className="mt-auto flex min-w-0 items-center gap-1.5 border-t border-[var(--woosh-border)] pt-3">
           {item.type === "claimed" ? (
             <ActionForm
               action={toggleSaveCreatorAction}
               successTitle={saved ? "Creator removed" : "Creator saved"}
-              className="w-full sm:w-auto"
+              className="min-w-0"
             >
               <input type="hidden" name="creatorProfileId" value={item.id} />
               <input type="hidden" name="saved" value={saved ? "1" : "0"} />
-              <Button type="submit" size="sm" variant="secondary" className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                size="sm"
+                variant="secondary"
+                className="h-8 px-2.5 text-xs"
+              >
                 {saved ? "Saved" : "Save"}
               </Button>
             </ActionForm>
           ) : null}
-          <InterestButton
-            interested={interested}
-            activeBrandId={activeBrandId}
-            prospectId={item.type === "prospect" ? item.id : undefined}
-            creatorProfileId={item.type === "claimed" ? item.id : undefined}
-          />
+
+          <div className="min-w-0 flex-1 [&_button]:h-8 [&_button]:px-2.5 [&_button]:text-xs">
+            <InterestButton
+              interested={interested}
+              activeBrandId={activeBrandId}
+              prospectId={item.type === "prospect" ? item.id : undefined}
+              creatorProfileId={item.type === "claimed" ? item.id : undefined}
+            />
+          </div>
+
           <Link
-            href={`/app/creators/${item.id}?type=${item.type}`}
-            className="inline-flex h-10 w-full items-center justify-center px-2 text-sm font-medium text-[var(--woosh-blue)] hover:underline sm:h-8 sm:w-auto"
+            href={profileHref}
+            className="group inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-[var(--woosh-navy)] transition-colors hover:bg-[#faf9f7]"
           >
             View
+            <Glyph
+              icon={ChevronRight}
+              size={14}
+              className="text-[#c2c4c9] transition-transform group-hover:translate-x-0.5"
+            />
           </Link>
         </div>
       </div>

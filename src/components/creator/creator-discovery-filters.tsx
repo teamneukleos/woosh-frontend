@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/field";
 import { DISCOVERY_CITIES } from "@/lib/discovery-catalog";
@@ -38,11 +39,18 @@ export function CreatorDiscoveryFilters({
   );
 
   return (
-    <form className="flex w-full min-w-0 flex-col gap-4">
-      <Label>
-        Search
-        <Input name="q" defaultValue={q} placeholder="Name or handle" />
-      </Label>
+    <form className="flex w-full min-w-0 flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <Label>
+          Search
+          <Input
+            name="q"
+            defaultValue={q}
+            placeholder="Name or handle"
+            className="h-11"
+          />
+        </Label>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Label>
@@ -56,6 +64,7 @@ export function CreatorDiscoveryFilters({
             ))}
           </Select>
         </Label>
+
         <Label>
           Category
           <Select name="category" defaultValue={category ?? ""}>
@@ -67,6 +76,7 @@ export function CreatorDiscoveryFilters({
             ))}
           </Select>
         </Label>
+
         <Label>
           City
           <Select name="city" defaultValue={city ?? ""}>
@@ -78,6 +88,7 @@ export function CreatorDiscoveryFilters({
             ))}
           </Select>
         </Label>
+
         <Label>
           Followers
           <Select name="minFollowers" defaultValue={minFollowers ?? ""}>
@@ -88,6 +99,7 @@ export function CreatorDiscoveryFilters({
             <option value="250000">250k+</option>
           </Select>
         </Label>
+
         <Label>
           Sort
           <Select name="sort" defaultValue={sort ?? "followers"}>
@@ -101,13 +113,30 @@ export function CreatorDiscoveryFilters({
       </div>
 
       <details
-        className="rounded-[var(--radius-md)] border border-[var(--woosh-border)] bg-[var(--surface-sunken)]/40"
+        className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--woosh-border)] bg-[var(--surface-sunken)]/35"
         open={moreOpen || undefined}
       >
-        <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-medium text-[var(--woosh-blue)] [&::-webkit-details-marker]:hidden">
-          More filters
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-[var(--woosh-navy)] transition-colors hover:bg-[var(--woosh-mist)]/70 [&::-webkit-details-marker]:hidden">
+          <span>More filters</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--woosh-border)] bg-white text-[var(--woosh-blue)]">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="h-3.5 w-3.5"
+            >
+              <path
+                d="M5 7.5L10 12.5L15 7.5"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </summary>
-        <div className="grid grid-cols-1 gap-3 border-t border-[var(--woosh-border)] p-3 sm:grid-cols-2 lg:grid-cols-4">
+
+        <div className="grid grid-cols-1 gap-3 border-t border-[var(--woosh-border)] p-4 sm:grid-cols-2 lg:grid-cols-4">
           <Label>
             Country
             <Select name="country" defaultValue={country ?? ""}>
@@ -119,6 +148,7 @@ export function CreatorDiscoveryFilters({
               ))}
             </Select>
           </Label>
+
           <Label>
             Language
             <Select name="language" defaultValue={language ?? ""}>
@@ -130,6 +160,7 @@ export function CreatorDiscoveryFilters({
               ))}
             </Select>
           </Label>
+
           <Label>
             Min engagement
             <Input
@@ -141,6 +172,7 @@ export function CreatorDiscoveryFilters({
               placeholder="e.g. 3"
             />
           </Label>
+
           <Label>
             Min avg views
             <Input
@@ -154,7 +186,7 @@ export function CreatorDiscoveryFilters({
         </div>
       </details>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-2 border-t border-[var(--woosh-border)] pt-4 sm:flex-row sm:justify-end">
         <Button type="submit" className="w-full sm:w-auto sm:min-w-28">
           Apply
         </Button>
