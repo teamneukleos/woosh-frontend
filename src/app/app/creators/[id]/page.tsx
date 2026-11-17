@@ -17,7 +17,12 @@ import { TextArea, Label, Select } from "@/components/ui/field";
 import { ActionForm } from "@/components/ui/action-form";
 import { CreatorIntel } from "@/components/creator/creator-intel";
 import { ChannelMark } from "@/components/ui/social-icon";
+import { Avatar } from "@/components/ui/avatar";
 import { ApiError } from "@/lib/api";
+import {
+  formatCompact,
+  formatEngagement,
+} from "@/lib/discovery-stats";
 
 export default async function CreatorDetailPage({
   params,
@@ -81,19 +86,115 @@ export default async function CreatorDetailPage({
           </ActionForm>
         </Panel>
         <Panel>
-          <ChannelMark channel={prospect.channel} />
+          <div className="flex items-start gap-3">
+            <Avatar
+              name={prospect.displayName || prospect.handle}
+              src={prospect.avatarUrl}
+              size="lg"
+            />
+            <div>
+              <ChannelMark channel={prospect.channel} />
+              {prospect.website ? (
+                <p className="mt-2 truncate text-sm text-[var(--woosh-blue)]">
+                  {prospect.website}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {prospect.biography ? (
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[var(--woosh-dull)]">
+              {prospect.biography}
+            </p>
+          ) : null}
           {prospect.categories.length ? (
             <p className="mt-3 text-sm text-[var(--woosh-dull)]/70">
               {prospect.categories.join(" · ")}
             </p>
           ) : null}
-          {prospect.followerEstimate ? (
-            <p className="mt-4 rounded-[var(--radius-md)] bg-[var(--woosh-mist)] px-3 py-2 text-sm text-[var(--woosh-dull)]">
-              ~{prospect.followerEstimate.toLocaleString()} followers
-              <span className="ml-1 text-xs">(estimate, unverified)</span>
-            </p>
-          ) : null}
+          <dl className="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 p-3 sm:grid-cols-4">
+            {[
+              {
+                label: "Followers",
+                value: formatCompact(prospect.followers ?? prospect.followerEstimate),
+              },
+              {
+                label: "Engagement",
+                value: formatEngagement(prospect.engagementRate),
+              },
+              {
+                label: "Avg likes",
+                value: formatCompact(prospect.averageLikes),
+              },
+              {
+                label: "Posts",
+                value: prospect.mediaCount?.toLocaleString() ?? "—",
+              },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <dt className="text-[0.65rem] uppercase tracking-[0.04em] text-[var(--woosh-dull)]/55">
+                  {stat.label}
+                </dt>
+                <dd className="mt-0.5 text-sm font-semibold text-[var(--woosh-navy)]">
+                  {stat.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-2 text-[0.6875rem] text-[var(--text-muted)]">
+            {prospect.metricSampleSize
+              ? `Engagement is (avg likes + avg comments) ÷ followers from ${prospect.metricSampleSize} recent posts. Not verified until they connect.`
+              : "Metrics appear after Graph enrich. Not verified until they connect."}
+          </p>
         </Panel>
+        {prospect.recentPosts?.length ? (
+          <Panel
+            title="Recent posts"
+            description="Last three posts from Instagram. Opens on Instagram."
+          >
+            <ul className="grid grid-cols-3 gap-2">
+              {prospect.recentPosts.slice(0, 3).map((post) => {
+                const inner = (
+                  <>
+                    {post.imageUrl ? (
+                      <img
+                        src={post.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center p-2 text-center text-xs text-[var(--text-muted)]">
+                        {post.mediaType === "VIDEO" ? "Video" : "Post"}
+                      </span>
+                    )}
+                    {post.likeCount != null ? (
+                      <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[0.65rem] text-white">
+                        {formatCompact(post.likeCount)}
+                      </span>
+                    ) : null}
+                  </>
+                );
+                return (
+                  <li key={post.id}>
+                    {post.permalink ? (
+                      <a
+                        href={post.permalink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="relative block aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)]"
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)]">
+                        {inner}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
+        ) : null}
         {briefs.length ? (
           <Panel
             title="Invite to brief"

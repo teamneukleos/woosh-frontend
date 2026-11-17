@@ -53,6 +53,25 @@ export async function getProspect(id: string) {
     locationCity: string | null;
     categories: string[];
     followerEstimate: number | null;
+    followers?: number | null;
+    avatarUrl?: string | null;
+    biography?: string | null;
+    website?: string | null;
+    mediaCount?: number | null;
+    engagementRate?: number | null;
+    averageLikes?: number | null;
+    averageComments?: number | null;
+    averageViews?: number | null;
+    metricSampleSize?: number | null;
+    recentPosts?: Array<{
+      id: string;
+      mediaType: string | null;
+      permalink: string | null;
+      imageUrl: string | null;
+      likeCount: number | null;
+      commentsCount: number | null;
+      timestamp: string | null;
+    }>;
     metricsVerified: boolean;
     status: string;
     contactEmail: string | null;
@@ -150,8 +169,4 @@ export async function getClaimedCreator(
       campaignType?: string | null;
     }>;
   }>(`/creators/${id}`);
-}
-
-export async function ensureCatalogProspects() {
-  /* Nest discovery already mixes claimed + prospect rows. */
 }

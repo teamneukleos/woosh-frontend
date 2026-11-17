@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import {
-  ensureCatalogProspects,
-  listDiscovery,
-} from "@/domains/creator/prospects";
+import { listDiscovery } from "@/domains/creator/prospects";
 import { createProspectAction } from "@/app/actions";
 import type { SocialChannel } from "@/lib/enums";
 import { AppPage, DataToolbar } from "@/components/ui/app-page";
@@ -41,8 +38,6 @@ export default async function CreatorsPage({
   if (!session?.user?.id) redirect("/login");
   const ctx = await getWorkspaceContext(session.user.id);
   if (!ctx || ctx.kind === "creator") redirect("/app");
-
-  await ensureCatalogProspects();
 
   const params = await searchParams;
   const items = await listDiscovery({
@@ -118,7 +113,7 @@ export default async function CreatorsPage({
           description={
             params.type === "saved"
               ? "Shortlist a claimed creator or an unclaimed handle. They stay here until you invite them to a brief."
-              : "Clear a filter or add someone by handle."
+              : "No Graph-backed creators in the database yet. Run the Instagram enrich job or add a handle."
           }
         />
       )}
