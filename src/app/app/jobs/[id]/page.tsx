@@ -129,7 +129,7 @@ export default async function JobDetailPage({
               Finish your profile before you take this brief
             </p>
             <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-              You can review the invite, but you need a completed, published
+              You can review the invite, but you need a 100% complete (Active)
               profile before you apply.
             </p>
             <div className="mt-3">

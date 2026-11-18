@@ -7,7 +7,7 @@ const STATUS_TONE: Record<
   DRAFT: "muted",
   PENDING: "warn",
   PENDING_REVIEW: "warn",
-  PUBLISHED: "blue",
+  PUBLISHED: "teal",
   OPEN: "blue",
   ACTIVE: "teal",
   ACCEPTED: "teal",
@@ -37,5 +37,14 @@ export function StatusBadge({
   label?: string;
 }) {
   const tone = STATUS_TONE[status] ?? "muted";
-  return <Badge tone={tone}>{label ?? status.replaceAll("_", " ")}</Badge>;
+  return (
+    <Badge tone={tone}>
+      {label ?? marketplaceStatusLabel(status)}
+    </Badge>
+  );
+}
+
+export function marketplaceStatusLabel(status: string) {
+  if (status === "PUBLISHED") return "Active";
+  return status.replaceAll("_", " ");
 }

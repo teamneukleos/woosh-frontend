@@ -12,6 +12,41 @@ export async function listPendingBriefs() {
   >("/admin/briefs/moderation");
 }
 
+export async function listBriefInvites() {
+  const rows = await api<
+    Array<{
+      id: string;
+      status: string;
+      message: string | null;
+      createdAt: string | Date;
+      viewedAt: string | Date | null;
+      claimed: boolean;
+      needsManualOutreach: boolean;
+      handle: string | null;
+      contactEmail: string | null;
+      profileUrl: string | null;
+      brief: { id: string; title: string; status: string; distribution: string };
+      brand: {
+        id: string;
+        name: string;
+        organisation: { publicName: string; type: string };
+      };
+      creator: { id: string; displayName: string } | null;
+      prospect: {
+        id: string;
+        handle: string;
+        displayName: string | null;
+        status: string;
+      } | null;
+    }>
+  >("/admin/briefs/invites");
+  return rows.map((row) => ({
+    ...row,
+    createdAt: asDate(row.createdAt) ?? new Date(0),
+    viewedAt: asDate(row.viewedAt),
+  }));
+}
+
 export async function listCreatorModeration() {
   const data = await api<{
     profiles: Array<{
