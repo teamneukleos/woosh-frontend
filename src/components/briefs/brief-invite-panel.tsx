@@ -26,11 +26,13 @@ export function BriefInvitePanel({
   distribution,
   invited,
   creators,
+  readOnly = false,
 }: {
   briefId: string;
   distribution: string;
   invited: Invited[];
   creators: InviteOption[];
+  readOnly?: boolean;
 }) {
   const invitedKeys = new Set(
     invited.flatMap((row) => {
@@ -49,7 +51,9 @@ export function BriefInvitePanel({
     <Panel
       title="Invite creators"
       description={
-        inviteOnly
+        readOnly
+          ? "Who this brand invited. Use Open profile from Moderation if you need to reach an unclaimed handle."
+          : inviteOnly
           ? "This brief is not on the open marketplace. Claimed creators and unclaimed handles only see it after you invite them. Unclaimed accounts must finish profile setup before they can apply."
           : "Invite a claimed creator or an unclaimed handle. Unclaimed accounts get a claim email and must finish profile setup before they can take the work."
       }
@@ -89,7 +93,14 @@ export function BriefInvitePanel({
         </ul>
       ) : null}
 
-      {available.length ? (
+      {readOnly ? (
+        invited.length ? null : (
+          <EmptyState
+            title="No invites yet"
+            description="This brief has not invited anyone."
+          />
+        )
+      ) : available.length ? (
         <ActionForm
           action={inviteToBriefAction}
           successTitle="Invitation sent"

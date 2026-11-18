@@ -9,7 +9,6 @@ import {
   deleteRatePackageAction,
   devOAuthCompleteAction,
   reorderPortfolioItemsAction,
-  submitCreatorForReviewAction,
   updateCreatorProfileAction,
   updatePortfolioItemAction,
   uploadCreatorImageAction,
@@ -39,6 +38,7 @@ import { ActionForm } from "@/components/ui/action-form";
 import { formatHandle } from "@/lib/handle";
 import { creatorReadiness } from "@/domains/creator/media";
 import { ProgressBar } from "@/components/ui/progress";
+import { marketplaceStatusLabel } from "@/components/ui/status-badge";
 
 function oauthErrorCopy(code?: string) {
   if (code === "youtube_channel_required") {
@@ -146,8 +146,8 @@ export default async function ProfilePage({
               </p>
             ) : null}
             <div className="mt-2 flex flex-wrap gap-2">
-              <Badge tone={profile.profileVisible ? "teal" : "muted"}>
-                {profile.marketplaceStatus.replaceAll("_", " ")}
+              <Badge tone={profile.marketplaceStatus === "PUBLISHED" ? "teal" : "muted"}>
+                {marketplaceStatusLabel(profile.marketplaceStatus)}
               </Badge>
               <Badge tone={readiness.complete ? "teal" : "warn"}>
                 {readiness.percentage}% complete
@@ -159,7 +159,7 @@ export default async function ProfilePage({
 
       <Panel
         title="Marketplace readiness"
-        description="Complete every item, then submit your profile for review."
+        description="When every item is done, your profile becomes Active. You can apply to briefs without waiting on Woosh review."
       >
         <ProgressBar value={readiness.percentage} className="mb-5 h-2" />
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -181,23 +181,11 @@ export default async function ProfilePage({
             </li>
           ))}
         </ul>
-        <ActionForm
-          action={submitCreatorForReviewAction}
-          successTitle="Profile submitted for review"
-          className="mt-5"
-        >
-          <Button
-            type="submit"
-            disabled={
-              !readiness.complete ||
-              profile.marketplaceStatus === "PENDING_REVIEW"
-            }
-          >
-            {profile.marketplaceStatus === "PENDING_REVIEW"
-              ? "Review in progress"
-              : "Submit for review"}
-          </Button>
-        </ActionForm>
+        <p className="mt-5 text-sm text-[var(--woosh-dull)]/75">
+          {profile.marketplaceStatus === "PUBLISHED"
+            ? "Your profile is Active. Brands can discover you and you can apply to briefs."
+            : `Your profile is ${readiness.percentage}% complete. Finish the remaining items to go live.`}
+        </p>
       </Panel>
 
       <div className="grid gap-6 lg:grid-cols-2">

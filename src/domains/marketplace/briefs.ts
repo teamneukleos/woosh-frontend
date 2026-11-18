@@ -139,6 +139,14 @@ export async function listBriefsForBrand(brandId: string) {
   }));
 }
 
+export async function listBriefsForPlatform() {
+  const briefs = await api<NestBrief[]>("/briefs", { brandId: null });
+  return briefs.map((brief) => ({
+    ...brief,
+    _count: { applications: brief.applicationCount ?? 0 },
+  }));
+}
+
 export async function listJobsForCreator(_creatorProfileId: string, tab?: string) {
   const query = tab ? `?tab=${encodeURIComponent(tab)}` : "";
   const jobs = await api<Array<NestBrief & { brand: { id: string; name: string } }>>(

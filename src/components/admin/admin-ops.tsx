@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Tabs,
   TabsContent,
@@ -71,6 +72,32 @@ type CreatorModeration = {
   }>;
 };
 
+type BriefInviteRow = {
+  id: string;
+  status: string;
+  message: string | null;
+  createdAt: Date;
+  viewedAt: Date | null;
+  claimed: boolean;
+  needsManualOutreach: boolean;
+  handle: string | null;
+  contactEmail: string | null;
+  profileUrl: string | null;
+  brief: { id: string; title: string; status: string; distribution: string };
+  brand: {
+    id: string;
+    name: string;
+    organisation: { publicName: string; type: string };
+  };
+  creator: { id: string; displayName: string } | null;
+  prospect: {
+    id: string;
+    handle: string;
+    displayName: string | null;
+    status: string;
+  } | null;
+};
+
 type DisputeRow = {
   id: string;
   subject: string;
@@ -83,6 +110,7 @@ type DisputeRow = {
 
 export function AdminOps({
   pending,
+  briefInvites,
   prospectCount,
   users,
   adminCount,
@@ -91,6 +119,7 @@ export function AdminOps({
   disputes,
 }: {
   pending: PendingBrief[];
+  briefInvites: BriefInviteRow[];
   prospectCount: number;
   users: UserRow[];
   adminCount: number;
@@ -98,11 +127,17 @@ export function AdminOps({
   creatorModeration: CreatorModeration;
   disputes: DisputeRow[];
 }) {
+  const outreachCount = briefInvites.filter((row) => row.needsManualOutreach).length;
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label="Prospects" value={String(prospectCount)} tone="brand" />
         <Stat label="In moderation" value={String(pending.length)} tone="brand" />
+        <Stat
+          label="Invites to reach"
+          value={String(outreachCount)}
+          tone="brand"
+        />
         <Stat label="Users" value={String(users.length)} tone="brand" />
         <Stat label="Admins" value={String(adminCount)} tone="brand" />
       </div>
@@ -112,6 +147,10 @@ export function AdminOps({
           {(
             [
               ["moderation", `Moderation${pending.length ? ` · ${pending.length}` : ""}`],
+              [
+                "invites",
+                `Brief invites${outreachCount ? ` · ${outreachCount} to reach` : briefInvites.length ? ` · ${briefInvites.length}` : ""}`,
+              ],
               [
                 "creators",
                 `Creator review · ${creatorModeration.profiles.length + creatorModeration.media.length}`,
@@ -185,6 +224,127 @@ export function AdminOps({
             <EmptyState
               title="Moderation clear"
               description="No briefs waiting on platform review."
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="invites" className="mt-6">
+          {briefInvites.length ? (
+            <Table>
+              <THead>
+                <TR>
+                  <TH>When</TH>
+                  <TH>Brand</TH>
+                  <TH>Brief</TH>
+                  <TH>Creator</TH>
+                  <TH>Reach</TH>
+                  <TH>Status</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {briefInvites.map((row) => {
+                  const name =
+                    row.creator?.displayName ||
+                    row.prospect?.displayName ||
+                    formatHandle(row.handle) ||
+                    "Creator";
+                  const creatorHref = row.creator
+                    ? `/app/creators/${row.creator.id}`
+                    : row.prospect
+                      ? `/app/creators/${row.prospect.id}?type=prospect`
+                      : null;
+                  return (
+                    <TR key={row.id}>
+                      <TD className="whitespace-nowrap text-[var(--woosh-dull)]/70">
+                        {row.createdAt.toLocaleString("en-NG")}
+                      </TD>
+                      <TD>
+                        <div className="font-medium">{row.brand.name}</div>
+                        <div className="text-xs text-[var(--woosh-dull)]/70">
+                          {row.brand.organisation.publicName}
+                        </div>
+                      </TD>
+                      <TD>
+                        <Link
+                          href={`/app/briefs/${row.brief.id}`}
+                          className="font-semibold text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
+                        >
+                          {row.brief.title}
+                        </Link>
+                        {row.message ? (
+                          <p className="mt-1 max-w-xs text-xs text-[var(--woosh-dull)]/70">
+                            {row.message}
+                          </p>
+                        ) : null}
+                      </TD>
+                      <TD>
+                        {creatorHref ? (
+                          <Link
+                            href={creatorHref}
+                            className="font-medium text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
+                          >
+                            {name}
+                          </Link>
+                        ) : (
+                          <span className="font-medium">{name}</span>
+                        )}
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          {row.claimed ? (
+                            <Badge tone="teal">claimed</Badge>
+                          ) : (
+                            <Badge tone="warn">unclaimed</Badge>
+                          )}
+                          {formatHandle(row.handle) ? (
+                            <span className="text-xs text-[var(--woosh-dull)]/70">
+                              {formatHandle(row.handle)}
+                            </span>
+                          ) : null}
+                        </div>
+                      </TD>
+                      <TD>
+                        {row.needsManualOutreach ? (
+                          <div className="grid gap-1">
+                            <Badge tone="warn">manual</Badge>
+                            {row.profileUrl ? (
+                              <a
+                                href={row.profileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs font-medium text-[var(--woosh-blue)] hover:underline"
+                              >
+                                Open profile
+                              </a>
+                            ) : (
+                              <span className="text-xs text-[var(--woosh-dull)]/70">
+                                No profile URL
+                              </span>
+                            )}
+                          </div>
+                        ) : row.contactEmail ? (
+                          <a
+                            href={`mailto:${row.contactEmail}`}
+                            className="text-sm text-[var(--woosh-blue)] hover:underline"
+                          >
+                            {row.contactEmail}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-[var(--woosh-dull)]/70">
+                            In-app
+                          </span>
+                        )}
+                      </TD>
+                      <TD>
+                        <Badge tone="navy">{row.status.replaceAll("_", " ")}</Badge>
+                      </TD>
+                    </TR>
+                  );
+                })}
+              </TBody>
+            </Table>
+          ) : (
+            <EmptyState
+              title="No brief invites yet"
+              description="When a brand or agency invites a creator, it shows here so ops can follow up on unclaimed handles."
             />
           )}
         </TabsContent>

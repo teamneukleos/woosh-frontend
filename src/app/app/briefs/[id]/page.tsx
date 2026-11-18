@@ -44,7 +44,9 @@ export default async function BriefDetailPage({
   const { id } = await params;
   const brief = await getBrief(id, session.user.id);
   if (!brief) notFound();
-  const canManageBrief = ctx.kind !== "creator";
+  const isOps = ctx.kind === "admin" || ctx.user.isPlatformAdmin;
+  const canManageBrief =
+    !isOps && (ctx.kind === "brand" || ctx.kind === "agency");
   const canInvite =
     canManageBrief &&
     ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(brief.status);
@@ -85,7 +87,8 @@ export default async function BriefDetailPage({
             {brief.distribution.replaceAll("_", " ")}
           </span>
         </div>
-        {brief.status === "DRAFT" || brief.status === "PENDING_MODERATION" ? (
+        {canManageBrief &&
+        (brief.status === "DRAFT" || brief.status === "PENDING_MODERATION") ? (
           <ActionForm action={publishBriefAction} successTitle="Brief submitted" className="mt-6">
             <input type="hidden" name="briefId" value={brief.id} />
             <Button type="submit">
@@ -95,12 +98,13 @@ export default async function BriefDetailPage({
         ) : null}
       </Panel>
 
-      {canInvite ? (
+      {canInvite || isOps ? (
         <BriefInvitePanel
           briefId={brief.id}
           distribution={brief.distribution}
           invited={brief.invitations ?? []}
           creators={inviteTargets}
+          readOnly={isOps}
         />
       ) : null}
 
@@ -177,76 +181,82 @@ export default async function BriefDetailPage({
                     </div>
                   </div>
                   <div className="flex min-w-0 flex-wrap gap-2">
-                    {(["shortlist", "decline", "accept"] as const).map(
-                      (action) => (
-                        <ActionForm
-                          key={action}
-                          action={pipelineAction}
-                          successTitle={
-                            action === "shortlist"
-                              ? "Creator shortlisted"
-                              : action === "decline"
-                                ? "Application declined"
-                                : "Application accepted"
-                          }
-                        >
-                          <input
-                            type="hidden"
-                            name="applicationId"
-                            value={app.id}
-                          />
-                          <input type="hidden" name="action" value={action} />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant={
-                              action === "accept"
-                                ? "primary"
-                                : action === "decline"
-                                  ? "ghost"
-                                  : "secondary"
-                            }
-                            className="capitalize"
-                          >
-                            {action}
-                          </Button>
-                        </ActionForm>
-                      ),
-                    )}
+                    {canManageBrief
+                      ? (["shortlist", "decline", "accept"] as const).map(
+                          (action) => (
+                            <ActionForm
+                              key={action}
+                              action={pipelineAction}
+                              successTitle={
+                                action === "shortlist"
+                                  ? "Creator shortlisted"
+                                  : action === "decline"
+                                    ? "Application declined"
+                                    : "Application accepted"
+                              }
+                            >
+                              <input
+                                type="hidden"
+                                name="applicationId"
+                                value={app.id}
+                              />
+                              <input type="hidden" name="action" value={action} />
+                              <Button
+                                type="submit"
+                                size="sm"
+                                variant={
+                                  action === "accept"
+                                    ? "primary"
+                                    : action === "decline"
+                                      ? "ghost"
+                                      : "secondary"
+                                }
+                                className="capitalize"
+                              >
+                                {action}
+                              </Button>
+                            </ActionForm>
+                          ),
+                        )
+                      : null}
                   </div>
                 </div>
-                <ActionForm
-                  action={counterOfferAction}
-                  successTitle="Counter-offer sent"
-                  className="mt-4 grid min-w-0 gap-2 sm:flex sm:flex-wrap"
-                >
-                  <input type="hidden" name="applicationId" value={app.id} />
-                  <Input
-                    name="amount"
-                    type="number"
-                    required
-                    placeholder="Counter amount"
-                    className="max-w-[180px]"
-                  />
-                  <Button type="submit" size="sm" variant="secondary">
-                    Counter
-                  </Button>
-                </ActionForm>
-                {app.offers[0] && app.offers[0].status !== "AGREED" ? (
-                  <ActionForm
-                    action={acceptOfferAction}
-                    successTitle="Offer marked agreed"
-                    className="mt-2"
-                  >
-                    <input
-                      type="hidden"
-                      name="offerId"
-                      value={app.offers[0].id}
-                    />
-                    <Button type="submit" variant="ghost" size="sm">
-                      Mark latest offer agreed
-                    </Button>
-                  </ActionForm>
+                {canManageBrief ? (
+                  <>
+                    <ActionForm
+                      action={counterOfferAction}
+                      successTitle="Counter-offer sent"
+                      className="mt-4 grid min-w-0 gap-2 sm:flex sm:flex-wrap"
+                    >
+                      <input type="hidden" name="applicationId" value={app.id} />
+                      <Input
+                        name="amount"
+                        type="number"
+                        required
+                        placeholder="Counter amount"
+                        className="max-w-[180px]"
+                      />
+                      <Button type="submit" size="sm" variant="secondary">
+                        Counter
+                      </Button>
+                    </ActionForm>
+                    {app.offers[0] && app.offers[0].status !== "AGREED" ? (
+                      <ActionForm
+                        action={acceptOfferAction}
+                        successTitle="Offer marked agreed"
+                        className="mt-2"
+                      >
+                        <input
+                          type="hidden"
+                          name="offerId"
+                          value={app.offers[0].id}
+                        />
+                        <Button type="submit" variant="ghost" size="sm">
+                          Mark latest offer agreed
+                        </Button>
+                      </ActionForm>
+                    ) : null}
+                  </>
                 ) : null}
                 </Panel>
               </li>

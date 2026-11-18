@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { marketplaceStatusLabel } from "@/components/ui/status-badge";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress";
@@ -18,7 +19,7 @@ export function CreatorOnboarding({
     ["03", "Channels", "Connect Instagram, TikTok or YouTube for live metrics."],
     ["04", "Packages", "Publish clear pricing, turnaround and usage rights."],
     ["05", "Portfolio", "Add at least three strong photo or video samples."],
-    ["06", "Review", "Preview the brand experience and submit for approval."],
+    ["06", "Go live", "At 100% complete your profile becomes Active. No Woosh review."],
   ];
   return (
     <div className="grid gap-6">
@@ -26,7 +27,7 @@ export function CreatorOnboarding({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <Badge tone={status === "PUBLISHED" ? "teal" : "blue"}>
-              {status.replaceAll("_", " ")}
+              {marketplaceStatusLabel(status)}
             </Badge>
             <h2 className="mt-3 text-xl font-semibold tracking-[-0.02em] text-[var(--woosh-navy)]">
               Welcome, {displayName}
