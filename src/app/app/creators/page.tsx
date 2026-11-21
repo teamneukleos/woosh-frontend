@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
-import { listDiscovery } from "@/domains/creator/prospects";
+import {
+  DISCOVERY_PAGE_SIZE,
+  listDiscovery,
+} from "@/domains/creator/prospects";
 import { createProspectAction } from "@/app/actions";
 import type { SocialChannel } from "@/lib/enums";
 import { AppPage, DataToolbar } from "@/components/ui/app-page";
@@ -12,27 +15,58 @@ import { CategoryPicker } from "@/components/ui/taxonomy-pickers";
 import { ActionForm } from "@/components/ui/action-form";
 import { CreatorDiscoveryCard } from "@/components/creator/creator-discovery-card";
 import { CreatorDiscoveryFilters } from "@/components/creator/creator-discovery-filters";
+import { Pagination } from "@/components/ui/pagination";
 import { CREATOR_CATEGORIES, SOCIAL_CHANNELS } from "@/lib/taxonomy";
+
+type CreatorsSearch = {
+  q?: string;
+  channel?: string;
+  type?: string;
+  category?: string;
+  minFollowers?: string;
+  minEngagement?: string;
+  minAverageViews?: string;
+  maxRate?: string;
+  country?: string;
+  city?: string;
+  language?: string;
+  ageBand?: string;
+  gender?: string;
+  sort?: "newest" | "followers" | "engagement" | "views" | "price";
+  page?: string;
+};
+
+function creatorsListHref(params: CreatorsSearch, page: number) {
+  const query = new URLSearchParams();
+  const keys = [
+    "q",
+    "channel",
+    "type",
+    "category",
+    "minFollowers",
+    "minEngagement",
+    "minAverageViews",
+    "maxRate",
+    "country",
+    "city",
+    "language",
+    "ageBand",
+    "gender",
+    "sort",
+  ] as const;
+  for (const key of keys) {
+    const value = params[key];
+    if (value) query.set(key, value);
+  }
+  if (page > 1) query.set("page", String(page));
+  const qs = query.toString();
+  return qs ? `/app/creators?${qs}` : "/app/creators";
+}
 
 export default async function CreatorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    q?: string;
-    channel?: string;
-    type?: string;
-    category?: string;
-    minFollowers?: string;
-    minEngagement?: string;
-    minAverageViews?: string;
-    maxRate?: string;
-    country?: string;
-    city?: string;
-    language?: string;
-    ageBand?: string;
-    gender?: string;
-    sort?: "newest" | "followers" | "engagement" | "views" | "price";
-  }>;
+  searchParams: Promise<CreatorsSearch>;
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -40,7 +74,8 @@ export default async function CreatorsPage({
   if (!ctx || ctx.kind === "creator") redirect("/app");
 
   const params = await searchParams;
-  const items = await listDiscovery({
+  const page = Math.max(1, Number(params.page) || 1);
+  const result = await listDiscovery({
     q: params.q,
     channel: params.channel as SocialChannel | undefined,
     category: params.category,
@@ -63,7 +98,12 @@ export default async function CreatorsPage({
       : undefined,
     maxRate: params.maxRate ? Number(params.maxRate) : undefined,
     sort: params.sort ?? "followers",
+    page,
+    pageSize: DISCOVERY_PAGE_SIZE,
   });
+  const items = result.items;
+  const from = result.total === 0 ? 0 : (result.page - 1) * result.pageSize + 1;
+  const to = Math.min(result.page * result.pageSize, result.total);
 
   return (
     <AppPage
@@ -89,11 +129,13 @@ export default async function CreatorsPage({
       </DataToolbar>
 
       <p className="text-sm text-[var(--text-secondary)]">
-        {items.length} creator{items.length === 1 ? "" : "s"}
+        {result.total
+          ? `Showing ${from}-${to} of ${result.total} creator${result.total === 1 ? "" : "s"}`
+          : "0 creators"}
       </p>
 
       {items.length ? (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
             <li key={`${item.type}-${item.id}`}>
               <CreatorDiscoveryCard
@@ -117,6 +159,13 @@ export default async function CreatorsPage({
           }
         />
       )}
+
+      <Pagination
+        page={result.page}
+        pageSize={result.pageSize}
+        total={result.total}
+        hrefForPage={(nextPage) => creatorsListHref(params, nextPage)}
+      />
 
       <details className="rounded-[var(--radius-surface)] border border-[var(--woosh-border)] bg-white">
         <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-[var(--woosh-navy)]">

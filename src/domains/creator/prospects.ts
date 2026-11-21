@@ -80,6 +80,15 @@ export async function getProspect(id: string) {
   }>(`/creators/prospects/${id}`);
 }
 
+export type DiscoveryPage = {
+  items: DiscoveryItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export const DISCOVERY_PAGE_SIZE = 100;
+
 export async function listDiscovery(filters: {
   q?: string;
   channel?: SocialChannel;
@@ -97,6 +106,8 @@ export async function listDiscovery(filters: {
   minAverageViews?: number;
   maxRate?: number;
   sort?: "newest" | "followers" | "engagement" | "views" | "price";
+  page?: number;
+  pageSize?: number;
 }) {
   const params = new URLSearchParams();
   if (filters.q) params.set("q", filters.q);
@@ -115,8 +126,10 @@ export async function listDiscovery(filters: {
   }
   if (filters.maxRate != null) params.set("maxRate", String(filters.maxRate));
   if (filters.sort) params.set("sort", filters.sort);
+  if (filters.page != null) params.set("page", String(filters.page));
+  params.set("pageSize", String(filters.pageSize ?? DISCOVERY_PAGE_SIZE));
   const query = params.toString();
-  return api<DiscoveryItem[]>(`/creators/discovery${query ? `?${query}` : ""}`);
+  return api<DiscoveryPage>(`/creators/discovery${query ? `?${query}` : ""}`);
 }
 
 export async function getClaimedCreator(

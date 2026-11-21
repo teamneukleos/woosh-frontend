@@ -51,7 +51,7 @@ export default async function BriefDetailPage({
     canManageBrief &&
     ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(brief.status);
   const inviteTargets = canInvite
-    ? (await listDiscovery({ sort: "followers" })).map((item) => ({
+    ? (await listDiscovery({ sort: "followers", pageSize: 500 })).items.map((item) => ({
         id: item.id,
         displayName:
           item.displayName ||
