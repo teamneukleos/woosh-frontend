@@ -17,6 +17,8 @@ export function Pagination({
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (pages <= 1) return null;
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
 
   return (
     <nav
@@ -24,7 +26,7 @@ export function Pagination({
       aria-label="Pagination"
     >
       <p className="text-sm text-[var(--woosh-dull)]/70">
-        Page {page} of {pages}
+        Showing {from}-{to} of {total} · Page {page} of {pages}
       </p>
       <div className="flex gap-2">
         {page > 1 ? (

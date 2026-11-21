@@ -25,10 +25,10 @@ export function CreatorDiscoveryCard({
       ? [item.channel]
       : [];
   const stats = [
-    { label: "Followers", value: formatCompact(item.followers) },
-    { label: "Engagement", value: formatEngagement(item.engagementRate) },
-    { label: "Avg likes", value: formatCompact(item.averageLikes) },
-    { label: "Avg views", value: formatCompact(item.averageViews) },
+    { label: "Followers", hint: "Followers", value: formatCompact(item.followers) },
+    { label: "ER", hint: "Engagement rate", value: formatEngagement(item.engagementRate) },
+    { label: "Likes", hint: "Average likes", value: formatCompact(item.averageLikes) },
+    { label: "Views", hint: "Average views", value: formatCompact(item.averageViews) },
   ];
 
   return (
@@ -69,13 +69,17 @@ export function CreatorDiscoveryCard({
           </div>
         </div>
 
-        <dl className="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 p-3 sm:grid-cols-4">
+        <dl className="mt-4 grid grid-cols-4 gap-x-1 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 px-2 py-2.5">
           {stats.map((stat) => (
-            <div key={stat.label}>
-              <dt className="text-[0.65rem] uppercase tracking-[0.04em] text-[var(--woosh-dull)]/55">
+            <div
+              key={stat.label}
+              title={stat.hint}
+              className="flex min-w-0 flex-col-reverse items-center px-1"
+            >
+              <dt className="mt-1 w-full truncate text-center text-[0.625rem] font-medium uppercase tracking-[0.04em] text-[var(--woosh-dull)]/55">
                 {stat.label}
               </dt>
-              <dd className="mt-0.5 text-sm font-semibold text-[var(--woosh-navy)]">
+              <dd className="w-full truncate text-center text-sm font-semibold tabular-nums leading-none text-[var(--woosh-navy)]">
                 {stat.value}
               </dd>
             </div>

@@ -1,15 +1,19 @@
-export function formatCompact(value: number | null | undefined) {
-  if (value == null || !Number.isFinite(value)) return "—";
-  const abs = Math.abs(value);
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
-  if (abs >= 10_000) return `${Math.round(value / 1_000)}k`;
-  if (abs >= 1_000) return `${(value / 1_000).toFixed(1)}k`;
-  return Math.round(value).toLocaleString("en-NG");
+export function formatCompact(value: number | string | null | undefined) {
+  if (value == null || value === "") return "—";
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
+  if (abs >= 10_000) return `${Math.round(n / 1_000)}k`;
+  if (abs >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return Math.round(n).toLocaleString("en-NG");
 }
 
-export function formatEngagement(value: number | null | undefined) {
-  if (value == null || !Number.isFinite(value) || value <= 0) return "—";
-  return `${value.toFixed(1)}%`;
+export function formatEngagement(value: number | string | null | undefined) {
+  if (value == null || value === "") return "—";
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n) || n <= 0) return "—";
+  return `${n.toFixed(1)}%`;
 }
 
 export function estimateAverageLikes(

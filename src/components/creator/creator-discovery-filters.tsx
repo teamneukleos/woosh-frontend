@@ -40,7 +40,11 @@ export function CreatorDiscoveryFilters({
   );
 
   return (
-    <form className="flex w-full min-w-0 flex-col gap-4">
+    <form
+      action="/app/creators"
+      method="get"
+      className="flex w-full min-w-0 flex-col gap-4"
+    >
       <Label>
         Search
         <Input name="q" defaultValue={q} placeholder="Name or handle" />
