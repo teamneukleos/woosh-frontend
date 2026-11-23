@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+.cursor
+node_modules
+.next
+coverage
+uploads
+.env
+.env.*
+!.env.example
+*.png
+!public/**
+Dockerfile
+.dockerignore

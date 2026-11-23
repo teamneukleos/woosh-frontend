@@ -1,0 +1,71 @@
+name: Deploy production
+
+# Builds the web image, pushes it to ECR and rolls the ECS service.
+# Configure the GitHub environment "production" with the variables printed by
+# `terraform output github_frontend_variables` in woosh-infra. Until
+# AWS_DEPLOY_ROLE_ARN is set, this workflow skips itself.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Next embeds this key in the build; the running container gets the
+      # same value from Secrets Manager, so instances can decrypt each other's
+      # Server Action references.
+      - name: Fetch Server Actions key
+        run: |
+          KEY=$(aws secretsmanager get-secret-value \
+            --secret-id "${{ vars.WEB_SECRET_ARN }}" \
+            --query SecretString --output text \
+            | jq -r .NEXT_SERVER_ACTIONS_ENCRYPTION_KEY)
+          echo "::add-mask::$KEY"
+          printf '%s' "$KEY" > "$RUNNER_TEMP/server-actions-key"
+
+      - name: Build and push image
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}
+          DOCKER_BUILDKIT: "1"
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_APP_URL="${{ vars.NEXT_PUBLIC_APP_URL }}" \
+            --build-arg NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --secret id=server_actions_key,src="$RUNNER_TEMP/server-actions-key" \
+            -t "$IMAGE:$GITHUB_SHA" -t "$IMAGE:production" .
+          rm -f "$RUNNER_TEMP/server-actions-key"
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:production"
+
+      - name: Roll out ECS service
+        run: |
+          aws ecs update-service \
+            --cluster "${{ vars.ECS_CLUSTER }}" \
+            --service "${{ vars.ECS_SERVICE }}" \
+            --force-new-deployment > /dev/null
+          aws ecs wait services-stable \
+            --cluster "${{ vars.ECS_CLUSTER }}" \
+            --services "${{ vars.ECS_SERVICE }}"
