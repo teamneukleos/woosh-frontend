@@ -87,6 +87,22 @@ export type DiscoveryPage = {
   pageSize: number;
 };
 
+export type DiscoverySuggestion = {
+  id: string;
+  type: "claimed" | "prospect";
+  displayName: string;
+  handle?: string;
+  channel?: SocialChannel;
+};
+
+export async function searchDiscoverySuggestions(q: string) {
+  const params = new URLSearchParams({ q });
+
+  return api<DiscoverySuggestion[]>(
+    `/creators/discovery/suggestions?${params.toString()}`,
+  );
+}
+
 export const DISCOVERY_PAGE_SIZE = 100;
 
 export async function listDiscovery(filters: {

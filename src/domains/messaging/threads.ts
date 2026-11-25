@@ -5,10 +5,13 @@ type NestThread = {
   id: string;
   type: string;
   title: string;
+  unreadCount: number;
   lastMessage: {
     body: string;
     createdAt: string | Date;
     isSystem: boolean;
+    senderUserId: string | null;
+    readAt: string | Date | null;
   } | null;
 };
 
@@ -36,6 +39,7 @@ export async function listConversations(_userId?: string) {
     id: row.id,
     type: row.type,
     title: row.title,
+    unreadCount: row.unreadCount,
     application: null,
     campaign: null,
     brand: null,
@@ -46,8 +50,8 @@ export async function listConversations(_userId?: string) {
             body: row.lastMessage.body,
             createdAt: asDate(row.lastMessage.createdAt) ?? new Date(),
             isSystem: row.lastMessage.isSystem,
-            senderUserId: "",
-            readAt: null,
+            senderUserId: row.lastMessage.senderUserId ?? "",
+            readAt: asDate(row.lastMessage.readAt),
           },
         ]
       : [],
@@ -81,4 +85,8 @@ export async function sendMessage(input: {
     method: "POST",
     body: { body: input.body },
   });
+}
+
+export async function countUnreadMessages() {
+  return api<number>("/conversations/unread-count");
 }

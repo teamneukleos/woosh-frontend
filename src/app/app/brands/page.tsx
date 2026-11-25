@@ -24,59 +24,83 @@ export default async function BrandsPage() {
 
   return (
     <AppPage
-        eyebrow={isAgency ? "Agency" : "Organisation"}
-        title="Brands"
-        description={
-          isAgency
-            ? "Client brand workspaces. Switch context or add brands from settings."
-            : "Each brand line has its own wallet. Switch context or add another from settings."
-        }
-        actions={
-          <ButtonLink href="/app/settings" variant="secondary">
-            Add brand
-          </ButtonLink>
-        }
+      eyebrow={isAgency ? "Agency" : "Organisation"}
+      title="Brands"
+      description={
+        isAgency
+          ? "Client brand workspaces. Switch context or add brands from settings."
+          : "Each brand line has its own wallet. Switch context or add another from settings."
+      }
+      actions={
+        <ButtonLink href="/app/settings" variant="secondary">
+          Add brand
+        </ButtonLink>
+      }
     >
       {ctx.brands.length ? (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {ctx.brands.map((b) => (
-            <li key={b.id}>
-              <Panel>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-[var(--woosh-navy)]">
-                    {b.name}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--woosh-dull)]/65">
-                    {b.industry || "No industry set"}
-                  </p>
-                </div>
-                {ctx.activeBrandId === b.id ? (
-                  <Badge tone="teal">Active</Badge>
-                ) : null}
-              </div>
-              <div className="mt-4 flex gap-2">
-                <ActionForm action={switchBrandAction} successTitle="Brand switched">
-                  <input type="hidden" name="brandId" value={b.id} />
-                  <Button type="submit" size="sm">
-                    Switch to brand
-                  </Button>
-                </ActionForm>
-                <ButtonLink href="/app/briefs" variant="secondary" size="sm">
-                  Briefs
-                </ButtonLink>
-              </div>
-              </Panel>
-            </li>
-          ))}
-        </ul>
+        <Panel className="overflow-hidden p-0">
+          <div className="border-b border-[var(--woosh-navy)]/10 bg-[var(--woosh-navy)]/[0.03] px-5 py-2.5 text-xs font-medium text-[var(--woosh-dull)]/70">
+            {ctx.brands.length} {ctx.brands.length === 1 ? "brand" : "brands"}
+          </div>
+
+          <ul className="divide-y divide-[var(--woosh-navy)]/10">
+            {ctx.brands.map((b) => {
+              const isActive = ctx.activeBrandId === b.id;
+              return (
+                <li
+                  key={b.id}
+                  className={`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+                    isActive ? "bg-[var(--woosh-navy)]/[0.04]" : ""
+                  }`}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--woosh-navy)] text-sm font-semibold text-white"
+                    >
+                      {b.name.trim().charAt(0).toUpperCase()}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-semibold text-[var(--woosh-navy)]">
+                          {b.name}
+                        </p>
+                        {isActive ? <Badge tone="teal">Active</Badge> : null}
+                      </div>
+                      <p className="mt-0.5 truncate text-sm text-[var(--woosh-dull)]/65">
+                        {b.industry || "No industry set"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 gap-2">
+                    <ActionForm
+                      action={switchBrandAction}
+                      successTitle="Brand switched"
+                    >
+                      <input type="hidden" name="brandId" value={b.id} />
+                      <Button type="submit" size="sm">
+                        Switch to brand
+                      </Button>
+                    </ActionForm>
+                    <ButtonLink
+                      href="/app/briefs"
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Briefs
+                    </ButtonLink>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
       ) : (
         <EmptyState
           title={isAgency ? "No client brands" : "No brands yet"}
           description="Create your first brand to open discovery and briefs."
-          action={
-            <ButtonLink href="/app/onboarding">Create brand</ButtonLink>
-          }
+          action={<ButtonLink href="/app/onboarding">Create brand</ButtonLink>}
         />
       )}
     </AppPage>

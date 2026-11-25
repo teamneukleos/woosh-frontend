@@ -1,11 +1,21 @@
+
 import type { Metadata } from "next";
+
 import { redirect } from "next/navigation";
+
 import { auth, signOut } from "@/lib/auth";
+
 import { getWorkspaceContext } from "@/lib/workspace";
+
 import { AppShell } from "@/components/layout/app-shell";
+
 import { Surface } from "@/components/surface";
+
 import { noIndex } from "@/lib/seo";
+
 import { countUnreadNotifications } from "@/domains/identity/notifications";
+
+import { countUnreadMessages } from "@/domains/messaging/threads";
 
 export const metadata: Metadata = {
   robots: noIndex,
@@ -18,11 +28,17 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+
   if (!session?.user?.id || session.error === "RefreshFailed") redirect("/login");
 
   const ctx = await getWorkspaceContext(session.user.id);
+
   if (!ctx) redirect("/login");
-  const unreadNotifications = await countUnreadNotifications();
+
+  const [unreadNotifications, unreadMessages] = await Promise.all([
+    countUnreadNotifications(),
+    countUnreadMessages(),
+  ]);
 
   async function signOutAction() {
     "use server";
@@ -39,6 +55,7 @@ export default async function AppLayout({
         activeBrandId={ctx.activeBrandId}
         activeBrandName={ctx.activeBrand?.name}
         unreadNotifications={unreadNotifications}
+        unreadMessages={unreadMessages}
         membershipRole={ctx.membership?.role}
         isPlatformAdmin={ctx.user.isPlatformAdmin}
         signOutAction={signOutAction}

@@ -24,6 +24,11 @@ import {
   formatEngagement,
 } from "@/lib/discovery-stats";
 
+// Two-column shell: content fills the width, actions stay in a sticky sidebar.
+const SHELL = "grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start";
+const MAIN = "grid min-w-0 gap-4";
+const ASIDE = "grid gap-4 lg:sticky lg:top-6";
+
 export default async function CreatorDetailPage({
   params,
   searchParams,
@@ -64,177 +69,218 @@ export default async function CreatorDetailPage({
           prospect.locationCity ? ` · ${prospect.locationCity}` : ""
         }`}
         actions={<Badge tone="teal">Unclaimed prospect</Badge>}
-        width="narrow"
-        className="max-w-2xl"
+        width="wide"
+        className="max-w-none"
       >
         <BackLink href="/app/creators">Creators</BackLink>
-        <Panel
-          title="Shortlist"
-          description="Save them to your roster. They are not notified until you invite them to a brief."
-        >
-          <ActionForm
-            action={toggleSaveCreatorAction}
-            successTitle={
-              prospect.saved ? "Removed from shortlist" : "Creator shortlisted"
-            }
-          >
-            <input type="hidden" name="prospectId" value={prospect.id} />
-            <input type="hidden" name="saved" value={prospect.saved ? "1" : "0"} />
-            <Button type="submit" variant="secondary">
-              {prospect.saved ? "Shortlisted" : "Shortlist"}
-            </Button>
-          </ActionForm>
-        </Panel>
-        <Panel>
-          <div className="flex items-start gap-3">
-            <Avatar
-              name={prospect.displayName || prospect.handle}
-              src={prospect.avatarUrl}
-              size="lg"
-            />
-            <div>
-              <ChannelMark channel={prospect.channel} />
-              {prospect.website ? (
-                <p className="mt-2 truncate text-sm text-[var(--woosh-blue)]">
-                  {prospect.website}
+
+        <div className={SHELL}>
+          {/* Main column */}
+          <div className={MAIN}>
+            <Panel>
+              <div className="flex items-start gap-4">
+                <Avatar
+                  name={prospect.displayName || prospect.handle}
+                  src={prospect.avatarUrl}
+                  size="lg"
+                />
+                <div className="min-w-0">
+                  <ChannelMark channel={prospect.channel} />
+                  {prospect.website ? (
+                    <p className="mt-2 truncate text-sm text-[var(--woosh-blue)]">
+                      {prospect.website}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              {prospect.biography ? (
+                <p className="mt-4 max-w-3xl whitespace-pre-line text-sm leading-6 text-[var(--woosh-dull)]">
+                  {prospect.biography}
                 </p>
               ) : null}
-            </div>
-          </div>
-          {prospect.biography ? (
-            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[var(--woosh-dull)]">
-              {prospect.biography}
-            </p>
-          ) : null}
-          {prospect.categories.length ? (
-            <p className="mt-3 text-sm text-[var(--woosh-dull)]/70">
-              {prospect.categories.join(" · ")}
-            </p>
-          ) : null}
-          <dl className="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 p-3 sm:grid-cols-4">
-            {[
-              {
-                label: "Followers",
-                value: formatCompact(prospect.followers ?? prospect.followerEstimate),
-              },
-              {
-                label: "Engagement",
-                value: formatEngagement(prospect.engagementRate),
-              },
-              {
-                label: "Avg likes",
-                value: formatCompact(prospect.averageLikes),
-              },
-              {
-                label: "Posts",
-                value: prospect.mediaCount?.toLocaleString() ?? "—",
-              },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <dt className="text-[0.65rem] uppercase tracking-[0.04em] text-[var(--woosh-dull)]/55">
-                  {stat.label}
-                </dt>
-                <dd className="mt-0.5 text-sm font-semibold text-[var(--woosh-navy)]">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-2 text-[0.6875rem] text-[var(--text-muted)]">
-            {prospect.metricSampleSize
-              ? `Engagement is (avg likes + avg comments) ÷ followers from ${prospect.metricSampleSize} recent posts. Not verified until they connect.`
-              : "Metrics appear after Graph enrich. Not verified until they connect."}
-          </p>
-        </Panel>
-        {prospect.recentPosts?.length ? (
-          <Panel
-            title="Recent posts"
-            description="Last three posts from Instagram. Opens on Instagram."
-          >
-            <ul className="grid grid-cols-3 gap-2">
-              {prospect.recentPosts.slice(0, 3).map((post) => {
-                const inner = (
-                  <>
-                    {post.imageUrl ? (
-                      <img
-                        src={post.imageUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="flex h-full items-center justify-center p-2 text-center text-xs text-[var(--text-muted)]">
-                        {post.mediaType === "VIDEO" ? "Video" : "Post"}
-                      </span>
-                    )}
-                    {post.likeCount != null ? (
-                      <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[0.65rem] text-white">
-                        {formatCompact(post.likeCount)}
-                      </span>
-                    ) : null}
-                  </>
-                );
-                return (
-                  <li key={post.id}>
-                    {post.permalink ? (
-                      <a
-                        href={post.permalink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="relative block aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)]"
-                      >
-                        {inner}
-                      </a>
-                    ) : (
-                      <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)]">
-                        {inner}
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
-        ) : null}
-        {briefs.length ? (
-          <Panel
-            title="Invite to brief"
-            description="They get a claim email with the brief summary. They must finish profile setup before they can take the work."
-          >
-            <ActionForm
-              action={inviteToBriefAction}
-              successTitle="Invitation sent"
-              className="grid gap-3"
-            >
-              <input type="hidden" name="prospectId" value={prospect.id} />
-              <Label>
-                Brief
-                <Select name="briefId" required defaultValue={briefs[0]?.id}>
-                  {briefs.map((brief) => (
-                    <option key={brief.id} value={brief.id}>
-                      {brief.title}
-                    </option>
+              {prospect.categories.length ? (
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {prospect.categories.map((category) => (
+                    <li
+                      key={category}
+                      className="rounded-full bg-[var(--woosh-navy)]/5 px-3 py-1 text-xs font-medium text-[var(--woosh-dull)]"
+                    >
+                      {category}
+                    </li>
                   ))}
-                </Select>
-              </Label>
-              <Label>
-                Message
-                <TextArea name="message" rows={2} placeholder="Optional note" />
-              </Label>
-              <Button type="submit" className="w-fit">
-                Send invitation
-              </Button>
-            </ActionForm>
-          </Panel>
-        ) : (
-          <Panel
-            title="Invite to brief"
-            description="Publish a brief first. Unclaimed accounts are invited to a brief, not pinged on their own."
-          >
-            <ButtonLink href="/app/briefs/new" variant="secondary">
-              New brief
-            </ButtonLink>
-          </Panel>
-        )}
+                </ul>
+              ) : null}
+            </Panel>
+
+            <Panel>
+              <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  {
+                    label: "Followers",
+                    value: formatCompact(
+                      prospect.followers ?? prospect.followerEstimate,
+                    ),
+                  },
+                  {
+                    label: "Engagement",
+                    value: formatEngagement(prospect.engagementRate),
+                  },
+                  {
+                    label: "Avg likes",
+                    value: formatCompact(prospect.averageLikes),
+                  },
+                  {
+                    label: "Posts",
+                    value: prospect.mediaCount?.toLocaleString() ?? "—",
+                  },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-[var(--radius-md)] bg-[var(--woosh-mist)]/70 p-4"
+                  >
+                    <dt className="text-xs text-[var(--woosh-dull)]/65">
+                      {stat.label}
+                    </dt>
+                    <dd className="mt-1 text-2xl font-semibold tabular-nums text-[var(--woosh-navy)]">
+                      {stat.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">
+                {prospect.metricSampleSize
+                  ? `Engagement is (avg likes + avg comments) ÷ followers from ${prospect.metricSampleSize} recent posts. Not verified until they connect.`
+                  : "Metrics appear after Graph enrich. Not verified until they connect."}
+              </p>
+            </Panel>
+
+            {prospect.recentPosts?.length ? (
+              <Panel
+                title="Recent posts"
+                description="Last three posts from Instagram. Opens on Instagram."
+              >
+                <ul className="grid grid-cols-3 gap-3">
+                  {prospect.recentPosts.slice(0, 3).map((post) => {
+                    const inner = (
+                      <>
+                        {post.imageUrl ? (
+                          <img
+                            src={post.imageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-full items-center justify-center p-2 text-center text-xs text-[var(--text-muted)]">
+                            {post.mediaType === "VIDEO" ? "Video" : "Post"}
+                          </span>
+                        )}
+                        {post.likeCount != null ? (
+                          <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">
+                            {formatCompact(post.likeCount)}
+                          </span>
+                        ) : null}
+                      </>
+                    );
+                    return (
+                      <li key={post.id}>
+                        {post.permalink ? (
+                          <a
+                            href={post.permalink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="relative block aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)] transition-opacity hover:opacity-90"
+                          >
+                            {inner}
+                          </a>
+                        ) : (
+                          <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--woosh-mist)]">
+                            {inner}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Panel>
+            ) : null}
+          </div>
+
+          {/* Sidebar: actions */}
+          <aside className={ASIDE}>
+            <Panel
+              title="Shortlist"
+              description="Save them to your roster. They are not notified until you invite them to a brief."
+            >
+              <ActionForm
+                action={toggleSaveCreatorAction}
+                successTitle={
+                  prospect.saved
+                    ? "Removed from shortlist"
+                    : "Creator shortlisted"
+                }
+              >
+                <input type="hidden" name="prospectId" value={prospect.id} />
+                <input
+                  type="hidden"
+                  name="saved"
+                  value={prospect.saved ? "1" : "0"}
+                />
+                <Button type="submit" variant="secondary">
+                  {prospect.saved ? "Shortlisted" : "Shortlist"}
+                </Button>
+              </ActionForm>
+            </Panel>
+
+            {briefs.length ? (
+              <Panel
+                title="Invite to brief"
+                description="They get a claim email with the brief summary. They must finish profile setup before they can take the work."
+              >
+                <ActionForm
+                  action={inviteToBriefAction}
+                  successTitle="Invitation sent"
+                  className="grid gap-3"
+                >
+                  <input type="hidden" name="prospectId" value={prospect.id} />
+                  <Label>
+                    Brief
+                    <Select
+                      name="briefId"
+                      required
+                      defaultValue={briefs[0]?.id}
+                    >
+                      {briefs.map((brief) => (
+                        <option key={brief.id} value={brief.id}>
+                          {brief.title}
+                        </option>
+                      ))}
+                    </Select>
+                  </Label>
+                  <Label>
+                    Message
+                    <TextArea
+                      name="message"
+                      rows={2}
+                      placeholder="Optional note"
+                    />
+                  </Label>
+                  <Button type="submit" className="w-fit">
+                    Send invitation
+                  </Button>
+                </ActionForm>
+              </Panel>
+            ) : (
+              <Panel
+                title="Invite to brief"
+                description="Publish a brief first. Unclaimed accounts are invited to a brief, not pinged on their own."
+              >
+                <ButtonLink href="/app/briefs/new" variant="secondary">
+                  New brief
+                </ButtonLink>
+              </Panel>
+            )}
+          </aside>
+        </div>
       </AppPage>
     );
   }
@@ -247,7 +293,10 @@ export default async function CreatorDetailPage({
       isAdmin: ctx.user.isPlatformAdmin,
     });
   } catch (error) {
-    if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+    if (
+      error instanceof ApiError &&
+      (error.status === 404 || error.status === 403)
+    ) {
       notFound();
     }
     throw error;
@@ -320,66 +369,82 @@ export default async function CreatorDetailPage({
       title="Storefront"
       description="Performance, portfolio, rates and collaboration history."
       width="wide"
-      className="max-w-6xl"
+      className="max-w-none"
     >
       <BackLink href="/app/creators">Creators</BackLink>
-      <CreatorIntel profile={profile} />
-      <Panel
-        title="Shortlist"
-        description="Save them to your roster. They are not notified until you invite them to a brief."
-      >
-        <ActionForm
-          action={toggleSaveCreatorAction}
-          successTitle={saved ? "Removed from shortlist" : "Creator shortlisted"}
-        >
-          <input type="hidden" name="creatorProfileId" value={raw.id} />
-          <input type="hidden" name="saved" value={saved ? "1" : "0"} />
-          <Button type="submit" variant="secondary">
-            {saved ? "Shortlisted" : "Shortlist"}
-          </Button>
-        </ActionForm>
-      </Panel>
 
-      {briefs.length ? (
-        <Panel
-          title="Invite to brief"
-          description="This is what notifies the creator. The invite includes the brief title and summary."
-        >
-          <ActionForm
-            action={inviteToBriefAction}
-            successTitle="Invitation sent"
-            className="grid gap-3"
+      <div className={SHELL}>
+        {/* Main column */}
+        <div className={MAIN}>
+          <CreatorIntel profile={profile} />
+        </div>
+
+        {/* Sidebar: actions */}
+        <aside className={ASIDE}>
+          <Panel
+            title="Shortlist"
+            description="Save them to your roster. They are not notified until you invite them to a brief."
           >
-            <input type="hidden" name="creatorProfileId" value={raw.id} />
-            <Label>
-              Brief
-              <Select name="briefId" required defaultValue={briefs[0]?.id}>
-                {briefs.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title}
-                  </option>
-                ))}
-              </Select>
-            </Label>
-            <Label>
-              Message
-              <TextArea name="message" rows={2} placeholder="Optional note" />
-            </Label>
-            <Button type="submit" className="w-fit">
-              Send invitation
-            </Button>
-          </ActionForm>
-        </Panel>
-      ) : (
-        <Panel
-          title="Invite to brief"
-          description="Publish a brief first. Creators are only notified when you invite them to one."
-        >
-          <ButtonLink href="/app/briefs/new" variant="secondary">
-            New brief
-          </ButtonLink>
-        </Panel>
-      )}
+            <ActionForm
+              action={toggleSaveCreatorAction}
+              successTitle={
+                saved ? "Removed from shortlist" : "Creator shortlisted"
+              }
+            >
+              <input type="hidden" name="creatorProfileId" value={raw.id} />
+              <input type="hidden" name="saved" value={saved ? "1" : "0"} />
+              <Button type="submit" variant="secondary">
+                {saved ? "Shortlisted" : "Shortlist"}
+              </Button>
+            </ActionForm>
+          </Panel>
+
+          {briefs.length ? (
+            <Panel
+              title="Invite to brief"
+              description="This is what notifies the creator. The invite includes the brief title and summary."
+            >
+              <ActionForm
+                action={inviteToBriefAction}
+                successTitle="Invitation sent"
+                className="grid gap-3"
+              >
+                <input type="hidden" name="creatorProfileId" value={raw.id} />
+                <Label>
+                  Brief
+                  <Select name="briefId" required defaultValue={briefs[0]?.id}>
+                    {briefs.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.title}
+                      </option>
+                    ))}
+                  </Select>
+                </Label>
+                <Label>
+                  Message
+                  <TextArea
+                    name="message"
+                    rows={2}
+                    placeholder="Optional note"
+                  />
+                </Label>
+                <Button type="submit" className="w-fit">
+                  Send invitation
+                </Button>
+              </ActionForm>
+            </Panel>
+          ) : (
+            <Panel
+              title="Invite to brief"
+              description="Publish a brief first. Creators are only notified when you invite them to one."
+            >
+              <ButtonLink href="/app/briefs/new" variant="secondary">
+                New brief
+              </ButtonLink>
+            </Panel>
+          )}
+        </aside>
+      </div>
     </AppPage>
   );
 }
