@@ -112,6 +112,10 @@ export async function publishBrief(briefId: string, _actorId?: string) {
   return api(`/briefs/${briefId}/publish`, { method: "POST" });
 }
 
+export async function closeBrief(briefId: string) {
+  return api(`/briefs/${briefId}/close`, { method: "POST" });
+}
+
 export type BrandApplication = {
   id: string;
   status: string;

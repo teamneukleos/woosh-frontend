@@ -1,3 +1,4 @@
+
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
@@ -9,7 +10,9 @@ import {
   counterOfferAction,
   pipelineAction,
   publishBriefAction,
+  closeBriefAction,
 } from "@/app/actions";
+
 import { BackLink } from "@/components/ui/back-link";
 import { Panel, EmptyState } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
@@ -44,12 +47,15 @@ export default async function BriefDetailPage({
   const { id } = await params;
   const brief = await getBrief(id, session.user.id);
   if (!brief) notFound();
+
   const isOps = ctx.kind === "admin" || ctx.user.isPlatformAdmin;
   const canManageBrief =
     !isOps && (ctx.kind === "brand" || ctx.kind === "agency");
+
   const canInvite =
     canManageBrief &&
     ["DRAFT", "PENDING_MODERATION", "OPEN", "SELECTING"].includes(brief.status);
+
   const inviteTargets = canInvite
     ? (await listDiscovery({ sort: "followers", pageSize: 500 })).items.map((item) => ({
         id: item.id,
@@ -76,6 +82,7 @@ export default async function BriefDetailPage({
               ? `${Number(brief.rateAmount).toLocaleString()} ${brief.currency}`
               : brief.rateMode.replaceAll("_", " ")}
           </span>
+
           <span className="flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] bg-[var(--woosh-mist)] px-3 py-1.5">
             {brief.channels.length
               ? brief.channels.map((channel) => (
@@ -83,16 +90,38 @@ export default async function BriefDetailPage({
                 ))
               : "Any channel"}
           </span>
+
           <span className="rounded-[var(--radius-md)] bg-[var(--woosh-mist)] px-3 py-1.5">
             {brief.distribution.replaceAll("_", " ")}
           </span>
         </div>
+
         {canManageBrief &&
         (brief.status === "DRAFT" || brief.status === "PENDING_MODERATION") ? (
-          <ActionForm action={publishBriefAction} successTitle="Brief submitted" className="mt-6">
+          <ActionForm
+            action={publishBriefAction}
+            successTitle="Brief submitted"
+            className="mt-6"
+          >
             <input type="hidden" name="briefId" value={brief.id} />
             <Button type="submit">
               {brief.status === "DRAFT" ? "Submit / publish" : "Re-submit"}
+            </Button>
+          </ActionForm>
+        ) : null}
+
+        {canManageBrief &&
+        (brief.status === "OPEN" || brief.status === "SELECTING") ? (
+          <ActionForm
+            action={closeBriefAction}
+            successTitle="Brief closed"
+            successDescription="New applications are no longer accepted. You can still review existing applicants."
+            confirmMessage="Are you sure you want to close this brief? Creators will no longer be able to apply."
+            className="mt-4"
+          >
+            <input type="hidden" name="briefId" value={brief.id} />
+            <Button type="submit" variant="ghost">
+              Close brief
             </Button>
           </ActionForm>
         ) : null}
@@ -109,155 +138,166 @@ export default async function BriefDetailPage({
       ) : null}
 
       <section>
-          <h2 className="text-[0.9375rem] font-semibold tracking-[-0.015em] text-[var(--woosh-navy)]">
-            Applicants pipeline
-          </h2>
+        <h2 className="text-[0.9375rem] font-semibold tracking-[-0.015em] text-[var(--woosh-navy)]">
+          Applicants pipeline
+        </h2>
+
         {brief.applications.length ? (
           <ul className="mt-4 grid gap-4">
             {brief.applications.map((app) => (
               <li key={app.id}>
                 <Panel>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <Avatar
-                      name={app.creator.displayName}
-                      src={
-                        app.creator.avatarStatus === "APPROVED"
-                          ? app.creator.avatarUrl
-                          : null
-                      }
-                    />
-                    <div>
-                    <div className="flex min-w-0 items-center gap-1.5">
-                    <Link
-                      href={`/app/creators/${app.creator.id}`}
-                      className="truncate font-semibold text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
-                    >
-                      {app.creator.displayName}
-                    </Link>
-                    {app.creator.verifiedAt ? <VerifiedCheck size="sm" /> : null}
-                    </div>
-                    {app.creator.socialAccounts[0]?.handle ? (
-                      <p className="mt-1 text-sm font-medium text-[var(--woosh-navy)]">
-                        {formatHandle(app.creator.socialAccounts[0].handle)}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <Badge tone={statusTone(app.status)}>{app.status}</Badge>
-                      {app.proposedRate != null ? (
-                        <span className="text-sm text-[var(--woosh-dull)]/70">
-                          Proposed{" "}
-                          {Number(app.proposedRate).toLocaleString()}{" "}
-                          {app.currency}
-                        </span>
-                      ) : null}
-                    </div>
-                    {app.creator.socialAccounts[0]?.snapshots[0] ? (
-                      <p className="mt-2 text-xs text-[var(--woosh-dull)]/65">
-                        {app.creator.socialAccounts[0].snapshots[0].followers?.toLocaleString() ??
-                          "—"}{" "}
-                        followers ·{" "}
-                        {app.creator.socialAccounts[0].snapshots[0]
-                          .engagementRate != null
-                          ? `${Number(
-                              app.creator.socialAccounts[0].snapshots[0]
-                                .engagementRate,
-                            ).toFixed(1)}% ER`
-                          : "ER pending"}
-                        {app.creator.ratePackages[0]
-                          ? ` · from ${app.creator.ratePackages[0].currency} ${Number(
-                              app.creator.ratePackages[0].price,
-                            ).toLocaleString()}`
-                          : ""}
-                      </p>
-                    ) : null}
-                    {app.offers[0] ? (
-                      <p className="mt-2 text-xs text-[var(--woosh-dull)]/65">
-                        Latest offer:{" "}
-                        {Number(app.offers[0].amount).toLocaleString()}{" "}
-                        {app.offers[0].currency} ({app.offers[0].status})
-                      </p>
-                    ) : null}
-                    </div>
-                  </div>
-                  <div className="flex min-w-0 flex-wrap gap-2">
-                    {canManageBrief
-                      ? (["shortlist", "decline", "accept"] as const).map(
-                          (action) => (
-                            <ActionForm
-                              key={action}
-                              action={pipelineAction}
-                              successTitle={
-                                action === "shortlist"
-                                  ? "Creator shortlisted"
-                                  : action === "decline"
-                                    ? "Application declined"
-                                    : "Application accepted"
-                              }
-                            >
-                              <input
-                                type="hidden"
-                                name="applicationId"
-                                value={app.id}
-                              />
-                              <input type="hidden" name="action" value={action} />
-                              <Button
-                                type="submit"
-                                size="sm"
-                                variant={
-                                  action === "accept"
-                                    ? "primary"
-                                    : action === "decline"
-                                      ? "ghost"
-                                      : "secondary"
-                                }
-                                className="capitalize"
-                              >
-                                {action}
-                              </Button>
-                            </ActionForm>
-                          ),
-                        )
-                      : null}
-                  </div>
-                </div>
-                {canManageBrief ? (
-                  <>
-                    <ActionForm
-                      action={counterOfferAction}
-                      successTitle="Counter-offer sent"
-                      className="mt-4 grid min-w-0 gap-2 sm:flex sm:flex-wrap"
-                    >
-                      <input type="hidden" name="applicationId" value={app.id} />
-                      <Input
-                        name="amount"
-                        type="number"
-                        required
-                        placeholder="Counter amount"
-                        className="max-w-[180px]"
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar
+                        name={app.creator.displayName}
+                        src={
+                          app.creator.avatarStatus === "APPROVED"
+                            ? app.creator.avatarUrl
+                            : null
+                        }
                       />
-                      <Button type="submit" size="sm" variant="secondary">
-                        Counter
-                      </Button>
-                    </ActionForm>
-                    {app.offers[0] && app.offers[0].status !== "AGREED" ? (
+
+                      <div>
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <Link
+                            href={`/app/creators/${app.creator.id}`}
+                            className="truncate font-semibold text-[var(--woosh-navy)] hover:text-[var(--woosh-blue)]"
+                          >
+                            {app.creator.displayName}
+                          </Link>
+                          {app.creator.verifiedAt ? (
+                            <VerifiedCheck size="sm" />
+                          ) : null}
+                        </div>
+
+                        {app.creator.socialAccounts[0]?.handle ? (
+                          <p className="mt-1 text-sm font-medium text-[var(--woosh-navy)]">
+                            {formatHandle(app.creator.socialAccounts[0].handle)}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <Badge tone={statusTone(app.status)}>{app.status}</Badge>
+                          {app.proposedRate != null ? (
+                            <span className="text-sm text-[var(--woosh-dull)]/70">
+                              Proposed{" "}
+                              {Number(app.proposedRate).toLocaleString()}{" "}
+                              {app.currency}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {app.creator.socialAccounts[0]?.snapshots[0] ? (
+                          <p className="mt-2 text-xs text-[var(--woosh-dull)]/65">
+                            {app.creator.socialAccounts[0].snapshots[0].followers?.toLocaleString() ??
+                              "—"}{" "}
+                            followers ·{" "}
+                            {app.creator.socialAccounts[0].snapshots[0]
+                              .engagementRate != null
+                              ? `${Number(
+                                  app.creator.socialAccounts[0].snapshots[0]
+                                    .engagementRate,
+                                ).toFixed(1)}% ER`
+                              : "ER pending"}
+                            {app.creator.ratePackages[0]
+                              ? ` · from ${app.creator.ratePackages[0].currency} ${Number(
+                                  app.creator.ratePackages[0].price,
+                                ).toLocaleString()}`
+                              : ""}
+                          </p>
+                        ) : null}
+
+                        {app.offers[0] ? (
+                          <p className="mt-2 text-xs text-[var(--woosh-dull)]/65">
+                            Latest offer:{" "}
+                            {Number(app.offers[0].amount).toLocaleString()}{" "}
+                            {app.offers[0].currency} ({app.offers[0].status})
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 flex-wrap gap-2">
+                      {canManageBrief
+                        ? (["shortlist", "decline", "accept"] as const).map(
+                            (action) => (
+                              <ActionForm
+                                key={action}
+                                action={pipelineAction}
+                                successTitle={
+                                  action === "shortlist"
+                                    ? "Creator shortlisted"
+                                    : action === "decline"
+                                      ? "Application declined"
+                                      : "Application accepted"
+                                }
+                              >
+                                <input
+                                  type="hidden"
+                                  name="applicationId"
+                                  value={app.id}
+                                />
+                                <input type="hidden" name="action" value={action} />
+                                <Button
+                                  type="submit"
+                                  size="sm"
+                                  variant={
+                                    action === "accept"
+                                      ? "primary"
+                                      : action === "decline"
+                                        ? "ghost"
+                                        : "secondary"
+                                  }
+                                  className="capitalize"
+                                >
+                                  {action}
+                                </Button>
+                              </ActionForm>
+                            ),
+                          )
+                        : null}
+                    </div>
+                  </div>
+
+                  {canManageBrief ? (
+                    <>
                       <ActionForm
-                        action={acceptOfferAction}
-                        successTitle="Offer marked agreed"
-                        className="mt-2"
+                        action={counterOfferAction}
+                        successTitle="Counter-offer sent"
+                        className="mt-4 grid min-w-0 gap-2 sm:flex sm:flex-wrap"
                       >
-                        <input
-                          type="hidden"
-                          name="offerId"
-                          value={app.offers[0].id}
+                        <input type="hidden" name="applicationId" value={app.id} />
+                        <Input
+                          name="amount"
+                          type="number"
+                          required
+                          placeholder="Counter amount"
+                          className="max-w-[180px]"
                         />
-                        <Button type="submit" variant="ghost" size="sm">
-                          Mark latest offer agreed
+                        <Button type="submit" size="sm" variant="secondary">
+                          Counter
                         </Button>
                       </ActionForm>
-                    ) : null}
-                  </>
-                ) : null}
+
+                      {app.offers[0] && app.offers[0].status !== "AGREED" ? (
+                        <ActionForm
+                          action={acceptOfferAction}
+                          successTitle="Offer marked agreed"
+                          className="mt-2"
+                        >
+                          <input
+                            type="hidden"
+                            name="offerId"
+                            value={app.offers[0].id}
+                          />
+                          <Button type="submit" variant="ghost" size="sm">
+                            Mark latest offer agreed
+                          </Button>
+                        </ActionForm>
+                      ) : null}
+                    </>
+                  ) : null}
                 </Panel>
               </li>
             ))}
