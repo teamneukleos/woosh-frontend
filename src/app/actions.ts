@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { setActiveBrandId } from "@/lib/brand-cookie";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { createProspect } from "@/domains/creator/prospects";
@@ -14,6 +14,7 @@ import {
 import {
   createBrief,
   publishBrief,
+  closeBrief,
   applyToBrief,
 } from "@/domains/marketplace/briefs";
 import {
@@ -316,6 +317,13 @@ export async function publishBriefAction(formData: FormData) {
   revalidatePath("/app/briefs");
 }
 
+export async function closeBriefAction(formData: FormData) {
+  const user = await requireUser();
+  await closeBrief(String(formData.get("briefId")));
+  revalidatePath("/app/briefs");
+  revalidatePath(`/app/briefs/${String(formData.get("briefId"))}`);
+}
+
 export async function applyToBriefAction(formData: FormData) {
   const user = await requireUser();
   const ctx = await getWorkspaceContext(user.id!);
@@ -341,9 +349,32 @@ export async function pipelineAction(formData: FormData) {
   const applicationId = String(formData.get("applicationId"));
   const action = String(formData.get("action"));
 
-  if (action === "shortlist") await shortlist(applicationId, user.id!);
-  if (action === "decline") await decline(applicationId, user.id!);
-  if (action === "accept") await acceptApplication(applicationId, user.id!);
+  if (action === "shortlist") {
+    await shortlist(applicationId, user.id!);
+  }
+
+  if (action === "decline") {
+    await decline(applicationId, user.id!);
+  }
+
+  if (action === "accept") {
+    try {
+      await acceptApplication(applicationId, user.id!);
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 400 &&
+        error.message.startsWith("Insufficient brand funds.")
+      ) {
+        return {
+          ok: false as const,
+          message: error.message,
+        };
+      }
+
+      throw error;
+    }
+  }
 
   revalidatePath("/app/briefs");
   revalidatePath("/app/campaigns");
