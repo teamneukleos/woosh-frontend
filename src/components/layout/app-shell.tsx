@@ -1,8 +1,12 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getSession } from "next-auth/react";
+import { io } from "socket.io-client";
+
 import {
   Bell,
   ChevronsUpDown,
@@ -12,6 +16,7 @@ import {
   Settings,
   X,
 } from "lucide-react";
+
 import { Logo } from "@/components/ui/logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +33,8 @@ import {
 import { groupNav, navForSeat, type NavItem } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { nestSocketOrigin } from "@/lib/socket";
+import { nestRequest } from "@/lib/nest";
 
 type ShellBrand = { id: string; name: string };
 
@@ -39,6 +46,7 @@ export function AppShell({
   activeBrandId,
   activeBrandName,
   unreadNotifications = 0,
+  unreadMessages = 0,
   membershipRole,
   isPlatformAdmin = false,
   signOutAction,
@@ -51,6 +59,7 @@ export function AppShell({
   activeBrandId?: string | null;
   activeBrandName?: string | null;
   unreadNotifications?: number;
+  unreadMessages?: number;
   membershipRole?: string | null;
   isPlatformAdmin?: boolean;
   signOutAction: () => Promise<void>;
@@ -58,15 +67,94 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [liveUnreadMessages, setLiveUnreadMessages] = useState(unreadMessages);
+
+  const refreshUnreadMessages = useCallback(async () => {
+  try {
+    const session = await getSession();
+
+    if (!session?.accessToken) return;
+
+    const count = await nestRequest<number>(
+      "/conversations/unread-count",
+      {
+        accessToken: session.accessToken,
+      },
+    );
+
+    setLiveUnreadMessages(count);
+  } catch (error) {
+    console.error("Failed to refresh unread messages:", error);
+  }
+}, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let socket: ReturnType<typeof io> | null = null;
+
+    async function connect() {
+      const session = await getSession();
+
+      if (cancelled || !session?.accessToken) return;
+
+      socket = io(`${nestSocketOrigin()}/realtime`, {
+        path: "/socket.io",
+        auth: { token: session.accessToken },
+        transports: ["websocket", "polling"],
+        withCredentials: true,
+      });
+
+      socket.on("message.unread", () => {
+        void refreshUnreadMessages();
+      });
+
+      socket.on("connect_error", async () => {
+        const next = await getSession();
+
+        if (next?.accessToken && socket) {
+          socket.auth = { token: next.accessToken };
+        }
+      });
+    }
+
+    void connect();
+
+    return () => {
+      cancelled = true;
+      socket?.disconnect();
+    };
+  }, [refreshUnreadMessages]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void refreshUnreadMessages();
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [pathname, refreshUnreadMessages]);
+
+  useEffect(() => {
+    function handleFocus() {
+      void refreshUnreadMessages();
+    }
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [refreshUnreadMessages]);
+
   const nav = navForSeat(kind, {
     role: membershipRole,
     isPlatformAdmin,
   });
+
   const groups = groupNav(nav);
   const mobileNav = nav.filter((item) => item.mobile);
+
   const showActiveBrand =
     Boolean(activeBrandName) &&
     (kind === "agency" || kind === "brand" || kind === "admin");
+
   const canSwitchBrand = showActiveBrand && brands.length > 1;
 
   function isActive(href: string) {
@@ -110,18 +198,23 @@ export function AppShell({
 
         <nav className="flex flex-1 flex-col gap-4 overflow-y-auto pr-0.5">
           {groups.map((group) => (
-            <div key={group.label ?? group.items[0]?.href} className="flex flex-col gap-0.5">
+            <div
+              key={group.label ?? group.items[0]?.href}
+              className="flex flex-col gap-0.5"
+            >
               {group.label ? (
                 <p className="px-2.5 pb-1 text-[0.6875rem] font-medium text-white/35">
                   {group.label}
                 </p>
               ) : null}
+
               {group.items.map((item) => (
                 <SidebarLink
                   key={item.href}
                   item={item}
                   active={isActive(item.href)}
                   unreadNotifications={unreadNotifications}
+                  unreadMessages={liveUnreadMessages}
                 />
               ))}
             </div>
@@ -144,6 +237,7 @@ export function AppShell({
           className="flex w-[min(92vw,18rem)] flex-col border-white/10 bg-[#07070a] p-4 pt-[max(1rem,env(safe-area-inset-top))] text-white md:hidden"
         >
           <SheetTitle className="sr-only">Woosh navigation</SheetTitle>
+
           <div className="mb-4 flex items-center justify-between">
             <Logo href="/app" light />
             <Button
@@ -157,15 +251,18 @@ export function AppShell({
               <X aria-hidden="true" className="size-5" />
             </Button>
           </div>
+
           <Badge tone="blue" className="mb-3 w-fit capitalize">
             {kind}
           </Badge>
+
           {showActiveBrand ? (
             <ActiveBrandName
               name={activeBrandName!}
               className="mb-3 truncate px-0.5 text-sm font-semibold text-white"
             />
           ) : null}
+
           {canSwitchBrand ? (
             <div className="mb-4">
               <p className="px-0.5 pb-1 text-[0.6875rem] font-medium text-white/35">
@@ -178,26 +275,33 @@ export function AppShell({
               />
             </div>
           ) : null}
+
           <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
             {groups.map((group) => (
-              <div key={group.label ?? group.items[0]?.href} className="flex flex-col gap-0.5">
+              <div
+                key={group.label ?? group.items[0]?.href}
+                className="flex flex-col gap-0.5"
+              >
                 {group.label ? (
                   <p className="px-2.5 pb-1 text-[0.6875rem] font-medium text-white/35">
                     {group.label}
                   </p>
                 ) : null}
+
                 {group.items.map((item) => (
                   <SidebarLink
                     key={item.href}
                     item={item}
                     active={isActive(item.href)}
                     unreadNotifications={unreadNotifications}
+                    unreadMessages={liveUnreadMessages}
                     onNavigate={() => setDrawerOpen(false)}
                   />
                 ))}
               </div>
             ))}
           </nav>
+
           <div className="mt-4 border-t border-white/10 pt-4">
             <UserMenu
               name={userName}
@@ -221,13 +325,16 @@ export function AppShell({
           >
             <Menu aria-hidden="true" className="size-5" />
           </Button>
+
           <Logo href="/app" size="sm" />
+
           {showActiveBrand ? (
             <ActiveBrandName
               name={activeBrandName!}
               className="min-w-0 truncate text-sm font-semibold text-[var(--text-strong)]"
             />
           ) : null}
+
           <div className="ml-auto">
             <Link
               href="/app/notifications"
@@ -262,11 +369,16 @@ export function AppShell({
                       : "text-[var(--text-muted)]",
                   )}
                 >
-                  <item.icon aria-hidden="true" className="size-5" strokeWidth={1.75} />
+                  <item.icon
+                    aria-hidden="true"
+                    className="size-5"
+                    strokeWidth={1.75}
+                  />
                   {item.label}
                 </Link>
               </li>
             ))}
+
             <li className="flex-1">
               <button
                 type="button"
@@ -304,15 +416,27 @@ function SidebarLink({
   item,
   active,
   unreadNotifications = 0,
+  unreadMessages = 0,
   onNavigate,
 }: {
   item: NavItem;
   active: boolean;
   unreadNotifications?: number;
+  unreadMessages?: number;
   onNavigate?: () => void;
 }) {
-  const showUnread =
+  const showUnreadNotifications =
     item.href === "/app/notifications" && unreadNotifications > 0;
+
+  const showUnreadMessages =
+    item.href === "/app/messages" && unreadMessages > 0;
+
+  const unreadCount = showUnreadMessages
+    ? unreadMessages
+    : unreadNotifications;
+
+  const showUnread = showUnreadNotifications || showUnreadMessages;
+
   return (
     <Link
       href={item.href}
@@ -320,7 +444,7 @@ function SidebarLink({
       aria-current={active ? "page" : undefined}
       aria-label={
         showUnread
-          ? `${item.label}, ${unreadNotifications} unread`
+          ? `${item.label}, ${unreadCount} unread`
           : undefined
       }
       className={cn(
@@ -335,9 +459,11 @@ function SidebarLink({
         className="size-4 shrink-0"
         strokeWidth={1.75}
       />
+
       {item.label}
+
       {showUnread ? (
-        <UnreadCount count={unreadNotifications} tone="on-dark" />
+        <UnreadCount count={unreadCount} tone="on-dark" />
       ) : null}
     </Link>
   );
@@ -362,6 +488,7 @@ function UserMenu({
           className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--woosh-blue)]"
         >
           <Avatar name={name || email || "User"} size="sm" />
+
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium text-white">
               {name || "Account"}
@@ -370,17 +497,24 @@ function UserMenu({
               {email}
             </span>
           </span>
-          <ChevronsUpDown aria-hidden="true" className="size-4 text-white/45" />
+
+          <ChevronsUpDown
+            aria-hidden="true"
+            className="size-4 text-white/45"
+          />
         </button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>Account</DropdownMenuLabel>
+
         <DropdownMenuItem asChild>
           <Link href="/app/settings">
             <Settings aria-hidden="true" className="size-4" />
             Settings
           </Link>
         </DropdownMenuItem>
+
         <DropdownMenuItem asChild>
           <Link href="/app/notifications">
             <Bell aria-hidden="true" className="size-4" />
@@ -392,7 +526,9 @@ function UserMenu({
             ) : null}
           </Link>
         </DropdownMenuItem>
+
         <DropdownMenuSeparator />
+
         <DropdownMenuItem
           onSelect={(e) => {
             e.preventDefault();
@@ -406,6 +542,7 @@ function UserMenu({
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
+
       <form id="woosh-signout" action={signOutAction} className="hidden" />
     </DropdownMenu>
   );
@@ -423,6 +560,7 @@ function UnreadCount({
   tone: "on-dark" | "on-light";
 }) {
   if (count <= 0) return null;
+
   return (
     <span
       aria-hidden="true"
