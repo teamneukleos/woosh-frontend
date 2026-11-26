@@ -344,6 +344,7 @@ export async function applyToBriefAction(formData: FormData) {
   redirect(`/app/jobs/${formData.get("briefId")}`);
 }
 
+
 export async function pipelineAction(formData: FormData) {
   const user = await requireUser();
   const applicationId = String(formData.get("applicationId"));
@@ -354,7 +355,18 @@ export async function pipelineAction(formData: FormData) {
   }
 
   if (action === "decline") {
-    await decline(applicationId, user.id!);
+    try {
+      await decline(applicationId, user.id!);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 400) {
+        return {
+          ok: false as const,
+          message: error.message,
+        };
+      }
+
+      throw error;
+    }
   }
 
   if (action === "accept") {
@@ -379,6 +391,7 @@ export async function pipelineAction(formData: FormData) {
   revalidatePath("/app/briefs");
   revalidatePath("/app/campaigns");
 }
+
 
 export async function counterOfferAction(formData: FormData) {
   const user = await requireUser();
