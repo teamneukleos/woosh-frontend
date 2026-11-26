@@ -26,6 +26,7 @@ import {
 } from "@/domains/marketplace/briefs";
 import { countUnreadNotifications } from "@/domains/identity/notifications";
 import { listCreatorEarnings } from "@/domains/payments/ledger";
+import { summarizeEarnings } from "@/domains/payments/earnings";
 import { ButtonLink } from "@/components/ui/button-link";
 import { AppPage } from "@/components/ui/app-page";
 
@@ -345,23 +346,10 @@ export default async function AppHomePage() {
       countUnreadNotifications(),
       listCreatorEarnings(ctx.creatorProfile.id),
     ]);
-    const now = new Date();
-    const available = earnings
-      .filter(
-        (item) =>
-          item.status === "APPROVED" &&
-          !!item.availableAt &&
-          item.availableAt <= now,
-      )
-      .reduce((total, item) => total + Number(item.netAmount), 0);
-    const releasing = earnings
-      .filter(
-        (item) =>
-          item.status === "APPROVED" &&
-          !!item.availableAt &&
-          item.availableAt > now,
-      )
-      .reduce((total, item) => total + Number(item.netAmount), 0);
+    // Same stage totals as the Earnings page (computed by the API, one stage per payment).
+    const totals = summarizeEarnings(earnings);
+    const available = totals.processing;
+    const releasing = totals.pending;
     if (unread > 0) {
       attention.push({
         label:
@@ -391,10 +379,10 @@ export default async function AppHomePage() {
     );
     stats.push(
       {
-        label: "Available earnings",
+        label: "Processing payouts",
         value: naira(available),
         href: "/app/earnings",
-        note: "Ready for automatic payout",
+        note: "Hold ended, being paid out",
       },
       {
         label: "Needs action",
@@ -713,10 +701,10 @@ export default async function AppHomePage() {
                 <li className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
                   <span>
                     <span className="block text-sm font-semibold text-[var(--woosh-navy)]">
-                      Available now
+                      Processing
                     </span>
                     <span className="mt-0.5 block text-sm text-[var(--text-secondary)]">
-                      Approved and ready
+                      Hold ended, being paid out
                     </span>
                   </span>
                   <span className="text-lg font-semibold tabular-nums text-[var(--woosh-navy)]">
@@ -726,10 +714,10 @@ export default async function AppHomePage() {
                 <li className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
                   <span>
                     <span className="block text-sm font-semibold text-[var(--woosh-navy)]">
-                      Releasing soon
+                      Pending release
                     </span>
                     <span className="mt-0.5 block text-sm text-[var(--text-secondary)]">
-                      Approved, not yet released
+                      Approved, in the 72-hour hold
                     </span>
                   </span>
                   <span className="text-lg font-semibold tabular-nums text-[var(--text-secondary)]">

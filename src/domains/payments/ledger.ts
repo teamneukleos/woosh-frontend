@@ -1,9 +1,13 @@
 import { api } from "@/lib/api";
 import { asDate } from "@/lib/nest";
+import { isEarningsStage, type EarningsStage } from "./earnings";
 
 type NestObligation = {
   id: string;
   status: string;
+  stage?: string;
+  releaseAt?: string | Date | null;
+  deliverables?: Array<{ id: string; title: string; state: string }>;
   grossAmount: number;
   platformFee: number;
   netAmount: number;
@@ -26,8 +30,12 @@ type NestObligation = {
 };
 
 function mapObligation(row: NestObligation) {
+  // Unknown or missing stages fall back to "attention" so they are never counted as paid.
+  const stage: EarningsStage = isEarningsStage(row.stage) ? row.stage : "attention";
   return {
     ...row,
+    stage,
+    deliverables: row.deliverables ?? [],
     availableAt: asDate(row.availableAt),
     paidAt: asDate(row.paidAt),
     participant: {

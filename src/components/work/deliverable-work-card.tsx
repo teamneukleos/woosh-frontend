@@ -214,6 +214,7 @@ export function DeliverableWorkCard({
               <ActionForm
                 action={approveDeliverableAction}
                 successTitle="Deliverable approved"
+                successDescription="If this was the creator's final deliverable, their reserved payment is released after a 72-hour hold."
               >
                 <input
                   type="hidden"
@@ -221,6 +222,10 @@ export function DeliverableWorkCard({
                   value={deliverable.id}
                 />
                 <Button type="submit">Approve</Button>
+                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                  Approving the final deliverable schedules the creator&apos;s payout
+                  from the funds already reserved, after a 72-hour hold.
+                </p>
               </ActionForm>
             </>
           ) : null}
