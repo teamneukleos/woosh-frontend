@@ -18,6 +18,7 @@ import { ActionForm } from "@/components/ui/action-form";
 import { CreatorIntel } from "@/components/creator/creator-intel";
 import { ChannelMark } from "@/components/ui/social-icon";
 import { Avatar } from "@/components/ui/avatar";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { ApiError } from "@/lib/api";
 import {
   formatCompact,
@@ -161,18 +162,22 @@ export default async function CreatorDetailPage({
               >
                 <ul className="grid grid-cols-3 gap-3">
                   {prospect.recentPosts.slice(0, 3).map((post) => {
+                    const placeholder = (
+                      <span className="flex h-full items-center justify-center p-2 text-center text-xs text-[var(--text-muted)]">
+                        {post.mediaType === "VIDEO" ? "Video" : "Post"}
+                      </span>
+                    );
                     const inner = (
                       <>
                         {post.imageUrl ? (
-                          <img
+                          <RemoteImage
                             src={post.imageUrl}
                             alt=""
                             className="h-full w-full object-cover"
+                            fallback={placeholder}
                           />
                         ) : (
-                          <span className="flex h-full items-center justify-center p-2 text-center text-xs text-[var(--text-muted)]">
-                            {post.mediaType === "VIDEO" ? "Video" : "Post"}
-                          </span>
+                          placeholder
                         )}
                         {post.likeCount != null ? (
                           <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-xs text-white">
