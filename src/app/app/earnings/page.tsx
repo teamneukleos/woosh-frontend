@@ -11,6 +11,11 @@ import {
 import { auth } from "@/lib/auth";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { listCreatorEarnings } from "@/domains/payments/ledger";
+import {
+  EARNINGS_STAGE_LABEL,
+  summarizeEarnings,
+  type EarningsStage,
+} from "@/domains/payments/earnings";
 import { listCreatorDocuments } from "@/domains/payments/documents";
 import { listPayoutBanks } from "@/domains/payments/payout-account";
 import { api } from "@/lib/api";
@@ -152,6 +157,19 @@ function Disclosure({
   );
 }
 
+function releaseHeading(stage: EarningsStage) {
+  if (stage === "paid") return "Paid";
+  if (stage === "processing") return "Released";
+  return "Release";
+}
+
+function releaseValue(stage: EarningsStage, releaseAt: Date | null, paidAt: Date | null) {
+  if (stage === "paid") return paidAt ? formatDateTime(paidAt) : "Confirmed";
+  if (stage === "reserved") return "Starts when your final deliverable is approved";
+  if (stage === "attention") return "On hold until resolved";
+  return releaseAt ? formatDateTime(releaseAt) : "Scheduling";
+}
+
 export default async function EarningsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -170,23 +188,13 @@ export default async function EarningsPage() {
     listPayoutBanks(),
     listCreatorDocuments(),
   ]);
-  const sum = (statuses: string[]) =>
-    earnings
-      .filter((item) => statuses.includes(item.status))
-      .reduce((total, item) => total + Number(item.netAmount), 0);
+  // One API-computed stage per payment, so nothing is counted twice and reserved
+  // money is never included in earned totals.
+  const totals = summarizeEarnings(earnings);
   const now = new Date();
   const previousMonth = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
   );
-  const available = earnings
-    .filter(
-      (item) =>
-        item.status === "APPROVED" &&
-        !!item.availableAt &&
-        item.availableAt <= now,
-    )
-    .reduce((total, item) => total + Number(item.netAmount), 0);
-  const disputed = sum(["DISPUTED"]);
 
   return (
     <AppPage
@@ -200,32 +208,41 @@ export default async function EarningsPage() {
           className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--woosh-border)] bg-[var(--woosh-border)] shadow-[var(--shadow-soft)] lg:grid-cols-4"
         >
           <StatCell
-            label="Available"
-            value={`₦${available.toLocaleString()}`}
-            note="Ready for automatic payout"
-            noteClassName="text-[#087d62]"
+            label="Pending release"
+            value={`₦${totals.pending.toLocaleString()}`}
+            note="Approved, in the 72-hour hold"
           />
           <StatCell
             label="Processing"
-            value={`₦${sum(["PROCESSING"]).toLocaleString()}`}
-            note="With payout provider"
+            value={`₦${totals.processing.toLocaleString()}`}
+            note="Hold ended, being paid out"
           />
           <StatCell
-            label="In dispute"
-            value={`₦${disputed.toLocaleString()}`}
-            note="Temporarily frozen"
+            label="Paid"
+            value={`₦${totals.paid.toLocaleString()}`}
+            note="Confirmed by Paystack"
+            noteClassName="text-[#087d62]"
+          />
+          <StatCell
+            label="Needs attention"
+            value={`₦${totals.attention.toLocaleString()}`}
+            note="Failed, disputed or reversed · not paid"
             noteClassName={
-              disputed > 0
+              totals.attention > 0
                 ? "text-[var(--warning)]"
                 : "text-[var(--text-muted)]"
             }
           />
-          <StatCell
-            label="Lifetime paid"
-            value={`₦${sum(["PAID"]).toLocaleString()}`}
-            note="Net creator earnings"
-          />
         </section>
+        {totals.reserved > 0 ? (
+          <p className="rounded-xl border border-[var(--woosh-border)] bg-white px-4 py-3 text-sm text-[var(--text-secondary)]">
+            <span className="font-semibold text-[var(--woosh-navy)]">
+              ₦{totals.reserved.toLocaleString()} reserved
+            </span>{" "}
+            by brands for your accepted campaigns. Not yet earned: it moves to
+            Pending release when your final deliverable is approved.
+          </p>
+        ) : null}
 
         <Section
           title="Verified payout account"
@@ -335,8 +352,18 @@ export default async function EarningsPage() {
                         <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
                           {item.participant.campaign.brand.name}
                         </p>
+                        {item.deliverables.length ? (
+                          <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                            {item.deliverables
+                              .map((row) => row.title)
+                              .join(" · ")}
+                          </p>
+                        ) : null}
                       </div>
-                      <div className="shrink-0">
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="text-sm font-medium text-[var(--text-secondary)]">
+                          {EARNINGS_STAGE_LABEL[item.stage]}
+                        </span>
                         <StatusBadge status={item.status} />
                       </div>
                     </div>
@@ -371,12 +398,10 @@ export default async function EarningsPage() {
                       </div>
                       <div className="min-w-0 bg-white p-4">
                         <dt className="text-xs font-medium text-[var(--text-muted)]">
-                          Expected release
+                          {releaseHeading(item.stage)}
                         </dt>
                         <dd className="mt-1.5 text-sm font-semibold leading-6 text-[var(--woosh-navy)]">
-                          {item.availableAt
-                            ? formatDateTime(item.availableAt)
-                            : "After campaign completion"}
+                          {releaseValue(item.stage, item.availableAt, item.paidAt)}
                         </dd>
                       </div>
                     </dl>
