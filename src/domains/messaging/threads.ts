@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import { asDate } from "@/lib/nest";
+import type { ThreadOffer } from "@/domains/messaging/presentation";
 
 type NestThread = {
   id: string;
@@ -26,6 +27,8 @@ type NestConversation = {
     senderUserId: string | null;
     createdAt: string | Date;
     readAt: string | Date | null;
+    /** Set on system messages linked to an offer (e.g. a counter-offer). */
+    offer?: ThreadOffer | null;
   }>;
 };
 

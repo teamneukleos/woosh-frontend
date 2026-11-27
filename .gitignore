@@ -45,3 +45,6 @@ next-env.d.ts
 # local brand guideline exports (large)
 /docs/brand-previews/
 uploads/
+
+# Scraped/seed data must never ship in public/
+/public/*.csv

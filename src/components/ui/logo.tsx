@@ -44,7 +44,7 @@ export function Logo({
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/wuush-wordmark-dark.png"
+            src="/brand/woosh-wordmark-dark.png"
             alt=""
             width={dim.width}
             height={dim.height}

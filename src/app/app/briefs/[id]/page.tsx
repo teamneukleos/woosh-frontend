@@ -280,7 +280,10 @@ export default async function BriefDetailPage({
                         </Button>
                       </ActionForm>
 
-                      {app.offers[0] && app.offers[0].status !== "AGREED" ? (
+                      {/* Same rule as the backend: only the other party can agree to an open offer. */}
+                      {app.offers[0] &&
+                      ["OPEN", "COUNTERED"].includes(app.offers[0].status ?? "") &&
+                      app.offers[0].createdById !== session.user.id ? (
                         <ActionForm
                           action={acceptOfferAction}
                           successTitle="Offer marked agreed"

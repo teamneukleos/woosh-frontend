@@ -43,12 +43,6 @@ export function SettingsSections({
     weeklyDigest: boolean;
   };
 }) {
-  const [emailNotifications, setEmailNotifications] = useState(
-    notificationPreferences.emailNotifications,
-  );
-  const [weeklyDigest, setWeeklyDigest] = useState(
-    notificationPreferences.weeklyDigest,
-  );
   const defaultTab = hasCreator
     ? "profile"
     : organisation
@@ -171,47 +165,13 @@ export function SettingsSections({
           title="Notification preferences"
           description="Control optional email updates. Security and transactional messages are always delivered."
         >
-          <ActionForm
-            action={updateNotificationPreferencesAction}
-            successTitle="Notification preferences saved"
-            className="grid gap-5"
-          >
-            <label className="flex items-center justify-between gap-4 text-sm text-[var(--woosh-navy)]">
-              <span>
-                <span className="font-semibold">Email notifications</span>
-                <span className="mt-0.5 block text-[var(--text-secondary)]">
-                  Collaboration updates, deadlines and payment activity.
-                </span>
-              </span>
-              <Switch
-                name="emailNotifications"
-                checked={emailNotifications}
-                onCheckedChange={(checked) => {
-                  setEmailNotifications(checked);
-                  if (!checked) setWeeklyDigest(false);
-                }}
-                aria-label="Email notifications"
-              />
-            </label>
-            <label className="flex items-center justify-between gap-4 border-t border-[var(--woosh-border)] pt-5 text-sm text-[var(--woosh-navy)]">
-              <span>
-                <span className="font-semibold">Weekly digest</span>
-                <span className="mt-0.5 block text-[var(--text-secondary)]">
-                  A concise summary of applications, campaigns and payouts.
-                </span>
-              </span>
-              <Switch
-                name="weeklyDigest"
-                checked={weeklyDigest}
-                disabled={!emailNotifications}
-                onCheckedChange={setWeeklyDigest}
-                aria-label="Weekly digest"
-              />
-            </label>
-            <Button type="submit" className="w-fit">
-              Save preferences
-            </Button>
-          </ActionForm>
+          {/* Keyed on the saved values: React resets the form after the action and Radix
+              restores each switch to its mount-time value, so remount once the refreshed
+              preferences arrive. */}
+          <NotificationPreferencesForm
+            key={`${notificationPreferences.emailNotifications}:${notificationPreferences.weeklyDigest}`}
+            initial={notificationPreferences}
+          />
         </Panel>
       </TabsContent>
 
@@ -275,5 +235,60 @@ export function SettingsSections({
         </div>
       </TabsContent>
     </Tabs>
+  );
+}
+
+function NotificationPreferencesForm({
+  initial,
+}: {
+  initial: { emailNotifications: boolean; weeklyDigest: boolean };
+}) {
+  const [emailNotifications, setEmailNotifications] = useState(
+    initial.emailNotifications,
+  );
+  const [weeklyDigest, setWeeklyDigest] = useState(initial.weeklyDigest);
+
+  return (
+    <ActionForm
+      action={updateNotificationPreferencesAction}
+      successTitle="Notification preferences saved"
+      className="grid gap-5"
+    >
+      <label className="flex items-center justify-between gap-4 text-sm text-[var(--woosh-navy)]">
+        <span>
+          <span className="font-semibold">Email notifications</span>
+          <span className="mt-0.5 block text-[var(--text-secondary)]">
+            Collaboration updates, deadlines and payment activity.
+          </span>
+        </span>
+        <Switch
+          name="emailNotifications"
+          checked={emailNotifications}
+          onCheckedChange={(checked) => {
+            setEmailNotifications(checked);
+            if (!checked) setWeeklyDigest(false);
+          }}
+          aria-label="Email notifications"
+        />
+      </label>
+      <label className="flex items-center justify-between gap-4 border-t border-[var(--woosh-border)] pt-5 text-sm text-[var(--woosh-navy)]">
+        <span>
+          <span className="font-semibold">Weekly digest</span>
+          <span className="mt-0.5 block text-[var(--text-secondary)]">
+            A concise summary of applications, campaigns and payouts.
+          </span>
+        </span>
+        <Switch
+          name="weeklyDigest"
+          checked={weeklyDigest}
+          disabled={!emailNotifications}
+          onCheckedChange={setWeeklyDigest}
+          aria-label="Weekly digest"
+        />
+      </label>
+      <Button type="submit" className="w-fit">
+        Save preferences
+      </Button>
+    </ActionForm>
   );
 }
