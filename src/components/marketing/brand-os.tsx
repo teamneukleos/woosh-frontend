@@ -98,7 +98,7 @@ export function BrandOs() {
             image={marketingPhotos.osCreator}
             alt="Creator styled for a claimed Woosh storefront"
             objectPosition="center 18%"
-            frameTitle="wuush.app / storefront"
+            frameTitle="woosh.app / storefront"
             mock={<StorefrontMock />}
             priority
           />
@@ -109,7 +109,7 @@ export function BrandOs() {
             image={marketingPhotos.whoAgencies}
             alt="Team reviewing a funded creator campaign together"
             objectPosition="center 40%"
-            frameTitle="wuush.app / briefs"
+            frameTitle="woosh.app / briefs"
             mock={<BriefPipelineMock />}
             reverse
           />

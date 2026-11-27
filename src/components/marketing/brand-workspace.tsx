@@ -67,7 +67,7 @@ export function BrandWorkspace() {
                 </ul>
                 <div className="mkt-float lg:justify-self-end">
                   <ProductFrame
-                    title="wuush.app / campaigns"
+                    title="woosh.app / campaigns"
                     className="mkt-lift"
                   >
                     <WorkspaceMock />
