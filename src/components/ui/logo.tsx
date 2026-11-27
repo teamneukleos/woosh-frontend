@@ -56,7 +56,7 @@ export function Logo({
         <Image
           src={
             light
-              ? "/brand/woosh-wordmark-light.png"
+              ? "/brand/woosh-light.png"
               : "/brand/woosh-wordmark-dark.png"
           }
           alt="Woosh"
