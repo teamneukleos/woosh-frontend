@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
+import { expectedActionFailure } from "@/lib/action-result";
 import { setActiveBrandId } from "@/lib/brand-cookie";
 import { getWorkspaceContext } from "@/lib/workspace";
 import { createProspect } from "@/domains/creator/prospects";
@@ -373,17 +374,8 @@ export async function pipelineAction(formData: FormData) {
     try {
       await acceptApplication(applicationId, user.id!);
     } catch (error) {
-      if (
-        error instanceof ApiError &&
-        error.status === 400 &&
-        error.message.startsWith("Insufficient brand funds.")
-      ) {
-        return {
-          ok: false as const,
-          message: error.message,
-        };
-      }
-
+      const failure = expectedActionFailure(error, "Couldn't accept application");
+      if (failure) return failure;
       throw error;
     }
   }
@@ -407,10 +399,16 @@ export async function counterOfferAction(formData: FormData) {
 
 export async function acceptOfferAction(formData: FormData) {
   const user = await requireUser();
-  await acceptOffer({
-    offerId: String(formData.get("offerId")),
-    actorUserId: user.id!,
-  });
+  try {
+    await acceptOffer({
+      offerId: String(formData.get("offerId")),
+      actorUserId: user.id!,
+    });
+  } catch (error) {
+    const failure = expectedActionFailure(error, "Couldn't accept offer");
+    if (failure) return failure;
+    throw error;
+  }
   revalidatePath("/app/briefs");
   revalidatePath("/app/jobs");
   revalidatePath("/app/work");

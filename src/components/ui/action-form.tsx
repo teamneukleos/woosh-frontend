@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/toast";
 
 type ActionResult = {
   ok: false;
+  title?: string;
   message: string;
 };
 
@@ -66,7 +67,7 @@ export function ActionForm({
 
         if (result && result.ok === false) {
           toast({
-            title: "Insufficient funds",
+            title: result.title ?? "Couldn't complete that",
             description: result.message,
             tone: "error",
           });

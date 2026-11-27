@@ -125,3 +125,39 @@ export function formatDayLabel(date: Date) {
     month: "short",
   });
 }
+
+/** The offer linked to a system message in a thread (display only). */
+export type ThreadOffer = {
+  id: string;
+  status: string;
+  createdById: string;
+  createdBySide: "creator" | "brand" | null;
+  amount: number;
+  currency: string;
+};
+
+export type ThreadViewerSide = "creator" | "brand" | null;
+
+export function threadViewerSide(kind: string | undefined): ThreadViewerSide {
+  if (kind === "creator") return "creator";
+  if (kind === "brand" || kind === "agency") return "brand";
+  return null;
+}
+
+/**
+ * Whether the viewer may agree to this offer from the thread. Mirrors the backend rule
+ * (open offer, made by the other party); the backend still decides on submit.
+ */
+export function canAcceptThreadOffer(
+  offer: ThreadOffer | null | undefined,
+  viewer: { userId: string; side: ThreadViewerSide },
+) {
+  return Boolean(
+    offer &&
+      (offer.status === "OPEN" || offer.status === "COUNTERED") &&
+      offer.createdById !== viewer.userId &&
+      viewer.side !== null &&
+      offer.createdBySide !== null &&
+      offer.createdBySide !== viewer.side,
+  );
+}

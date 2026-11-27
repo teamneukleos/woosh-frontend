@@ -9,6 +9,7 @@ import {
 import { ThreadScroller } from "@/components/messages/thread-scroller";
 import { useConversationSocket } from "@/components/messages/use-conversation-socket";
 import type { RealtimeMessageEvent } from "@/lib/socket";
+import type { ThreadViewerSide } from "@/domains/messaging/presentation";
 
 function asDate(value: string | Date) {
   return value instanceof Date ? value : new Date(value);
@@ -35,9 +36,11 @@ export function LiveThread({
   initialMessages,
   joinIds,
   variant = "inbox",
+  viewerSide = null,
 }: {
   conversationId: string;
   currentUserId: string;
+  viewerSide?: ThreadViewerSide;
   initialMessages: Array<Omit<BubbleMessage, "createdAt"> & { createdAt: string | Date }>;
   joinIds?: string[];
   variant?: "inbox" | "campaign";
@@ -66,7 +69,11 @@ export function LiveThread({
   });
 
   const bubbles = (
-    <MessageBubbles currentUserId={currentUserId} messages={messages} />
+    <MessageBubbles
+      currentUserId={currentUserId}
+      messages={messages}
+      viewerSide={viewerSide}
+    />
   );
 
   if (variant === "campaign") {

@@ -16,8 +16,11 @@ export function useConversationSocket({
 }) {
   const onMessageRef = useRef(onMessage);
   const onReconnectRef = useRef(onReconnect);
-  onMessageRef.current = onMessage;
-  onReconnectRef.current = onReconnect;
+  // Keep the latest callbacks without reconnecting; socket events only fire after commit.
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onReconnectRef.current = onReconnect;
+  });
   const idsKey = conversationIds.join(",");
 
   useEffect(() => {

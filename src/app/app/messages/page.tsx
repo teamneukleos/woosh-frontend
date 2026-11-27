@@ -13,6 +13,7 @@ import {
   conversationTitle,
   conversationWorkHref,
   formatMessageTime,
+  threadViewerSide,
 } from "@/domains/messaging/presentation";
 import { EmptyState } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
@@ -183,7 +184,9 @@ export default async function MessagesPage({
                   senderUserId: message.senderUserId,
                   isSystem: message.isSystem,
                   createdAt: message.createdAt,
+                  offer: message.offer ?? null,
                 }))}
+                viewerSide={threadViewerSide(workspace?.kind)}
               />
               <MessageComposer conversationId={active.id} />
             </>

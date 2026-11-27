@@ -1,5 +1,15 @@
 import { cn } from "@/lib/cn";
-import { formatDayLabel, formatMessageStamp, sameDay } from "@/domains/messaging/presentation";
+import { acceptOfferAction } from "@/app/actions";
+import { ActionForm } from "@/components/ui/action-form";
+import { Button } from "@/components/ui/button";
+import {
+  canAcceptThreadOffer,
+  formatDayLabel,
+  formatMessageStamp,
+  sameDay,
+  type ThreadOffer,
+  type ThreadViewerSide,
+} from "@/domains/messaging/presentation";
 
 export type BubbleMessage = {
   id: string;
@@ -7,14 +17,17 @@ export type BubbleMessage = {
   senderUserId: string | null;
   isSystem: boolean;
   createdAt: Date;
+  offer?: ThreadOffer | null;
 };
 
 export function MessageBubbles({
   messages,
   currentUserId,
+  viewerSide = null,
 }: {
   messages: BubbleMessage[];
   currentUserId: string;
+  viewerSide?: ThreadViewerSide;
 }) {
   if (!messages.length) {
     return (
@@ -49,6 +62,25 @@ export function MessageBubbles({
               )}
             >
               <p className="whitespace-pre-wrap break-words">{message.body}</p>
+              {message.isSystem &&
+              message.offer &&
+              canAcceptThreadOffer(message.offer, {
+                userId: currentUserId,
+                side: viewerSide,
+              }) ? (
+                <ActionForm
+                  action={acceptOfferAction}
+                  successTitle="Offer accepted"
+                  successDescription="The other party has been notified of your agreement."
+                  className="mt-2 flex justify-center pb-0.5"
+                >
+                  <input type="hidden" name="offerId" value={message.offer.id} />
+                  <Button type="submit" size="sm">
+                    Accept {message.offer.amount.toLocaleString()}{" "}
+                    {message.offer.currency}
+                  </Button>
+                </ActionForm>
+              ) : null}
               {message.isSystem ? null : (
                 <time
                   dateTime={message.createdAt.toISOString()}
