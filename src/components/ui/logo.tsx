@@ -35,7 +35,7 @@ export function Logo({
         <span className="relative inline-flex items-center" style={{ height: dim.height }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/wuush-wordmark-light.png"
+            src="/brand/woosh-light.png"
             alt=""
             width={dim.width}
             height={dim.height}

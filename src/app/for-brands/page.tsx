@@ -160,7 +160,7 @@ export default function ForBrandsPage() {
               .
             </p>
           </div>
-          <ProductFrame title="wuush.app / campaign thread">
+          <ProductFrame title="woosh.app / campaign thread">
             <ThreadMock />
           </ProductFrame>
         </div>
