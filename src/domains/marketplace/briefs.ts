@@ -75,6 +75,17 @@ type NestBrief = {
     message?: string | null;
     creator?: { id: string; displayName: string } | null;
     prospect?: { id: string; handle: string; displayName: string | null } | null;
+    /** Brand view only: how an unclaimed creator is being reached. */
+    outreach?: {
+      state:
+        | "CLAIMED"
+        | "CONTACTED"
+        | "EMAIL_SENT"
+        | "AWAITING_OUTREACH"
+        | "EMAIL_UNCONFIRMED";
+      reason: "NO_EMAIL" | "EMAIL_FAILED" | null;
+      contactedAt: string | null;
+    } | null;
   }>;
   myApplication?: {
     id: string;

@@ -22,6 +22,11 @@ import {
   TD,
 } from "@/components/ui/table";
 import { formatHandle } from "@/lib/handle";
+import { InviteOutreachCell } from "@/components/admin/invite-outreach";
+import type {
+  AdminInviteClaimLink,
+  AdminInviteOutreach,
+} from "@/domains/trust/admin";
 import {
   adminApproveBriefAction,
   adminRejectBriefAction,
@@ -82,7 +87,10 @@ type BriefInviteRow = {
   needsManualOutreach: boolean;
   handle: string | null;
   contactEmail: string | null;
+  contactPhone?: string | null;
   profileUrl: string | null;
+  outreach?: AdminInviteOutreach | null;
+  claimLink?: AdminInviteClaimLink | null;
   brief: { id: string; title: string; status: string; distribution: string };
   brand: {
     id: string;
@@ -134,7 +142,7 @@ export function AdminOps({
         <Stat label="Prospects" value={String(prospectCount)} tone="brand" />
         <Stat label="In moderation" value={String(pending.length)} tone="brand" />
         <Stat
-          label="Invites to reach"
+          label="Awaiting outreach"
           value={String(outreachCount)}
           tone="brand"
         />
@@ -237,7 +245,7 @@ export function AdminOps({
                   <TH>Brand</TH>
                   <TH>Brief</TH>
                   <TH>Creator</TH>
-                  <TH>Reach</TH>
+                  <TH>Outreach</TH>
                   <TH>Status</TH>
                 </TR>
               </THead>
@@ -302,31 +310,22 @@ export function AdminOps({
                         </div>
                       </TD>
                       <TD>
-                        {row.needsManualOutreach ? (
-                          <div className="grid gap-1">
-                            <Badge tone="warn">manual</Badge>
-                            {row.profileUrl ? (
-                              <a
-                                href={row.profileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-xs font-medium text-[var(--woosh-blue)] hover:underline"
-                              >
-                                Open profile
-                              </a>
-                            ) : (
-                              <span className="text-xs text-[var(--woosh-dull)]/70">
-                                No profile URL
-                              </span>
-                            )}
-                          </div>
-                        ) : row.contactEmail ? (
-                          <a
-                            href={`mailto:${row.contactEmail}`}
-                            className="text-sm text-[var(--woosh-blue)] hover:underline"
-                          >
-                            {row.contactEmail}
-                          </a>
+                        {row.outreach ? (
+                          <InviteOutreachCell
+                            row={{
+                              id: row.id,
+                              message: row.message,
+                              handle: row.handle,
+                              contactEmail: row.contactEmail,
+                              contactPhone: row.contactPhone,
+                              profileUrl: row.profileUrl,
+                              outreach: row.outreach,
+                              claimLink: row.claimLink,
+                              brief: row.brief,
+                              brand: row.brand,
+                              creatorName: name,
+                            }}
+                          />
                         ) : (
                           <span className="text-xs text-[var(--woosh-dull)]/70">
                             In-app
@@ -344,7 +343,7 @@ export function AdminOps({
           ) : (
             <EmptyState
               title="No brief invites yet"
-              description="When a brand or agency invites a creator, it shows here so ops can follow up on unclaimed handles."
+              description="When a brand or agency invites a creator, it shows here. Unclaimed creators without an email wait here for the Woosh team to contact them."
             />
           )}
         </TabsContent>
