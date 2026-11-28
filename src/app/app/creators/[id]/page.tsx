@@ -239,7 +239,11 @@ export default async function CreatorDetailPage({
             {briefs.length ? (
               <Panel
                 title="Invite to brief"
-                description="They get a claim email with the brief summary. They must finish profile setup before they can take the work."
+                description={
+                  prospect.contactEmail
+                    ? "They get a claim email with the brief summary. They must finish profile setup before they can take the work."
+                    : "No email on file for this creator. The Woosh team contacts them and shares the claim link, so you don't need to reach out. They must finish profile setup before they can take the work."
+                }
               >
                 <ActionForm
                   action={inviteToBriefAction}

@@ -36,7 +36,10 @@ import {
   rejectBrief,
   verifyOrganisation,
   adminSeedProspects,
+  renewInviteClaimLink,
   setUserAdmin,
+  updateInviteOutreach,
+  type OutreachChannel,
   moderateCreatorMedia,
   moderateCreatorProfile,
 } from "@/domains/trust/admin";
@@ -53,6 +56,7 @@ import {
   requestPasswordReset,
   resetPassword,
   acceptTeamInvite,
+  type BriefInviteDelivery,
 } from "@/domains/organisation/invites";
 import {
   completeDevOAuth,
@@ -893,7 +897,7 @@ export async function inviteToBriefAction(formData: FormData) {
     : target.startsWith("prospect:")
       ? undefined
       : target || undefined;
-  await inviteToBrief({
+  const invite = await inviteToBrief({
     briefId: String(formData.get("briefId")),
     creatorProfileId,
     prospectId,
@@ -906,6 +910,38 @@ export async function inviteToBriefAction(formData: FormData) {
   revalidatePath("/app/creators");
   if (prospectId) {
     revalidatePath(`/app/creators/${prospectId}`);
+  }
+  return inviteDeliveryResult(invite.delivery);
+}
+
+/** Toast copy that says what actually happened to the invitation. */
+function inviteDeliveryResult(delivery: BriefInviteDelivery | undefined) {
+  switch (delivery?.channel) {
+    case "ADMIN_OUTREACH":
+      return {
+        ok: true as const,
+        title: "Invitation saved",
+        message:
+          "This creator has no email on file. The Woosh team will contact them and share the claim link. You don't need to reach out.",
+      };
+    case "EMAIL":
+      if (delivery.status === "sent") {
+        return {
+          ok: true as const,
+          title: "Invitation sent",
+          message: "We emailed the creator a link to claim their profile and view the brief.",
+        };
+      }
+      return {
+        ok: false as const,
+        title: "Invitation saved, but the email wasn't sent",
+        message:
+          delivery.status === "not_configured"
+            ? "Email isn't configured on this server, so nothing was sent. The Woosh team can follow up from the outreach queue."
+            : "Our email provider didn't accept the message. The Woosh team will follow up from the outreach queue.",
+      };
+    default:
+      return { ok: true as const, title: "Invitation sent" };
   }
 }
 
@@ -1144,6 +1180,48 @@ export async function adminRejectBriefAction(formData: FormData) {
     user.id!,
     String(formData.get("reason") || "") || undefined,
   );
+  revalidatePath("/app/admin");
+}
+
+const OUTREACH_CHANNELS: OutreachChannel[] = ["INSTAGRAM_DM", "TEXT", "EMAIL", "OTHER"];
+
+/** Admin confirms (or undoes) that they manually contacted an unclaimed creator. */
+export async function adminUpdateInviteOutreachAction(formData: FormData) {
+  const user = await requireUser();
+  const ctx = await getWorkspaceContext(user.id!);
+  if (!ctx?.user.isPlatformAdmin) throw new Error("Admin only");
+  const contacted = formData.get("contacted") === "1";
+  const channel = String(formData.get("channel") || "") as OutreachChannel;
+  if (contacted && !OUTREACH_CHANNELS.includes(channel)) {
+    return { ok: false as const, message: "Choose how you contacted the creator." };
+  }
+  try {
+    await updateInviteOutreach(String(formData.get("invitationId")), {
+      contacted,
+      ...(contacted ? { channel } : {}),
+      note: String(formData.get("note") || "").trim() || undefined,
+    });
+  } catch (error) {
+    return {
+      ok: false as const,
+      message: error instanceof Error ? error.message : "Couldn't update outreach.",
+    };
+  }
+  revalidatePath("/app/admin");
+}
+
+export async function adminRenewClaimLinkAction(formData: FormData) {
+  const user = await requireUser();
+  const ctx = await getWorkspaceContext(user.id!);
+  if (!ctx?.user.isPlatformAdmin) throw new Error("Admin only");
+  try {
+    await renewInviteClaimLink(String(formData.get("invitationId")));
+  } catch (error) {
+    return {
+      ok: false as const,
+      message: error instanceof Error ? error.message : "Couldn't create a claim link.",
+    };
+  }
   revalidatePath("/app/admin");
 }
 

@@ -5,11 +5,18 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
 
-type ActionResult = {
-  ok: false;
-  title?: string;
-  message: string;
-};
+type ActionResult =
+  | {
+      ok: false;
+      title?: string;
+      message: string;
+    }
+  | {
+      /** Success whose toast depends on what the server actually did. */
+      ok: true;
+      title?: string;
+      message?: string;
+    };
 
 type ServerAction = (
   formData: FormData,
@@ -75,8 +82,8 @@ export function ActionForm({
         }
 
         toast({
-          title: successTitle,
-          description: successDescription,
+          title: (result && result.title) || successTitle,
+          description: (result && result.message) || successDescription,
           tone: "success",
         });
 

@@ -24,7 +24,10 @@ export async function listBriefInvites() {
       needsManualOutreach: boolean;
       handle: string | null;
       contactEmail: string | null;
+      contactPhone?: string | null;
       profileUrl: string | null;
+      outreach?: AdminInviteOutreach | null;
+      claimLink?: AdminInviteClaimLink | null;
       brief: { id: string; title: string; status: string; distribution: string };
       brand: {
         id: string;
@@ -45,6 +48,49 @@ export async function listBriefInvites() {
     createdAt: asDate(row.createdAt) ?? new Date(0),
     viewedAt: asDate(row.viewedAt),
   }));
+}
+
+export type OutreachChannel = "INSTAGRAM_DM" | "TEXT" | "EMAIL" | "OTHER";
+
+export type AdminInviteOutreach = {
+  state:
+    | "CLAIMED"
+    | "CONTACTED"
+    | "EMAIL_SENT"
+    | "AWAITING_OUTREACH"
+    | "EMAIL_UNCONFIRMED";
+  reason: "NO_EMAIL" | "EMAIL_FAILED" | null;
+  contactedAt: string | null;
+  contactedBy: string | null;
+  channel: OutreachChannel | null;
+  note: string | null;
+  emailResult: "sent" | "failed" | "not_configured" | null;
+};
+
+export type AdminInviteClaimLink = {
+  state: "READY" | "EXPIRED" | "UNAVAILABLE" | "CLAIMED" | "MISSING";
+  url: string | null;
+  expiresAt: string | null;
+  canRenew: boolean;
+};
+
+/** Record that an admin manually contacted the creator (Woosh sends nothing). */
+export async function updateInviteOutreach(
+  invitationId: string,
+  input: { contacted: boolean; channel?: OutreachChannel; note?: string },
+) {
+  return api<AdminInviteOutreach>(
+    `/admin/briefs/invites/${encodeURIComponent(invitationId)}/outreach`,
+    { method: "POST", body: input },
+  );
+}
+
+/** New shareable claim link, only for expired or never-shown links. */
+export async function renewInviteClaimLink(invitationId: string) {
+  return api<AdminInviteClaimLink>(
+    `/admin/briefs/invites/${encodeURIComponent(invitationId)}/claim-link`,
+    { method: "POST" },
+  );
 }
 
 export async function listCreatorModeration() {

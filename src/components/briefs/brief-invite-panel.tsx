@@ -13,7 +13,33 @@ type Invited = {
   status: string;
   creator?: { id: string; displayName: string } | null;
   prospect?: { id: string; handle: string; displayName: string | null } | null;
+  outreach?: {
+    state: string;
+    reason: string | null;
+  } | null;
 };
+
+/** Honest label for an invitation to an unclaimed creator. */
+function outreachLabel(outreach: NonNullable<Invited["outreach"]>) {
+  switch (outreach.state) {
+    case "CLAIMED":
+      return { label: "Claimed", tone: "teal" as const };
+    case "CONTACTED":
+      return { label: "Contacted by Woosh", tone: "navy" as const };
+    case "EMAIL_SENT":
+      return { label: "Claim email sent", tone: "navy" as const };
+    case "AWAITING_OUTREACH":
+      return {
+        label:
+          outreach.reason === "EMAIL_FAILED"
+            ? "Email failed · Woosh will follow up"
+            : "Awaiting Woosh outreach",
+        tone: "warn" as const,
+      };
+    default:
+      return { label: "Invited", tone: "navy" as const };
+  }
+}
 
 type InviteOption = {
   id: string;
@@ -55,7 +81,7 @@ export function BriefInvitePanel({
           ? "Who this brand invited. Use Open profile from Moderation if you need to reach an unclaimed handle."
           : inviteOnly
           ? "This brief is not on the open marketplace. Claimed creators and unclaimed handles only see it after you invite them. Unclaimed accounts must finish profile setup before they can apply."
-          : "Invite a claimed creator or an unclaimed handle. Unclaimed accounts get a claim email and must finish profile setup before they can take the work."
+          : "Invite a claimed creator or an unclaimed handle. Unclaimed creators with an email get a claim email; the Woosh team contacts the rest for you. They must finish profile setup before they can take the work."
       }
     >
       {invited.length ? (
@@ -86,7 +112,18 @@ export function BriefInvitePanel({
                 ) : (
                   <span className="font-medium text-[var(--woosh-navy)]">{name}</span>
                 )}
-                <Badge tone="navy">{row.status.replaceAll("_", " ")}</Badge>
+                {(() => {
+                  // Once claimed, the invitation's own status (viewed, declined…) is the news.
+                  const outreach =
+                    row.outreach && !row.creatorProfileId
+                      ? outreachLabel(row.outreach)
+                      : null;
+                  return outreach ? (
+                    <Badge tone={outreach.tone}>{outreach.label}</Badge>
+                  ) : (
+                    <Badge tone="navy">{row.status.replaceAll("_", " ")}</Badge>
+                  );
+                })()}
               </li>
             );
           })}

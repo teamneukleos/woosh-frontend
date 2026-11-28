@@ -30,6 +30,12 @@ export async function acceptTeamInvite(input: { token: string; userId: string })
   });
 }
 
+/** How the backend delivered (or queued) a brief invitation. */
+export type BriefInviteDelivery =
+  | { channel: "IN_APP"; status: "sent" }
+  | { channel: "EMAIL"; status: "sent" | "failed" | "not_configured" }
+  | { channel: "ADMIN_OUTREACH"; status: "pending" };
+
 export async function inviteToBrief(input: {
   briefId: string;
   creatorProfileId?: string;
@@ -37,7 +43,8 @@ export async function inviteToBrief(input: {
   message?: string;
   actorUserId: string;
 }) {
-  return api(`/briefs/${input.briefId}/invites`, {
+  return api<{ id: string; status: string; delivery?: BriefInviteDelivery }>(
+    `/briefs/${input.briefId}/invites`, {
     method: "POST",
     body: {
       ...(input.creatorProfileId
