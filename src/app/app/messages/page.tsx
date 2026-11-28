@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, type LucideIcon } from "lucide-react";
@@ -14,6 +15,7 @@ import {
   conversationWorkHref,
   formatMessageTime,
   threadViewerSide,
+  type ThreadViewerSide,
 } from "@/domains/messaging/presentation";
 import { EmptyState } from "@/components/ui/panel";
 import { AppPage } from "@/components/ui/app-page";
@@ -23,6 +25,7 @@ import { cn } from "@/lib/cn";
 import { LiveInbox } from "@/components/messages/live-inbox";
 import { LiveThread } from "@/components/messages/live-thread";
 import { MessageComposer } from "@/components/messages/message-composer";
+import { ThreadLoading } from "@/components/messages/thread-loading";
 
 const STROKE = { light: 1.25, regular: 1.5 } as const;
 
@@ -47,6 +50,114 @@ function Glyph({
   );
 }
 
+/** Shown in the conversation panel when the requested thread is unavailable. */
+function ConversationNotFound() {
+  return (
+    <div className="flex flex-1 items-center justify-center p-8">
+      <EmptyState
+        title="Conversation not found"
+        description="It may have been removed, or you may not have access to it."
+        action={
+          <Link
+            href="/app/messages"
+            className="group inline-flex items-center gap-1 text-sm font-semibold text-[var(--woosh-blue)]"
+          >
+            <Glyph
+              icon={ArrowLeft}
+              size={16}
+              className="transition group-hover:-translate-x-0.5"
+            />
+            Back to inbox
+          </Link>
+        }
+      />
+    </div>
+  );
+}
+
+/**
+ * The open conversation (?c=). Rendered inside a Suspense boundary keyed by the
+ * conversation id, so ThreadLoading shows in this panel while it is fetched and the
+ * inbox beside it stays on screen.
+ */
+async function ActiveConversation({
+  id,
+  userId,
+  viewerIsCreator,
+  viewerSide,
+}: {
+  id: string;
+  userId: string;
+  viewerIsCreator: boolean;
+  viewerSide: ThreadViewerSide;
+}) {
+  const active = await getConversation(id, userId);
+  if (!active) return <ConversationNotFound />;
+
+  const activeTitle = conversationTitle(active);
+  const counterpart = conversationCounterpart(active, viewerIsCreator);
+  const workHref = conversationWorkHref(active, viewerIsCreator);
+  const kindLabel = conversationKindLabel[active.type] ?? active.type;
+
+  return (
+    <>
+      <header className="flex items-center gap-3 border-b border-[var(--woosh-border)] bg-white px-3 py-3 sm:px-4">
+        <Link
+          href="/app/messages"
+          title="Back to inbox (Esc)"
+          className="grid size-9 shrink-0 place-items-center rounded-full text-[var(--text-strong)] transition-colors hover:bg-[var(--surface-sunken)] focus-visible:outline-none focus-visible:bg-[var(--surface-sunken)]"
+          aria-label="Back to inbox"
+        >
+          <Glyph icon={ArrowLeft} size={18} />
+        </Link>
+        <Avatar name={counterpart} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="truncate text-sm font-semibold text-[var(--text-strong)]">
+              {activeTitle}
+            </h2>
+            {kindLabel ? (
+              <Badge tone="muted" className="shrink-0">
+                {kindLabel}
+              </Badge>
+            ) : null}
+          </div>
+          <p className="truncate text-xs text-[var(--text-muted)]">
+            {counterpart}
+          </p>
+        </div>
+        {workHref ? (
+          <Link
+            href={workHref}
+            className="group inline-flex shrink-0 items-center gap-0.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-xs font-medium text-[var(--woosh-blue)] transition-colors hover:bg-[var(--accent-soft)]"
+          >
+            Open work
+            <Glyph
+              icon={ChevronRight}
+              size={14}
+              className="transition group-hover:translate-x-0.5"
+            />
+          </Link>
+        ) : null}
+      </header>
+      <LiveThread
+        conversationId={active.id}
+        currentUserId={userId}
+        initialMessages={active.messages.map((message) => ({
+          id: message.id,
+          body: message.body,
+          senderUserId: message.senderUserId,
+          isSystem: message.isSystem,
+          createdAt: message.createdAt,
+          offer: message.offer ?? null,
+        }))}
+        viewerSide={viewerSide}
+      />
+      <MessageComposer conversationId={active.id} />
+    </>
+  );
+}
+
 export default async function MessagesPage({
   searchParams,
 }: {
@@ -59,9 +170,6 @@ export default async function MessagesPage({
   const viewerIsCreator = workspace?.kind === "creator";
   const { c } = await searchParams;
   const activeId = c;
-  const active = activeId
-    ? await getConversation(activeId, userId)
-    : null;
 
   const conversations = await listConversations(userId);
 
@@ -78,17 +186,6 @@ export default async function MessagesPage({
       unread: conversation.unreadCount > 0,
     };
   });
-
-  const activeTitle = active ? conversationTitle(active) : "Conversation";
-  const counterpart = active
-    ? conversationCounterpart(active, viewerIsCreator)
-    : "Conversation";
-  const workHref = active
-    ? conversationWorkHref(active, viewerIsCreator)
-    : null;
-  const kindLabel = active
-    ? (conversationKindLabel[active.type] ?? active.type)
-    : null;
 
   return (
     <AppPage
@@ -134,82 +231,17 @@ export default async function MessagesPage({
             c ? "flex" : "hidden",
           )}
         >
-          {active ? (
-            <>
-              <header className="flex items-center gap-3 border-b border-[var(--woosh-border)] bg-white px-3 py-3 sm:px-4">
-                <Link
-                  href="/app/messages"
-                  title="Back to inbox (Esc)"
-                  className="grid size-9 shrink-0 place-items-center rounded-full text-[var(--text-strong)] transition-colors hover:bg-[var(--surface-sunken)] focus-visible:outline-none focus-visible:bg-[var(--surface-sunken)]"
-                  aria-label="Back to inbox"
-                >
-                  <Glyph icon={ArrowLeft} size={18} />
-                </Link>
-                <Avatar name={counterpart} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold text-[var(--text-strong)]">
-                      {activeTitle}
-                    </h2>
-                    {kindLabel ? (
-                      <Badge tone="muted" className="shrink-0">
-                        {kindLabel}
-                      </Badge>
-                    ) : null}
-                  </div>
-                  <p className="truncate text-xs text-[var(--text-muted)]">
-                    {counterpart}
-                  </p>
-                </div>
-                {workHref ? (
-                  <Link
-                    href={workHref}
-                    className="group inline-flex shrink-0 items-center gap-0.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-xs font-medium text-[var(--woosh-blue)] transition-colors hover:bg-[var(--accent-soft)]"
-                  >
-                    Open work
-                    <Glyph
-                      icon={ChevronRight}
-                      size={14}
-                      className="transition group-hover:translate-x-0.5"
-                    />
-                  </Link>
-                ) : null}
-              </header>
-              <LiveThread
-                conversationId={active.id}
-                currentUserId={userId}
-                initialMessages={active.messages.map((message) => ({
-                  id: message.id,
-                  body: message.body,
-                  senderUserId: message.senderUserId,
-                  isSystem: message.isSystem,
-                  createdAt: message.createdAt,
-                  offer: message.offer ?? null,
-                }))}
+          {c ? (
+            <Suspense key={c} fallback={<ThreadLoading />}>
+              <ActiveConversation
+                id={c}
+                userId={userId}
+                viewerIsCreator={viewerIsCreator}
                 viewerSide={threadViewerSide(workspace?.kind)}
               />
-              <MessageComposer conversationId={active.id} />
-            </>
+            </Suspense>
           ) : (
-            <div className="flex flex-1 items-center justify-center p-8">
-              <EmptyState
-                title="Conversation not found"
-                description="It may have been removed, or you may not have access to it."
-                action={
-                  <Link
-                    href="/app/messages"
-                    className="group inline-flex items-center gap-1 text-sm font-semibold text-[var(--woosh-blue)]"
-                  >
-                    <Glyph
-                      icon={ArrowLeft}
-                      size={16}
-                      className="transition group-hover:-translate-x-0.5"
-                    />
-                    Back to inbox
-                  </Link>
-                }
-              />
-            </div>
+            <ConversationNotFound />
           )}
         </section>
       </div>
